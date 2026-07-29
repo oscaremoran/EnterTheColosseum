@@ -6,20 +6,29 @@
 <title>Enter The Colosseum</title>
 <style>
   :root {
-    --bg: #0e0e12;
-    --grid: #191922;
-    --safe: #4dd7ff;
-    --danger: #ff3b3b;
-    --warn: #ffd23b;
-    --text: #e8e8ef;
-    --muted: #8a8a9a;
+    /* Roman: night sand, travertine, bronze, imperial purple, blood red */
+    --bg: #141009;
+    --grid: #241c12;
+    --safe: #4dd7ff;          /* aegean — the damage zone */
+    --danger: #e0301f;        /* blood */
+    --warn: #f0b429;          /* torchlight gold */
+    --text: #f2e7d2;          /* parchment */
+    --muted: #a08f76;         /* weathered stone */
+    --stone: #1d1710;         /* panel fill */
+    --stone2: #251d14;        /* raised panel */
+    --bronze: #6b4f2a;        /* borders */
+    --gold: #d9a441;
+    --purple: #6b3f8f;
+    --serif: "Trajan Pro", Optima, "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     min-height: 100%;
-    background: var(--bg);
+    background:
+      radial-gradient(ellipse at 50% 0%, #2a2013 0%, rgba(20,16,9,0) 62%),
+      var(--bg);
     color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: Optima, "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -36,9 +45,11 @@
     width: 100%;
     height: 100%;
     display: block;
-    border-radius: 14px;
+    border-radius: 10px;
     background: var(--bg);
-    box-shadow: 0 0 0 1px #23232e, 0 20px 60px rgba(0,0,0,0.5);
+    /* a bronze rim around the arena */
+    box-shadow: 0 0 0 2px #3c2c17, 0 0 0 4px #6b4f2a, 0 0 34px rgba(217,164,65,0.12),
+                0 24px 60px rgba(0,0,0,0.6);
   }
   .screen {
     position: absolute;
@@ -51,32 +62,64 @@
     padding: 24px;
     gap: 18px;
     overflow-y: auto;          /* and each screen scrolls inside the arena */
-    background: rgba(14, 14, 18, 0.82);
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(60,44,23,0.55) 0%, rgba(0,0,0,0) 60%),
+      rgba(16, 12, 7, 0.88);
     backdrop-filter: blur(3px);
-    border-radius: 14px;
+    border-radius: 10px;
   }
   .screen.hidden { display: none; }
   h1 {
-    font-size: clamp(28px, 6vw, 48px);
+    font-family: var(--serif);
+    font-size: clamp(26px, 5.4vw, 44px);
     font-weight: 700;
-    letter-spacing: -0.5px;
+    letter-spacing: 5px;
+    text-transform: uppercase;
+    line-height: 1.15;
+    color: #f6ecd6;
+    text-shadow: 0 2px 0 rgba(0,0,0,.55), 0 0 26px rgba(217,164,65,.22);
   }
-  h1 .accent { color: var(--danger); }
-  h2 { font-size: clamp(22px, 5vw, 34px); font-weight: 700; }
+  h1 .accent {
+    color: var(--gold);
+    background: linear-gradient(180deg, #f6dc9a 0%, #d9a441 55%, #a97a24 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  /* laurel-ish rule under the title */
+  h1::after {
+    content: "❦";
+    display: block; margin-top: 10px;
+    font-size: 15px; letter-spacing: 0; color: var(--bronze);
+    -webkit-text-fill-color: var(--bronze);
+  }
+  h2 {
+    font-family: var(--serif);
+    font-size: clamp(20px, 4.4vw, 30px); font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+  }
   p.sub { color: var(--muted); font-size: clamp(13px, 2.6vw, 16px); max-width: 34ch; line-height: 1.55; }
-  .stat { color: var(--safe); font-weight: 600; font-size: clamp(15px, 3vw, 19px); }
+  .stat { color: var(--gold); font-family: var(--serif); font-weight: 600; letter-spacing: 1.5px; font-size: clamp(15px, 3vw, 19px); }
   .btnrow { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
   button {
-    font: inherit; font-weight: 600; color: var(--text);
-    background: #1c1c26; border: 1px solid #2e2e3c;
-    padding: 12px 20px; border-radius: 10px; cursor: pointer;
-    transition: transform .08s ease, border-color .15s ease, background .15s ease;
+    font: inherit; font-weight: 700; color: var(--text);
+    font-family: var(--serif); letter-spacing: 1.4px;
+    background: linear-gradient(180deg, #2a2016 0%, #1c150d 100%);
+    border: 1px solid var(--bronze);
+    padding: 11px 20px; border-radius: 4px; cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(217,164,65,0.14);
+    transition: transform .08s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
   }
-  button:hover { border-color: var(--safe); background: #22222f; }
+  button:hover {
+    border-color: var(--gold); background: linear-gradient(180deg, #362818 0%, #241a10 100%);
+    box-shadow: inset 0 1px 0 rgba(217,164,65,0.22), 0 0 14px rgba(217,164,65,0.16);
+  }
   button:active { transform: translateY(1px); }
-  button.primary { border-color: var(--safe); }
+  button.primary {
+    border-color: var(--gold); color: #ffeec2;
+    box-shadow: inset 0 1px 0 rgba(255,220,150,0.28), 0 0 16px rgba(217,164,65,0.18);
+  }
   #campaignRow button { padding: 9px 18px; }
-  #campaignRow button.on { border-color: currentColor; background: #23232f; }
+  #campaignRow button.on { border-color: currentColor; background: linear-gradient(180deg, #3a2b18 0%, #251b10 100%); }
   #campaignRow button .cname { font-weight: 700; }
   #campaignRow button .csub { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
   .hint { color: var(--muted); font-size: 13px; }
@@ -94,29 +137,31 @@
   }
   #hud .label { color: var(--muted); font-weight: 500; margin-right: 6px; }
   #hud.hidden { display: none; }
-  #hudStageName { color: var(--danger); }
+  #hudStageName { color: var(--gold); font-family: var(--serif); letter-spacing: 1.5px; }
   /* Stage progress pips */
   #pips { display: flex; gap: 5px; margin-top: 6px; }
   #pips i {
-    width: 15px; height: 5px; border-radius: 3px; background: #2a2a38; display: block;
+    width: 15px; height: 5px; border-radius: 1px; background: #3a2c1a; display: block;
   }
-  #pips i.done { background: var(--danger); }
+  #pips i.done { background: var(--gold); }
   #pips i.active { background: var(--safe); }
   /* Group heading above each boss's block of battles */
   .grouphead {
     display: flex; align-items: center; gap: 9px; width: 100%; max-width: 460px;
-    font-size: 11px; letter-spacing: 2.2px; font-weight: 800; margin-top: 4px;
+    font-family: var(--serif);
+    font-size: 11px; letter-spacing: 3px; font-weight: 800; margin-top: 4px;
+    text-transform: uppercase;
   }
   .grouphead::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: .28; }
   /* Tabs */
-  .tabs { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; border-bottom: 1px solid #26263300; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
   .tabs button {
-    padding: 8px 14px; font-size: 13px; border-radius: 9px 9px 0 0;
+    padding: 8px 14px; font-size: 13px; border-radius: 4px 4px 0 0;
     background: transparent; border: 1px solid transparent; border-bottom: 2px solid transparent;
-    color: var(--muted);
+    color: var(--muted); box-shadow: none;
   }
-  .tabs button:hover { background: #1c1c26; color: var(--text); border-color: transparent; }
-  .tabs button.on { color: var(--text); background: #1c1c26; border-bottom-color: var(--safe); }
+  .tabs button:hover { background: var(--stone2); color: var(--text); border-color: transparent; box-shadow: none; }
+  .tabs button.on { color: #ffeec2; background: var(--stone2); border-bottom-color: var(--gold); box-shadow: none; }
   .tabpanel { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
   .tabpanel.hidden { display: none; }
   /* Library + boss editor */
@@ -124,25 +169,87 @@
   .liblist { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 460px; }
   .libitem {
     display: flex; align-items: center; gap: 10px; text-align: left;
-    background: #17171f; border: 1px solid #2a2a38; border-radius: 10px; padding: 10px 12px;
+    background: linear-gradient(180deg, #221a11 0%, #1a140c 100%);
+    border: 1px solid #3a2c1a; border-left: 3px solid var(--bronze);
+    border-radius: 4px; padding: 10px 12px;
   }
   .libitem .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; align-self: flex-start; margin-top: 6px; }
   .libitem .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-  .libitem .nm { font-weight: 700; font-size: 15px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .libitem .nm {
+    font-family: var(--serif); font-weight: 700; font-size: 15px; letter-spacing: 1.2px;
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  }
   .libitem .diff { font-size: 10px; letter-spacing: 1px; }
-  .libitem .tick { color: var(--safe); font-size: 11px; font-weight: 600; }
+  .libitem .tick { color: var(--gold); font-size: 11px; font-weight: 600; }
   .libitem .blurb { color: var(--text); font-size: 12.5px; line-height: 1.45; }
   .libitem .sub2 { color: var(--muted); font-size: 11.5px; }
   .libitem button { padding: 7px 12px; font-size: 12px; align-self: center; flex: none; }
-  .divider { width: 100%; max-width: 460px; height: 1px; background: #26263a; margin: 2px 0; }
+  /* Vault */
+  #vaultRow { display: flex; gap: 8px; width: 100%; max-width: 340px; }
+  #vaultRow input {
+    flex: 1; min-width: 0; text-align: center;
+    font-family: var(--serif); font-size: 15px; letter-spacing: 4px; text-transform: uppercase;
+    padding: 10px 9px;
+  }
+  #purse {
+    display: flex; align-items: baseline; gap: 7px;
+    font-family: var(--serif); font-size: 22px; font-weight: 700; letter-spacing: 2px;
+    color: var(--gold); text-shadow: 0 0 18px rgba(217,164,65,.25);
+  }
+  #purse .coin { font-size: 15px; }
+  #purse .unit { font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+  .price { color: var(--gold); font-size: 11px; letter-spacing: 1px; font-weight: 700; }
+  .codeout {
+    font-family: ui-monospace, Menlo, monospace; font-size: 12px; letter-spacing: 2px;
+    color: var(--gold); background: #17110a; border: 1px dashed var(--bronze);
+    border-radius: 3px; padding: 2px 7px; display: inline-block; margin-top: 3px;
+  }
+  #vaultMsg, #shopMsg { font-size: 13px; min-height: 1.4em; font-weight: 600; }
+  #vaultMsg.good, #shopMsg.good { color: var(--gold); }
+  #vaultMsg.bad, #shopMsg.bad { color: var(--danger); }
+  #prizeList .libitem { align-items: flex-start; }
+  #wipeBtn.arm { border-color: var(--danger); color: #ff9a8c; }
+  /* Collapsible section (the Battles list) */
+  .fold { width: 100%; max-width: 460px; }
+  .fold > summary {
+    list-style: none; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--serif); font-weight: 700; letter-spacing: 2.4px; text-transform: uppercase;
+    font-size: 13px; padding: 10px 13px;
+    background: linear-gradient(180deg, #2a2016 0%, #1c150d 100%);
+    border: 1px solid var(--bronze); border-radius: 4px;
+    box-shadow: inset 0 1px 0 rgba(217,164,65,0.14);
+  }
+  .fold > summary::-webkit-details-marker { display: none; }
+  .fold > summary:hover { border-color: var(--gold); }
+  .fold .foldsub {
+    margin-left: auto; color: var(--muted); font-size: 11px;
+    letter-spacing: 1.2px; font-weight: 600; text-transform: none;
+  }
+  .fold .foldmark { color: var(--gold); font-size: 11px; transition: transform .15s ease; }
+  .fold[open] .foldmark { transform: rotate(90deg); }
+  .fold > .sub { margin: 12px auto 0; }
+  .fold > .liblist { margin-top: 10px; }
+  /* Sealed battles */
+  .libitem.locked { opacity: .55; border-left-color: #2a2016; }
+  .libitem.locked .nm, .libitem.locked .blurb { color: var(--muted); }
+  button.lockbtn {
+    color: var(--muted); border-color: #3a2c1a; cursor: default;
+    background: #17110a; box-shadow: none; font-size: 12px; padding: 7px 12px;
+  }
+  button.lockbtn:hover { border-color: #3a2c1a; background: #17110a; box-shadow: none; }
+  .divider {
+    width: 100%; max-width: 460px; height: 1px; margin: 4px 0;
+    background: linear-gradient(90deg, rgba(107,79,42,0) 0%, var(--bronze) 50%, rgba(107,79,42,0) 100%);
+  }
   .libempty { color: var(--muted); font-size: 13px; padding: 6px 10px; }
   .editrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .editrow label, .stagerow label { color: var(--muted); font-size: 12px; font-weight: 600; }
   input, select {
-    font: inherit; font-size: 13px; color: var(--text); background: #17171f;
-    border: 1px solid #2e2e3c; border-radius: 8px; padding: 7px 9px;
+    font: inherit; font-size: 13px; color: var(--text); background: #17110a;
+    border: 1px solid #3a2c1a; border-radius: 4px; padding: 7px 9px;
   }
-  input:focus, select:focus { outline: none; border-color: var(--safe); }
+  input:focus, select:focus { outline: none; border-color: var(--gold); }
   /* ---- Level editor ---- */
   #editor { gap: 14px; }
   .edithead {
@@ -151,28 +258,29 @@
   }
   .editbar {
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
-    width: 100%; max-width: 520px; background: #15151d; border: 1px solid #26263a;
-    border-radius: 12px; padding: 11px 14px;
+    width: 100%; max-width: 520px; background: var(--stone); border: 1px solid #3a2c1a;
+    border-radius: 4px; padding: 11px 14px;
   }
   .editbar .grow { flex: 1; min-width: 120px; }
   .swatches { display: flex; gap: 6px; }
   .swatch {
-    width: 22px; height: 22px; border-radius: 7px; cursor: pointer; padding: 0;
-    border: 2px solid transparent; background-clip: padding-box;
+    width: 22px; height: 22px; border-radius: 3px; cursor: pointer; padding: 0;
+    border: 2px solid transparent; background-clip: padding-box; box-shadow: none;
   }
-  .swatch.on { border-color: var(--text); transform: scale(1.12); }
-  .swatch:hover { border-color: #6a6a86; }
+  .swatch.on { border-color: var(--gold); transform: scale(1.12); }
+  .swatch:hover { border-color: var(--bronze); box-shadow: none; }
   /* Stage cards */
   .stagerows { display: flex; flex-direction: column; gap: 9px; width: 100%; max-width: 520px; }
   .stagerow {
     display: grid; gap: 8px 10px; align-items: center;
     grid-template-columns: 22px 1fr auto;
-    background: #15151d; border: 1px solid #2a2a38; border-left: 3px solid #2a2a38;
-    border-radius: 11px; padding: 10px 12px;
+    background: var(--stone); border: 1px solid #3a2c1a; border-left: 3px solid var(--bronze);
+    border-radius: 4px; padding: 10px 12px;
   }
   .stagerow .num {
-    color: var(--bg); background: var(--muted); font-weight: 800; font-size: 11px;
-    width: 21px; height: 21px; border-radius: 6px; display: grid; place-items: center;
+    color: #17110a; background: linear-gradient(180deg, #e2b45a 0%, #a97a24 100%);
+    font-family: var(--serif); font-weight: 800; font-size: 11px;
+    width: 21px; height: 21px; border-radius: 3px; display: grid; place-items: center;
   }
   .stagerow select { width: 100%; min-width: 0; }
   .stagerow .ops { display: flex; gap: 4px; }
@@ -180,12 +288,12 @@
   /* Second line of a card: the numeric knobs */
   .knobs {
     grid-column: 1 / -1; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
-    border-top: 1px dashed #2a2a38; padding-top: 9px;
+    border-top: 1px dashed #3a2c1a; padding-top: 9px;
   }
   .knob { display: flex; align-items: center; gap: 6px; }
   .knob label { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .4px; }
   .knob input[type=number] { width: 60px; }
-  .knob input[type=range] { width: 84px; accent-color: var(--safe); }
+  .knob input[type=range] { width: 84px; accent-color: var(--gold); }
   .knob .val {
     color: var(--text); font-size: 11.5px; font-weight: 700; width: 34px;
     font-variant-numeric: tabular-nums;
@@ -193,15 +301,15 @@
   .knob.chk { color: var(--muted); font-size: 12px; cursor: pointer; }
   /* Live summary of what the level will play like */
   .editsummary {
-    width: 100%; max-width: 520px; background: #131319; border: 1px solid #26263a;
-    border-radius: 11px; padding: 11px 14px; display: flex; flex-direction: column; gap: 5px;
+    width: 100%; max-width: 520px; background: #17110a; border: 1px solid #3a2c1a;
+    border-radius: 4px; padding: 11px 14px; display: flex; flex-direction: column; gap: 5px;
   }
   .editsummary .chain { font-size: 13px; font-weight: 700; line-height: 1.6; }
   .editsummary .chain span { color: var(--muted); font-weight: 500; }
   .editsummary .facts { color: var(--muted); font-size: 11.5px; }
   #shareRow { width: 100%; max-width: 520px; display: flex; gap: 8px; align-items: center; }
   #shareRow input { flex: 1; min-width: 0; font-size: 11.5px; font-family: ui-monospace, Menlo, monospace; }
-  #shareMsg { color: var(--safe); font-size: 12px; min-height: 1.3em; }
+  #shareMsg { color: var(--gold); font-size: 12px; min-height: 1.3em; }
   .hidden { display: none; }
 </style>
 </head>
@@ -224,6 +332,8 @@
       <div class="tabs" id="tabs">
         <button data-tab="play" class="on">Play</button>
         <button data-tab="library">Library</button>
+        <button data-tab="horreum">Horreum</button>
+        <button data-tab="vault">Vault</button>
         <button data-tab="help">How to Play</button>
       </div>
 
@@ -238,28 +348,38 @@
 
         <div class="divider"></div>
 
-        <p class="sub"><b style="color:var(--text)">Battles</b> — all <b style="color:var(--text)">14</b> forms, each on its own. Fight them in any order.</p>
-        <div id="battleList" class="liblist"></div>
+        <p class="sub"><b style="color:var(--text)">Battles</b> — single forms, fought on their own. Each stays sealed until you put it down inside its boss's run.</p>
+        <details class="fold" data-fold="inferno">
+          <summary>
+            <span class="foldname" data-foldname="inferno">Vulcan</span>
+            <span class="foldsub" data-foldcount="inferno">0 / 7 unlocked</span>
+            <span class="foldmark">▸</span>
+          </summary>
+          <div class="liblist" data-battlelist="inferno"></div>
+        </details>
+        <details class="fold" data-fold="void">
+          <summary>
+            <span class="foldname" data-foldname="void">Nox</span>
+            <span class="foldsub" data-foldcount="void">0 / 7 unlocked</span>
+            <span class="foldmark">▸</span>
+          </summary>
+          <div class="liblist" data-battlelist="void"></div>
+        </details>
 
         <div class="divider"></div>
 
-        <p class="sub">Or take one boss end to end — pick which, then fight all seven of its forms straight through, or start from a stage of your choosing.</p>
+        <p class="sub">Or take one boss end to end — pick which, then fight all seven of its forms straight through.</p>
         <div class="btnrow" id="campaignRow"></div>
         <div class="stages" id="stageList"></div>
         <div class="btnrow">
           <button data-mode="boss" id="bossBtn">Boss Fight · 7 Stages</button>
-          <button id="customToggle">Custom Start</button>
-        </div>
-        <div id="custom" class="hidden">
-          <p class="hint" style="margin-bottom:8px">Pick the stage to start from (play through to the end):</p>
-          <div class="btnrow" id="customRow"></div>
         </div>
         <p class="sub" style="margin-top:2px">From stage 3 on, red <b style="color:var(--text)">minions</b> also fade in (yellow warning first) — dodge them too.</p>
       </div>
 
       <!-- Library -->
       <div class="tabpanel hidden" data-panel="library">
-        <p class="sub">Built levels: fixed runs that chain patterns the two campaigns never put together. Difficulty is the dot rating.</p>
+        <p class="sub">Built levels: fixed runs that chain patterns the two campaigns never put together. Each opens once you've beaten every form it uses. The rank beside the name is how hard it hits.</p>
         <div id="libList" class="liblist"></div>
         <div class="divider"></div>
         <p class="sub"><b style="color:var(--text)">Your levels</b> — build your own out of any of the 14 patterns.</p>
@@ -267,6 +387,34 @@
         <div class="btnrow">
           <button class="primary" id="newLevelBtn">New Level</button>
         </div>
+        <p class="hint" id="editorLock"></p>
+      </div>
+
+      <!-- Horreum -->
+      <div class="tabpanel hidden" data-panel="horreum">
+        <p class="sub">The granary under the stands, where the codes are kept. Win fights, earn denarii, buy what's on the shelf — then take the code to the Vault.</p>
+        <div id="purse"><span class="coin">✦</span><span id="purseNum">0</span> <span class="unit">denarii</span></div>
+        <p class="hint">A clear pays its rank: Tiro 1, up to Primus Palus 5. A full boss run pays every form it contains, doubled. Easy pays half, Hard pays triple. Practice pays nothing.</p>
+        <div id="shopList" class="liblist"></div>
+        <p id="shopMsg"></p>
+      </div>
+
+      <!-- Vault -->
+      <div class="tabpanel hidden" data-panel="vault">
+        <p class="sub">The vault under the arena. Codes go in, prizes come out.</p>
+        <div id="vaultRow">
+          <input id="codeInput" maxlength="24" placeholder="Enter a code" spellcheck="false" autocomplete="off">
+          <button class="primary" id="redeemBtn">Redeem</button>
+        </div>
+        <p id="vaultMsg"></p>
+        <div class="divider"></div>
+        <p class="sub"><b style="color:var(--text)">Claimed</b></p>
+        <div id="prizeList" class="liblist"></div>
+        <div class="divider"></div>
+        <div class="btnrow">
+          <button id="wipeBtn">Clear All Progress</button>
+        </div>
+        <p class="hint" id="wipeHint">Wipes clears, best times and unlocked forms. Levels you built stay put.</p>
       </div>
 
       <!-- How to play -->
@@ -366,7 +514,6 @@
   const editFacts = document.getElementById("editFacts");
   const shareCode = document.getElementById("shareCode");
   const shareMsg = document.getElementById("shareMsg");
-  const battleList = document.getElementById("battleList");
   const againBtn = document.getElementById("againBtn");
   const endTitle = document.getElementById("endTitle");
   const endStat = document.getElementById("endStat");
@@ -374,11 +521,18 @@
 
   const COLORS = {
     safe: "#4dd7ff",
-    danger: "#ff3b3b",
-    warn: "#ffd23b",
-    dangerSoft: "rgba(255,59,59,0.22)",
-    grid: "#191922",
+    danger: "#e0301f",          // blood
+    warn: "#f0b429",            // torchlight
+    dangerSoft: "rgba(224,48,31,0.22)",
+    grid: "#241c12",            // joint lines between paving stones
+    sand: "#2b2114",            // arena floor
+    sandLit: "#3a2c1a",
+    stone: "#1a140d",           // the wall ringing the sand
+    bronze: "#6b4f2a",
+    gold: "#d9a441",
   };
+  // Serif everywhere on the canvas too, to match the chrome.
+  const FONT = 'Optima, "Palatino Linotype", Palatino, Georgia, serif';
 
   // ---- Powerups ----
   // Colored pickup circles. Never red — red is always lethal.
@@ -399,31 +553,31 @@
   // hp = damage you must deal (via the blue zone) to clear the stage.
   const CAMPAIGNS = {
     inferno: {
-      name: "Inferno",
-      sub: "Hades and his seven trials",
+      name: "Vulcan",
+      sub: "the forge-god and his seven trials",
       accent: "#ff5a2b",
       stages: [
-        { name: "Pursuer", key: "pursuer", hp: 45, desc: "stalks you, jabs & fans" },
-        { name: "Nova",    key: "nova",    hp: 60, desc: "blooming rings with escape gaps" },
-        { name: "Charger", key: "charger", hp: 55, desc: "telegraphs, then dashes" },
-        { name: "Spiral",  key: "spiral",  hp: 50, desc: "a galaxy that reverses its spin" },
-        { name: "Gatling", key: "gatling", hp: 50, desc: "orbits, then locks on & focus-fires" },
-        { name: "Lattice", key: "lattice", hp: 85, desc: "spinning lines of darts" },
-        { name: "Hades",   key: "hades",   hp: 95, desc: "final boss: curling flames + volleys", final: true },
+        { name: "Venator", key: "pursuer", hp: 45, desc: "stalks you, jabs & fans" },
+        { name: "Vesuvius",key: "nova",    hp: 60, desc: "blooming rings with escape gaps" },
+        { name: "Taurus",  key: "charger", hp: 55, desc: "telegraphs, then dashes" },
+        { name: "Vortex",  key: "spiral",  hp: 50, desc: "a whirlwind that reverses its spin" },
+        { name: "Ballista",key: "gatling", hp: 50, desc: "orbits, then locks on & focus-fires" },
+        { name: "Testudo", key: "lattice", hp: 85, desc: "spinning ranks of darts" },
+        { name: "Vulcan",  key: "hades",   hp: 95, desc: "final boss: curling forge-flames + volleys", final: true },
       ],
     },
     void: {
-      name: "Void",
-      sub: "the collapsing star",
+      name: "Nox",
+      sub: "the goddess of night, closing in",
       accent: "#7b5cff",
       stages: [
-        { name: "Weaver",  key: "weaver",  hp: 45, desc: "sways across the top, firing paired shots" },
-        { name: "Mirror",  key: "mirror",  hp: 55, desc: "shoots from itself and its reflection" },
-        { name: "Pulsar",  key: "pulsar",  hp: 55, desc: "sits dead center, pulsing gapped rings" },
-        { name: "Serpent", key: "serpent", hp: 55, desc: "a snaking stream that whips side to side" },
-        { name: "Cross",   key: "cross",   hp: 55, desc: "two counter-rotating cross beams" },
-        { name: "Swarm",   key: "swarm",   hp: 60, desc: "light fire, but minions flood in" },
-        { name: "Void",    key: "void",    hp: 95, desc: "final boss: the arena implodes inward", final: true },
+        { name: "Parca",   key: "weaver",  hp: 45, desc: "sways across the top, firing paired shots" },
+        { name: "Gemini",  key: "mirror",  hp: 55, desc: "shoots from itself and its reflection" },
+        { name: "Sol",     key: "pulsar",  hp: 55, desc: "sits dead center, pulsing gapped rings" },
+        { name: "Serpens", key: "serpent", hp: 55, desc: "a snaking stream that whips side to side" },
+        { name: "Crux",    key: "cross",   hp: 55, desc: "two counter-rotating cross beams" },
+        { name: "Legio",   key: "swarm",   hp: 60, desc: "light fire, but minions flood in" },
+        { name: "Nox",     key: "void",    hp: 95, desc: "final boss: the arena implodes inward", final: true },
       ],
     },
   };
@@ -433,6 +587,7 @@
   // built in the Library. Anything drawn mid-fight reads from here.
   let activeCamp = CAMPAIGNS[campaign];
   let activeLevel = null;   // the Library level being fought, if any
+  let activeRating = 1;     // what clearing it pays out, in denarii
   let STAGES = CAMPAIGNS[campaign].stages;
 
   // Every attack pattern the engine knows, for the custom boss builder.
@@ -451,28 +606,35 @@
   let musicOn = localStorage.getItem(MUSIC_KEY) !== "off";
   let actx = null;
   const CLEARED_KEY = "dodger_levels_cleared";
+  // Forms you've beaten inside a boss run — that's what unlocks the single battle.
+  const FORMS_KEY = "dodger_forms_beaten";
+  // Vault codes you've already redeemed.
+  const CODES_KEY = "dodger_codes";
+  // Purse and the codes you've bought out of the Horreum but may not have typed in yet.
+  const DEN_KEY = "dodger_denarii";
+  const BOUGHT_KEY = "dodger_purchased";
   // Levels you build yourself, kept next to the built-in ones.
   const MINE_KEY = "dodger_my_levels";
   const TIMES_KEY = "dodger_level_times";
   const MAX_CUSTOM_STAGES = 8;
   const LEVEL_COLORS = [
-    ["Ember", "#ff5a2b"], ["Violet", "#7b5cff"], ["Ice", "#4dd7ff"],
-    ["Acid", "#3ddc84"], ["Gold", "#ffd23b"], ["Rose", "#ff66c4"],
+    ["Flamma", "#ff5a2b"], ["Purpura", "#7b5cff"], ["Caeruleum", "#4dd7ff"],
+    ["Viridis", "#3ddc84"], ["Aurum", "#f0b429"], ["Rosa", "#ff66c4"],
   ];
   let myLevels = [];
   let editing = null;
 
   const LEVELS = [
     {
-      id: "warmup", name: "Warm-Up", accent: "#4dd7ff", rating: 1,
-      blurb: "Two slow forms and plenty of room. Good for learning what the pickups do.",
+      id: "warmup", name: "Ludus", accent: "#4dd7ff", rating: 1,
+      blurb: "Two slow forms and plenty of room. The training school, before the sand.",
       stages: [
         { key: "pursuer", hp: 35, minions: false },
         { key: "nova",    hp: 45, minions: false },
       ],
     },
     {
-      id: "geometry", name: "Geometry", accent: "#7b5cff", rating: 2,
+      id: "geometry", name: "Geometria", accent: "#7b5cff", rating: 2,
       blurb: "Nothing chases you and nothing aims. Four spinning patterns — read them or don't.",
       stages: [
         { key: "lattice", hp: 45, minions: false },
@@ -482,7 +644,7 @@
       ],
     },
     {
-      id: "orbit", name: "Orbit", accent: "#ffd23b", rating: 3,
+      id: "orbit", name: "Orbita", accent: "#ffd23b", rating: 3,
       blurb: "Three bosses that shoot while they move. You'll never get a stationary target.",
       stages: [
         { key: "gatling", hp: 50, minions: false },
@@ -491,7 +653,7 @@
       ],
     },
     {
-      id: "infestation", name: "Infestation", accent: "#3ddc84", rating: 3,
+      id: "infestation", name: "Pestilentia", accent: "#3ddc84", rating: 3,
       blurb: "Minions on every stage, including the ones that never normally have them.",
       stages: [
         { key: "swarm",   hp: 55, minions: true },
@@ -500,7 +662,7 @@
       ],
     },
     {
-      id: "whiplash", name: "Whiplash", accent: "#ff66c4", rating: 4,
+      id: "whiplash", name: "Flagellum", accent: "#ff66c4", rating: 4,
       blurb: "Streams that never hold still. Stop moving for a second and it finds you.",
       stages: [
         { key: "serpent", hp: 50, minions: false },
@@ -509,8 +671,8 @@
       ],
     },
     {
-      id: "crucible", name: "Crucible", accent: "#ff5a2b", rating: 4,
-      blurb: "Hades' three most aggressive forms with no breathing room between them.",
+      id: "crucible", name: "Fornax", accent: "#ff5a2b", rating: 4,
+      blurb: "Vulcan's three most aggressive forms with no breathing room between them.",
       stages: [
         { key: "pursuer", hp: 45, minions: false },
         { key: "charger", hp: 50, minions: true },
@@ -518,8 +680,8 @@
       ],
     },
     {
-      id: "mirrors", name: "Hall of Mirrors", accent: "#b06bff", rating: 3,
-      blurb: "Mirror twice, with a Pulsar between them. Learn to watch two shooters at once.",
+      id: "mirrors", name: "Speculum", accent: "#b06bff", rating: 3,
+      blurb: "Gemini twice, with Sol between them. Learn to watch two shooters at once.",
       stages: [
         { key: "mirror", hp: 50, minions: false },
         { key: "pulsar", hp: 55, minions: false },
@@ -527,7 +689,7 @@
       ],
     },
     {
-      id: "closequarters", name: "Close Quarters", accent: "#ff5a2b", rating: 4,
+      id: "closequarters", name: "Comminus", accent: "#ff5a2b", rating: 4,
       blurb: "Three bosses that come to you. Nowhere is far enough away for long.",
       stages: [
         { key: "pursuer", hp: 50, minions: true },
@@ -536,7 +698,7 @@
       ],
     },
     {
-      id: "bloom", name: "Bloom", accent: "#3ddc84", rating: 2,
+      id: "bloom", name: "Flora", accent: "#3ddc84", rating: 2,
       blurb: "Nothing but rings and gaps. Practice reading an opening and committing to it.",
       stages: [
         { key: "nova",   hp: 50, minions: false },
@@ -545,7 +707,7 @@
       ],
     },
     {
-      id: "clockwork", name: "Clockwork", accent: "#ffd23b", rating: 3,
+      id: "clockwork", name: "Horologium", accent: "#ffd23b", rating: 3,
       blurb: "Four patterns on strict timers. Once you hear the rhythm it plays itself.",
       stages: [
         { key: "lattice", hp: 45, minions: false },
@@ -555,15 +717,15 @@
       ],
     },
     {
-      id: "twofinals", name: "Both Crowns", accent: "#ff66c4", rating: 5,
-      blurb: "Hades and the Void, one after the other, no forms in between to warm up on.",
+      id: "twofinals", name: "Duae Coronae", accent: "#ff66c4", rating: 5,
+      blurb: "Vulcan and Nox, one after the other, no forms in between to warm up on.",
       stages: [
         { key: "hades", hp: 90, minions: true },
         { key: "void",  hp: 95, minions: true },
       ],
     },
     {
-      id: "longnight", name: "The Long Night", accent: "#8f6bff", rating: 5,
+      id: "longnight", name: "Nox Longa", accent: "#8f6bff", rating: 5,
       blurb: "Five closing acts in a row, both bosses, ending where the campaign ends.",
       stages: [
         { key: "nova",   hp: 55, minions: false },
@@ -609,6 +771,8 @@
   const DIFFS = [
     ["easy", "Easy", 5], ["normal", "Normal", 3], ["hard", "Hard", 1],
   ];
+  // What the purse pays per difficulty: fewer lives, richer clears.
+  const PAY_MULT = { easy: 0.5, normal: 1, hard: 3 };
   const DIFF_KEY = "dodger_difficulty";
   let difficulty = "normal";
   let maxHits = 3;
@@ -685,12 +849,23 @@
   // One form, fought on its own. Clears and best times are stored with the same
   // machinery the Library uses, so a battle row looks and behaves like a level.
   function playBattle(b) {
+    if (!formUnlocked(b)) return;   // sealed until you've beaten it in the boss run
     campaign = b.campaign;
     activeLevel = { id: b.id, name: b.stage.name };
+    activeRating = b.rating;
     activeCamp = {
       name: b.stage.name,
       accent: CAMPAIGNS[b.campaign].accent,
-      stages: [Object.assign({}, b.stage, { final: true })],
+      // A battle is always stage 0, so the engine's "minions from stage 3 on"
+      // rule would never fire. Carry the form's real position in the run instead,
+      // so it brings the minions it brings in the boss fight.
+      stages: [Object.assign({}, b.stage, {
+        // Only the two crowns wear the crown. A single fight against form 2
+        // shouldn't come with the final boss's corona and glow.
+        final: !!b.stage.final,
+        minions: b.stageIdx >= 2,
+        depth: b.stageIdx,          // and at the pressure it has that far into the run
+      })],
     };
     STAGES = activeCamp.stages;
     menuEl.classList.add("hidden");
@@ -755,6 +930,7 @@
     player.hits = Math.min(maxHits, player.hits + 1);   // one hit back between stages
     state = GS.TRANSITION;
     transTime = 0;
+    if (mode === "boss") markFormBeaten(campaign, stageIdx);   // this form is now fightable alone
     const nextIdx = stageIdx + 1;
     banner = `STAGE ${nextIdx + 1} — ${STAGES[nextIdx].name.toUpperCase()}`;
     boss._pendingStage = nextIdx;
@@ -768,9 +944,20 @@
     sfx("win");
     endTitle.textContent = `${activeCamp.name} defeated!`;
     endTitle.style.color = COLORS.safe;
+    if (mode === "boss") markFormBeaten(campaign, stageIdx);   // the crown counts too
+
+    // The purse: a clear pays out its rank, scaled by how many lives you gave
+    // yourself. Practice pays nothing.
+    const mult = PAY_MULT[difficulty] != null ? PAY_MULT[difficulty] : 1;
+    const paid = practice ? 0 : Math.max(1, Math.round(Math.max(1, activeRating | 0) * mult));
+    if (paid) addDenarii(paid);
+    const note = mult === 1 ? "" : ` (${difficulty} ×${mult})`;
+    const purse = paid ? ` +${paid} denarii${note} · purse ${denarii()}` : "";
+
     if (mode === "level" && activeLevel) {
       markCleared(activeLevel.id);
       const res = recordTime(activeLevel.id, totalTime);
+      endStat.textContent = `Cleared in ${totalTime.toFixed(1)}s.${purse}`;
       if (practice) endBest.textContent = "Practice run — not recorded.";
       else if (res && res.best) {
         endBest.textContent = res.prev == null
@@ -782,7 +969,7 @@
       return;
     }
     againBtn.textContent = "Play Again";
-    endStat.textContent = `All ${STAGES.length} stages cleared in ${totalTime.toFixed(1)}s.`;
+    endStat.textContent = `All ${STAGES.length} stages cleared in ${totalTime.toFixed(1)}s.${purse}`;
     endBest.textContent = "";
   }
 
@@ -836,6 +1023,11 @@
   // first, because a battle or a Library level may have left STAGES elsewhere.
   function startBossRun(fromStage) {
     activeLevel = null;
+    // A full run pays what its seven forms are worth fought singly, doubled —
+    // the run is the hard way to do it and should be the paying way.
+    activeRating = BATTLES
+      .filter((b) => b.campaign === campaign)
+      .reduce((a, b) => a + b.rating, 0) * 2;
     activeCamp = CAMPAIGNS[campaign];
     STAGES = activeCamp.stages;
     buildPips(STAGES.length);
@@ -850,7 +1042,10 @@
   tabsEl.querySelectorAll("button").forEach((b) => {
     b.addEventListener("click", () => {
       setTab(b.dataset.tab);
+      disarmWipe();                                   // never leave the wipe armed
       if (b.dataset.tab === "library") renderLibrary();
+      if (b.dataset.tab === "vault") { renderPrizes(); vaultMsg.textContent = ""; }
+      if (b.dataset.tab === "horreum") { renderShop(); shopMsg.textContent = ""; }
     });
   });
 
@@ -875,7 +1070,179 @@
       b.classList.toggle("on", editing && b.dataset.hex === editing.accent);
     });
   }
-  document.getElementById("newLevelBtn").addEventListener("click", () => openEditor(null));
+  const newLevelBtn = document.getElementById("newLevelBtn");
+  const editorLock = document.getElementById("editorLock");
+  newLevelBtn.addEventListener("click", () => openEditor(null));
+
+  // ---- Vault tab ----
+  const codeInput = document.getElementById("codeInput");
+  const vaultMsg = document.getElementById("vaultMsg");
+  const prizeList = document.getElementById("prizeList");
+  const redeemBtn = document.getElementById("redeemBtn");
+  const wipeBtn = document.getElementById("wipeBtn");
+  const wipeHint = document.getElementById("wipeHint");
+
+  function renderPrizes() {
+    prizeList.innerHTML = "";
+    const claimed = claimedCodes();
+    if (!claimed.length) {
+      const p = document.createElement("div");
+      p.className = "libempty";
+      p.textContent = "Nothing yet. Codes turn up in odd places.";
+      prizeList.appendChild(p);
+      return;
+    }
+    claimed.forEach((code) => {
+      const prize = CODES[code];
+      if (!prize) return;
+      const row = document.createElement("div");
+      row.className = "libitem";
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = COLORS.gold;
+      row.appendChild(dot);
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      nm.textContent = prize.name;
+      const tick = document.createElement("span");
+      tick.className = "tick";
+      tick.textContent = code;
+      nm.appendChild(tick);
+      meta.appendChild(nm);
+      const bl = document.createElement("div");
+      bl.className = "blurb";
+      bl.textContent = prize.desc;
+      meta.appendChild(bl);
+      row.appendChild(meta);
+      prizeList.appendChild(row);
+    });
+  }
+
+  // ---- Horreum (the shop) ----
+  const purseNum = document.getElementById("purseNum");
+  const shopList = document.getElementById("shopList");
+  const shopMsg = document.getElementById("shopMsg");
+
+  function renderShop() {
+    purseNum.textContent = String(denarii());
+    shopList.innerHTML = "";
+    if (!SHOP.length) {
+      const p = document.createElement("div");
+      p.className = "libempty";
+      p.textContent = "The shelves are bare. Keep winning — stock is coming.";
+      shopList.appendChild(p);
+      return;
+    }
+    const bought = boughtCodes();
+    SHOP.forEach((code) => {
+      const prize = CODES[code];
+      const owned = bought.includes(code);
+      const claimed = claimedCodes().includes(code);
+      const afford = denarii() >= prize.price;
+
+      const row = document.createElement("div");
+      row.className = owned || afford ? "libitem" : "libitem locked";
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = owned ? COLORS.gold : "#3a2c1a";
+      row.appendChild(dot);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      nm.textContent = prize.name;
+      const price = document.createElement("span");
+      price.className = "price";
+      price.textContent = `✦ ${prize.price}`;
+      nm.appendChild(price);
+      if (claimed) {
+        const tick = document.createElement("span");
+        tick.className = "tick";
+        tick.textContent = "✓ redeemed";
+        nm.appendChild(tick);
+      }
+      meta.appendChild(nm);
+
+      const bl = document.createElement("div");
+      bl.className = "blurb";
+      bl.textContent = prize.desc;
+      meta.appendChild(bl);
+
+      if (owned) {
+        // You bought the code; typing it into the Vault is still on you.
+        const out = document.createElement("div");
+        const tag = document.createElement("span");
+        tag.className = "codeout";
+        tag.textContent = code;
+        out.appendChild(tag);
+        meta.appendChild(out);
+      }
+      row.appendChild(meta);
+
+      const btn = document.createElement("button");
+      if (owned) {
+        btn.className = "lockbtn";
+        btn.textContent = claimed ? "Claimed" : "Bought";
+        btn.disabled = true;
+      } else {
+        btn.className = afford ? "primary" : "lockbtn";
+        btn.textContent = afford ? "Buy" : "Too dear";
+        btn.disabled = !afford;
+        btn.addEventListener("click", () => {
+          const res = buy(code);
+          shopMsg.textContent = res.msg;
+          shopMsg.className = res.ok ? "good" : "bad";
+          renderShop();
+        });
+      }
+      row.appendChild(btn);
+      shopList.appendChild(row);
+    });
+  }
+
+  function doRedeem() {
+    const res = redeem(codeInput.value);
+    vaultMsg.textContent = res.msg;
+    vaultMsg.className = res.ok ? "good" : "bad";
+    if (res.ok) {
+      codeInput.value = "";
+      renderPrizes();
+      renderCampaign();      // unlocks ripple through every list
+    }
+  }
+  redeemBtn.addEventListener("click", doRedeem);
+  codeInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); doRedeem(); }
+  });
+
+  // Two taps to wipe — no dialog, but no accidents either.
+  let wipeArmed = false;
+  function disarmWipe() {
+    wipeArmed = false;
+    wipeBtn.classList.remove("arm");
+    wipeBtn.textContent = "Clear All Progress";
+    wipeHint.textContent = "Wipes clears, best times and unlocked forms. Levels you built stay put.";
+  }
+  wipeBtn.addEventListener("click", () => {
+    if (!wipeArmed) {
+      wipeArmed = true;
+      wipeBtn.classList.add("arm");
+      wipeBtn.textContent = "Tap again to wipe";
+      wipeHint.textContent = "This cannot be undone.";
+      return;
+    }
+    wipeProgress();
+    disarmWipe();
+    vaultMsg.textContent = "Progress cleared. The sand is raked flat.";
+    vaultMsg.className = "good";
+    renderPrizes();
+    renderCampaign();
+  });
+
   addStageBtn.addEventListener("click", () => {
     if (!editing || editing.stages.length >= MAX_CUSTOM_STAGES) return;
     // A new stage copies the last one, because that's usually the closest start.
@@ -902,7 +1269,7 @@
   document.getElementById("importBtn").addEventListener("click", () => {
     const lv = decodeLevel(shareCode.value);
     if (!lv) {
-      shareMsg.style.color = "#ff3b3b";
+      shareMsg.style.color = "#e0301f";
       shareMsg.textContent = "That isn't a valid share code.";
       return;
     }
@@ -945,7 +1312,7 @@
   const soundBtn = document.getElementById("soundBtn");
   function refreshSoundBtn() {
     soundBtn.textContent = `Sound: ${soundOn ? "On" : "Off"}`;
-    soundBtn.style.color = soundOn ? "" : "#8a8a9a";
+    soundBtn.style.color = soundOn ? "" : "#a08f76";
   }
   soundBtn.addEventListener("click", () => {
     soundOn = !soundOn;
@@ -958,7 +1325,7 @@
   const musicBtn = document.getElementById("musicBtn");
   function refreshMusicBtn() {
     musicBtn.textContent = `Music: ${musicOn ? "On" : "Off"}`;
-    musicBtn.style.color = musicOn ? "" : "#8a8a9a";
+    musicBtn.style.color = musicOn ? "" : "#a08f76";
   }
   musicBtn.addEventListener("click", () => {
     musicOn = !musicOn;
@@ -980,12 +1347,6 @@
   againBtn.addEventListener("click", replay);
   document.getElementById("menuBtn").addEventListener("click", toMenu);
 
-  // Custom start: pick which stage to begin from (plays through to the end).
-  const customEl = document.getElementById("custom");
-  document.getElementById("customToggle").addEventListener("click", () => {
-    customEl.classList.toggle("hidden");
-  });
-  const customRow = document.getElementById("customRow");
   const stageListEl = document.getElementById("stageList");
   const campaignRow = document.getElementById("campaignRow");
   const bossBtn = document.getElementById("bossBtn");
@@ -1001,23 +1362,20 @@
       b.style.color = on ? CAMPAIGNS[b.dataset.campaign].accent : "";
     });
 
+    // A form you haven't beaten yet gives away nothing — no name, no description.
+    // You find out what stage 5 is by getting to stage 5.
     stageListEl.innerHTML = "";
+    const beaten = loadForms();
     STAGES.forEach((s, i) => {
+      const known = beaten.includes("battle:" + campaign + ":" + s.key + ":" + i);
       const row = document.createElement("div");
       const b = document.createElement("b");
-      b.textContent = `${i + 1} · ${s.name}`;
-      if (s.final) b.style.color = CAMPAIGNS[campaign].accent;
+      b.textContent = `${i + 1} · ${known ? s.name : "???"}`;
+      if (s.final && known) b.style.color = CAMPAIGNS[campaign].accent;
+      if (!known) b.style.color = "var(--muted)";
       row.appendChild(b);
-      row.appendChild(document.createTextNode(` — ${s.desc}`));
+      if (known) row.appendChild(document.createTextNode(` — ${s.desc}`));
       stageListEl.appendChild(row);
-    });
-
-    customRow.innerHTML = "";
-    STAGES.forEach((s, i) => {
-      const b = document.createElement("button");
-      b.textContent = `${i + 1} · ${s.name}`;
-      b.addEventListener("click", () => startBossRun(i));
-      customRow.appendChild(b);
     });
 
     bossBtn.textContent = `Fight ${CAMPAIGNS[campaign].name} · ${STAGES.length} Stages`;
@@ -1091,6 +1449,128 @@
     localStorage.setItem(CLEARED_KEY, JSON.stringify(done));
   }
 
+  // ---- Which forms you've earned the right to fight on their own ----
+  // A form stays locked until you've put it down inside its boss's run. Practice
+  // runs don't count, same as everywhere else.
+  function loadForms() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(FORMS_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function markFormBeaten(campKey, idx) {
+    if (practice) return;
+    const s = CAMPAIGNS[campKey] && CAMPAIGNS[campKey].stages[idx];
+    if (!s) return;
+    const id = "battle:" + campKey + ":" + s.key + ":" + idx;
+    const done = loadForms();
+    if (done.includes(id)) return;
+    done.push(id);
+    localStorage.setItem(FORMS_KEY, JSON.stringify(done));
+  }
+  function formUnlocked(b) {
+    return loadForms().includes(b.id);
+  }
+  // Difficulty as a gladiator's standing, not a row of dots. 1 is a first-timer
+  // on the sand, 5 is the top of the ladder.
+  const RANKS = ["Tiro", "Gregarius", "Veteranus", "Secundus Palus", "Primus Palus"];
+  function rankName(rating) {
+    return RANKS[Math.max(1, Math.min(5, rating | 0)) - 1];
+  }
+
+  // A pattern key is "known" once you've beaten that form in its boss's run —
+  // every key belongs to exactly one form, so the id's key segment is enough.
+  function keyBeaten(key) {
+    return loadForms().some((id) => id.split(":")[2] === key);
+  }
+  // A built-in level opens only when every form it chains is known.
+  function levelUnlocked(lv) {
+    return lv.stages.every((s) => keyBeaten(s.key));
+  }
+  // The builder is earned: clear Vulcan's run end to end (or buy your way in
+  // with a vault code).
+  function campaignCleared(key) {
+    const done = loadForms();
+    return CAMPAIGNS[key].stages.every((s, i) =>
+      done.includes("battle:" + key + ":" + s.key + ":" + i));
+  }
+  function editorUnlocked() {
+    return campaignCleared("inferno");
+  }
+
+  // ---- Vault ----
+  // Codes you type in the Vault tab. Each prize applies once and is remembered.
+  function claimedCodes() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CODES_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function unlockAllForms() {
+    localStorage.setItem(FORMS_KEY, JSON.stringify(BATTLES.map((b) => b.id)));
+  }
+  const CODES = {
+    // A dev key, not something the Horreum sells.
+    "1234": {
+      name: "Keys to the Colosseum",
+      desc: "Every fight in the game, unsealed.",
+      apply: unlockAllForms,
+    },
+  };
+  const SHOP = [];   // nothing on the shelf yet
+
+  // ---- Denarii ----
+  // Won on the sand, spent in the Horreum. Practice pays nothing.
+  function denarii() {
+    return Math.max(0, Number(localStorage.getItem(DEN_KEY)) || 0);
+  }
+  function addDenarii(n) {
+    localStorage.setItem(DEN_KEY, String(denarii() + n));
+  }
+  function boughtCodes() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(BOUGHT_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  // Buying doesn't hand you the prize — it hands you the code. You still type it in.
+  function buy(code) {
+    const prize = CODES[code];
+    if (!prize) return { ok: false, msg: "The shelf is empty." };
+    if (boughtCodes().includes(code)) return { ok: false, msg: "Already bought." };
+    if (denarii() < prize.price) {
+      return { ok: false, msg: `${prize.price - denarii()} more denarii needed.` };
+    }
+    localStorage.setItem(DEN_KEY, String(denarii() - prize.price));
+    const bought = boughtCodes();
+    bought.push(code);
+    localStorage.setItem(BOUGHT_KEY, JSON.stringify(bought));
+    return { ok: true, msg: `Bought ${prize.name}. Your code is ${code} — redeem it in the Vault.` };
+  }
+  function redeem(raw) {
+    const code = String(raw || "").trim().toUpperCase();
+    if (!code) return { ok: false, msg: "Type a code first." };
+    const prize = CODES[code];
+    if (!prize) return { ok: false, msg: "The vault doesn't know that one." };
+    const claimed = claimedCodes();
+    if (claimed.includes(code)) return { ok: false, msg: `Already claimed: ${prize.name}.` };
+    prize.apply();
+    claimed.push(code);
+    localStorage.setItem(CODES_KEY, JSON.stringify(claimed));
+    return { ok: true, msg: `${prize.name} — ${prize.desc}` };
+  }
+  // Everything you've earned, gone. Levels you built are yours and survive.
+  function wipeProgress() {
+    [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY]
+      .forEach((k) => localStorage.removeItem(k));
+  }
+
   function openLibrary() {
     state = GS.MENU;
     editorEl.classList.add("hidden");
@@ -1105,12 +1585,15 @@
   function levelRow(lv, mine) {
     const done = loadCleared();
     const times = bestTimes();
+    // Your own levels are always yours to play; the built-in ones stay shut
+    // until you know every form they chain.
+    const open = mine || levelUnlocked(lv);
     const row = document.createElement("div");
-    row.className = "libitem";
+    row.className = open ? "libitem" : "libitem locked";
 
     const dot = document.createElement("span");
     dot.className = "dot";
-    dot.style.background = lv.accent;
+    dot.style.background = open ? lv.accent : "#3a2c1a";
     row.appendChild(dot);
 
     const meta = document.createElement("div");
@@ -1118,8 +1601,8 @@
 
     const nm = document.createElement("div");
     nm.className = "nm";
-    nm.textContent = lv.name;
-    if (done.includes(lv.id)) {
+    nm.textContent = open ? lv.name : "🔒 " + lv.name;
+    if (open && done.includes(lv.id)) {
       const tick = document.createElement("span");
       tick.className = "tick";
       tick.textContent = times[lv.id] != null ? `✓ best ${times[lv.id].toFixed(1)}s` : "✓ cleared";
@@ -1128,13 +1611,19 @@
     if (lv.rating) {
       const diff = document.createElement("span");
       diff.className = "diff";
-      diff.style.color = lv.accent;
-      diff.textContent = "●".repeat(lv.rating) + "○".repeat(5 - lv.rating);
+      diff.style.color = open ? lv.accent : "";
+      diff.textContent = rankName(lv.rating);
       nm.appendChild(diff);
     }
     meta.appendChild(nm);
 
-    if (lv.blurb) {
+    const missing = open ? 0 : lv.stages.filter((s) => !keyBeaten(s.key)).length;
+    if (!open) {
+      const bl = document.createElement("div");
+      bl.className = "blurb";
+      bl.textContent = `Sealed. ${missing} of its ${lv.stages.length} forms ${missing === 1 ? "is" : "are"} still unknown to you.`;
+      meta.appendChild(bl);
+    } else if (lv.blurb) {
       const bl = document.createElement("div");
       bl.className = "blurb";
       bl.textContent = lv.blurb;
@@ -1143,7 +1632,10 @@
 
     const chain = document.createElement("div");
     chain.className = "sub2";
-    chain.textContent = lv.stages.map((s) => PATTERN_BY_KEY[s.key].name).join(" → ");
+    // Forms you haven't met yet stay anonymous in the chain.
+    chain.textContent = lv.stages
+      .map((s) => (mine || keyBeaten(s.key) ? PATTERN_BY_KEY[s.key].name : "???"))
+      .join(" → ");
     // Say so when a level leans on the builder's speed/fire-rate knobs, since
     // that changes how it plays more than the pattern list suggests.
     const tuned = lv.stages.filter((s) => (s.spd && s.spd !== 1) || (s.rate && s.rate !== 1)).length;
@@ -1152,9 +1644,15 @@
     row.appendChild(meta);
 
     const play = document.createElement("button");
-    play.className = "primary";
-    play.textContent = "Fight";
-    play.addEventListener("click", () => playLevel(lv));
+    if (open) {
+      play.className = "primary";
+      play.textContent = "Fight";
+      play.addEventListener("click", () => playLevel(lv));
+    } else {
+      play.className = "lockbtn";
+      play.textContent = "Locked";
+      play.disabled = true;
+    }
     row.appendChild(play);
 
     if (mine) {
@@ -1189,6 +1687,15 @@
     } else {
       myLevels.forEach((lv) => myList.appendChild(levelRow(lv, true)));
     }
+
+    // The builder stays shut until Vulcan's run is done.
+    const canBuild = editorUnlocked();
+    newLevelBtn.disabled = !canBuild;
+    newLevelBtn.className = canBuild ? "primary" : "lockbtn";
+    newLevelBtn.textContent = canBuild ? "New Level" : "🔒 New Level";
+    editorLock.textContent = canBuild
+      ? ""
+      : "The builder opens when you've taken Vulcan's run end to end.";
   }
 
   // ---- Battle list ----
@@ -1198,13 +1705,14 @@
     const done = loadCleared();
     const times = bestTimes();
     const accent = CAMPAIGNS[b.campaign].accent;
+    const open = formUnlocked(b);
 
     const row = document.createElement("div");
-    row.className = "libitem";
+    row.className = open ? "libitem" : "libitem locked";
 
     const dot = document.createElement("span");
     dot.className = "dot";
-    dot.style.background = accent;
+    dot.style.background = open ? accent : "#3a2c1a";
     row.appendChild(dot);
 
     const meta = document.createElement("div");
@@ -1212,15 +1720,15 @@
 
     const nm = document.createElement("div");
     nm.className = "nm";
-    nm.textContent = b.stage.name;
+    nm.textContent = open ? b.stage.name : "🔒 ???";
     if (b.stage.final) {
       const crown = document.createElement("span");
       crown.className = "diff";
-      crown.style.color = accent;
+      crown.style.color = open ? accent : "";
       crown.textContent = "FINAL FORM";
       nm.appendChild(crown);
     }
-    if (done.includes(b.id)) {
+    if (open && done.includes(b.id)) {
       const tick = document.createElement("span");
       tick.className = "tick";
       tick.textContent = times[b.id] != null ? `✓ best ${times[b.id].toFixed(1)}s` : "✓ cleared";
@@ -1228,41 +1736,60 @@
     }
     const diff = document.createElement("span");
     diff.className = "diff";
-    diff.style.color = accent;
-    diff.textContent = "●".repeat(b.rating) + "○".repeat(5 - b.rating);
+    diff.style.color = open ? accent : "";
+    diff.textContent = rankName(b.rating);
     nm.appendChild(diff);
     meta.appendChild(nm);
 
     const bl = document.createElement("div");
     bl.className = "blurb";
-    bl.textContent = b.stage.desc;
+    // Locked forms keep their secrets — you learn what they do in the boss run.
+    bl.textContent = open
+      ? b.stage.desc
+      : `Sealed. Put this form down in ${CAMPAIGNS[b.campaign].name}'s run to earn it.`;
     meta.appendChild(bl);
 
     const sub = document.createElement("div");
     sub.className = "sub2";
-    sub.textContent = `${CAMPAIGNS[b.campaign].name} · form ${b.stageIdx + 1} of 7 · ${b.stage.hp} HP`;
+    sub.textContent = open
+      ? `${CAMPAIGNS[b.campaign].name} · form ${b.stageIdx + 1} of 7 · ${b.stage.hp} HP`
+      : `${CAMPAIGNS[b.campaign].name} · form ${b.stageIdx + 1} of 7`;
     meta.appendChild(sub);
     row.appendChild(meta);
 
     const play = document.createElement("button");
-    play.className = "primary";
-    play.textContent = "Fight";
-    play.addEventListener("click", () => playBattle(b));
+    if (open) {
+      play.className = "primary";
+      play.textContent = "Fight";
+      play.addEventListener("click", () => playBattle(b));
+    } else {
+      play.className = "lockbtn";
+      play.textContent = "Locked";
+      play.disabled = true;
+    }
     row.appendChild(play);
     return row;
   }
 
+  // One fold per boss, each holding that boss's seven forms.
   function renderBattles() {
-    if (!battleList) return;
-    battleList.innerHTML = "";
     for (const key of ["inferno", "void"]) {
-      const head = document.createElement("div");
-      head.className = "grouphead";
-      head.style.color = CAMPAIGNS[key].accent;
-      head.textContent = CAMPAIGNS[key].name.toUpperCase();
-      battleList.appendChild(head);
-      BATTLES.filter((b) => b.campaign === key)
-             .forEach((b) => battleList.appendChild(battleRow(b)));
+      const list = document.querySelector(`[data-battlelist="${key}"]`);
+      if (!list) continue;
+      list.innerHTML = "";
+      const mine = BATTLES.filter((b) => b.campaign === key);
+      let open = 0;
+      mine.forEach((b) => {
+        if (formUnlocked(b)) open++;
+        list.appendChild(battleRow(b));
+      });
+      const count = document.querySelector(`[data-foldcount="${key}"]`);
+      if (count) count.textContent = `${open} / ${mine.length} unlocked`;
+      const nm = document.querySelector(`[data-foldname="${key}"]`);
+      if (nm) {
+        nm.textContent = CAMPAIGNS[key].name;
+        nm.style.color = open ? CAMPAIGNS[key].accent : "";
+      }
     }
   }
 
@@ -1288,6 +1815,7 @@
   }
 
   function openEditor(idx) {
+    if (!editorUnlocked()) return;      // the builder is earned, not given
     const src = idx == null ? null : myLevels[idx];
     if (idx != null && !src) return;    // row went stale; nothing to edit
     editing = src
@@ -1436,7 +1964,7 @@
     editFacts.textContent =
       `${editing.stages.length} ${editing.stages.length === 1 ? "stage" : "stages"} · ` +
       `${totalHp} total HP · ${mins} with minions · ` +
-      `estimated difficulty ${"●".repeat(rating)}${"○".repeat(5 - rating)}`;
+      `estimated difficulty · ${rankName(rating)}`;
     stageRows.querySelectorAll(".stagerow").forEach((r) => { r.style.borderLeftColor = editing.accent; });
     shareCode.value = encodeLevel(editing);
   }
@@ -1501,7 +2029,10 @@
 
   // Turn a level into something the engine can fight.
   function playLevel(lv) {
+    // Built-in levels are gated on knowing their forms; your own never are.
+    if (LEVELS.includes(lv) && !levelUnlocked(lv)) return;
     activeLevel = lv;
+    activeRating = lv.rating || 1;
     activeCamp = {
       name: lv.name,
       accent: lv.accent,
@@ -1907,7 +2438,7 @@
     for (const p of pending) {
       const k = p.t / p.lead;                       // 0 → 1 as it winds up
       const a = 0.25 + 0.5 * k;
-      ctx.strokeStyle = `rgba(255,210,59,${a})`;
+      ctx.strokeStyle = `rgba(240,180,41,${a})`;
       ctx.lineWidth = 2 + k * 1.5;
       ctx.setLineDash([8, 8]);
       ctx.lineDashOffset = -totalTime * 40;
@@ -1989,12 +2520,15 @@
 
   function updateMinions(dt, m) {
     const swarm = STAGES[stageIdx].key === "swarm";
+    // How deep into a boss run this form sits. A single-form battle is stage 0
+    // but still fights at its real depth.
+    const depth = STAGES[stageIdx].depth != null ? STAGES[stageIdx].depth : stageIdx;
     minionTimer -= dt;
     if (minionTimer <= 0) {
-      minionTimer = Math.max(0.9, 2.2 - stageIdx * 0.15) / (0.7 + 0.3 * m);
+      minionTimer = Math.max(0.9, 2.2 - depth * 0.15) / (0.7 + 0.3 * m);
       if (swarm) minionTimer *= 0.45;
       spawnMinion();
-      if (stageIdx >= 5) spawnMinion(); // later stages send them in pairs
+      if (depth >= 5) spawnMinion(); // later stages send them in pairs
       if (swarm) spawnMinion();
     }
     for (let i = minions.length - 1; i >= 0; i--) {
@@ -2457,14 +2991,72 @@
   }
 
   // ---- Render ----
-  function drawGrid() {
+  // The arena: a sand floor of staggered paving stones, ringed by a stone wall,
+  // with the sand raked in circles under the torchlight. Purely decorative —
+  // the play area is still the whole square.
+  const WALL = 18;              // thickness of the stone ring around the sand
+  function drawArena() {
+    // Sand, lit from the middle and falling off toward the wall.
+    const g = ctx.createRadialGradient(W / 2, H * 0.46, 40, W / 2, H / 2, W * 0.72);
+    g.addColorStop(0, COLORS.sandLit);
+    g.addColorStop(0.55, COLORS.sand);
+    g.addColorStop(1, "#1c1509");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // Paving joints: staggered courses, not a square grid.
+    ctx.save();
     ctx.strokeStyle = COLORS.grid;
     ctx.lineWidth = 1;
-    const step = 60;
+    const rowH = 48, colW = 96;
     ctx.beginPath();
-    for (let x = step; x < W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-    for (let y = step; y < H; y += step) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    for (let y = rowH; y < H; y += rowH) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    let row = 0;
+    for (let y = 0; y < H; y += rowH, row++) {
+      const off = row % 2 ? colW / 2 : 0;
+      for (let x = off; x <= W; x += colW) { ctx.moveTo(x, y); ctx.lineTo(x, y + rowH); }
+    }
     ctx.stroke();
+
+    // Raked sand: faint concentric rings around the middle of the floor.
+    ctx.strokeStyle = "rgba(217,164,65,0.045)";
+    ctx.lineWidth = 2;
+    for (let r = 70; r < W * 0.62; r += 46) {
+      ctx.beginPath();
+      ctx.arc(W / 2, H / 2, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Stone wall around the sand, laid up in blocks.
+    ctx.save();
+    ctx.fillStyle = COLORS.stone;
+    ctx.fillRect(0, 0, W, WALL);
+    ctx.fillRect(0, H - WALL, W, WALL);
+    ctx.fillRect(0, 0, WALL, H);
+    ctx.fillRect(W - WALL, 0, WALL, H);
+    ctx.strokeStyle = "rgba(107,79,42,0.55)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(WALL + 0.5, WALL + 0.5, W - WALL * 2 - 1, H - WALL * 2 - 1);
+    ctx.strokeStyle = "rgba(107,79,42,0.30)";
+    ctx.beginPath();
+    for (let x = 0; x < W; x += 60) {
+      ctx.moveTo(x, 0); ctx.lineTo(x, WALL);
+      ctx.moveTo(x + 30, H - WALL); ctx.lineTo(x + 30, H);
+    }
+    for (let y = 0; y < H; y += 60) {
+      ctx.moveTo(0, y + 30); ctx.lineTo(WALL, y + 30);
+      ctx.moveTo(W - WALL, y); ctx.lineTo(W, y);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // Vignette — the stands are dark, the sand is not.
+    const v = ctx.createRadialGradient(W / 2, H / 2, W * 0.34, W / 2, H / 2, W * 0.78);
+    v.addColorStop(0, "rgba(0,0,0,0)");
+    v.addColorStop(1, "rgba(0,0,0,0.55)");
+    ctx.fillStyle = v;
+    ctx.fillRect(0, 0, W, H);
   }
   function hexToRgb(hex) {
     const n = parseInt(hex.slice(1), 16);
@@ -2515,7 +3107,7 @@
       const mx = 2 * CENTER.x - boss.x, my = 2 * CENTER.y - boss.y;
       const p = 0.5 + 0.5 * Math.sin(totalTime * 5);
       ctx.save();
-      ctx.strokeStyle = "rgba(255,210,59,0.4)";
+      ctx.strokeStyle = "rgba(240,180,41,0.4)";
       ctx.lineWidth = 2;
       ctx.setLineDash([9, 9]);
       ctx.beginPath();
@@ -2523,10 +3115,10 @@
       ctx.lineTo(mx, my);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.strokeStyle = `rgba(255,210,59,${0.5 + 0.35 * p})`;
-      circle(mx, my, boss.r * 0.75 + p * 3, "rgba(255,210,59,0.10)", `rgba(255,210,59,${0.55 + 0.3 * p})`, 2.5);
+      ctx.strokeStyle = `rgba(240,180,41,${0.5 + 0.35 * p})`;
+      circle(mx, my, boss.r * 0.75 + p * 3, "rgba(240,180,41,0.10)", `rgba(240,180,41,${0.55 + 0.3 * p})`, 2.5);
       // Aim line from the phantom toward you, so its shot is readable.
-      ctx.strokeStyle = "rgba(255,210,59,0.22)";
+      ctx.strokeStyle = "rgba(240,180,41,0.22)";
       ctx.setLineDash([5, 11]);
       ctx.beginPath();
       ctx.moveTo(mx, my);
@@ -2537,7 +3129,7 @@
     if (winding) {
       // Telegraph line toward the player.
       ctx.save();
-      ctx.strokeStyle = "rgba(255,210,59,0.35)";
+      ctx.strokeStyle = "rgba(240,180,41,0.35)";
       ctx.lineWidth = 3;
       ctx.setLineDash([10, 10]);
       ctx.beginPath();
@@ -2587,7 +3179,7 @@
         ctx.fillStyle = color;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.font = `700 ${Math.round(s * 1.6)}px -apple-system, Segoe UI, Roboto, sans-serif`;
+        ctx.font = `700 ${Math.round(s * 1.6)}px ${FONT}`;
         ctx.fillText("×2", 0, 1);
         break;
     }
@@ -2610,7 +3202,7 @@
       ctx.beginPath(); ctx.arc(pu.x, y, pu.r * 2.2, 0, Math.PI * 2); ctx.fill();
 
       ctx.shadowColor = def.color; ctx.shadowBlur = 18 + p * 12;
-      circle(pu.x, y, pu.r, "rgba(14,14,18,0.75)", def.color, 3.5);
+      circle(pu.x, y, pu.r, "rgba(16,12,7,0.75)", def.color, 3.5);
       // A second, slowly breathing ring so big drops still read as "pick me up".
       circle(pu.x, y, pu.r + 5 + p * 4, null, def.color + "66", 2);
       ctx.shadowBlur = 0;
@@ -2702,14 +3294,14 @@
 
     ctx.save();
     ctx.textBaseline = "middle";
-    ctx.font = "700 14px -apple-system, Segoe UI, Roboto, sans-serif";
+    ctx.font = `700 14px ${FONT}`;
     let x = 16;
     const y = H - 74;   // sits above the health bar
     for (const [type, t] of active) {
       const def = POWERUPS[type];
       const text = def.label + (t != null ? ` ${t.toFixed(1)}` : "");
       const w = ctx.measureText(text).width + 20;
-      ctx.fillStyle = "rgba(14,14,18,0.7)";
+      ctx.fillStyle = "rgba(16,12,7,0.7)";
       ctx.strokeStyle = def.color;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
@@ -2726,7 +3318,7 @@
       ctx.globalAlpha = Math.max(0, 1 - k * k);
       ctx.textAlign = "center";
       ctx.fillStyle = pickupFlash.color;
-      ctx.font = "700 30px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.font = `700 30px ${FONT}`;
       ctx.fillText(pickupFlash.label, W / 2, H * 0.34 - k * 26);
       ctx.globalAlpha = 1;
     }
@@ -2743,7 +3335,7 @@
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "#3ddc84";
-      ctx.font = "700 15px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.font = `700 15px ${FONT}`;
       ctx.fillText("∞  PRACTICE", W / 2, y);
       ctx.restore();
       return;
@@ -2773,13 +3365,17 @@
   }
 
   function drawBossHpBar() {
-    const bw = W * 0.6, bh = 8, bx = (W - bw) / 2, by = 52;
+    const bw = W * 0.6, bh = 9, bx = (W - bw) / 2, by = 52;
     const frac = Math.max(0, boss.hp / boss.maxhp);
-    ctx.fillStyle = "rgba(255,255,255,0.10)";
+    // Blood in a bronze-framed trough.
+    ctx.fillStyle = "rgba(0,0,0,0.45)";
     ctx.fillRect(bx, by, bw, bh);
-    ctx.fillStyle = COLORS.danger;
+    const g = ctx.createLinearGradient(0, by, 0, by + bh);
+    g.addColorStop(0, "#ff5a3c");
+    g.addColorStop(1, "#8f1408");
+    ctx.fillStyle = g;
     ctx.fillRect(bx, by, bw * frac, bh);
-    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+    ctx.strokeStyle = "rgba(217,164,65,0.55)";
     ctx.lineWidth = 1;
     ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
   }
@@ -2799,7 +3395,7 @@
     if (shake > 0) {
       ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
     }
-    drawGrid();
+    drawArena();
 
     // Slow-mo: a violet wash over the whole arena.
     if (shown === GS.PLAYING && fx.slow > 0) {
@@ -2869,10 +3465,10 @@
       ctx.save();
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       ctx.fillStyle = "#ffffff";
-      ctx.font = "800 15px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.font = `800 15px ${FONT}`;
       ctx.fillText("×3", hotZone.x, hotZone.y - 1);
       ctx.fillStyle = inHot ? "#cfd9ff" : "rgba(150,175,255,0.9)";
-      ctx.font = "700 9px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.font = `700 9px ${FONT}`;
       ctx.fillText("DAMAGE", hotZone.x, hotZone.y + 12);
       ctx.restore();
     }
@@ -2884,17 +3480,20 @@
       for (const mn of minions) {
         const r = minionRadius(mn);
         if (mn.phase === "in") {
-          // Warning telegraph before it becomes lethal.
-          ctx.strokeStyle = "rgba(255,210,59,0.7)";
-          ctx.lineWidth = 2;
+          // Warning telegraph before it becomes lethal. The sand is warm, so the
+          // ring gets a dark backing to keep it readable.
+          circle(mn.x, mn.y, mn.r, "rgba(16,12,7,0.45)", null);
           ctx.setLineDash([6, 6]);
-          circle(mn.x, mn.y, mn.r, null, "rgba(255,210,59,0.7)", 2);
-          ctx.setLineDash([]);
-          circle(mn.x, mn.y, r, "rgba(255,59,59,0.35)", null);
-        } else {
-          ctx.shadowColor = COLORS.danger; ctx.shadowBlur = 12;
-          circle(mn.x, mn.y, r, COLORS.danger, "#ff8f8f", 2);
+          ctx.shadowColor = COLORS.warn; ctx.shadowBlur = 10;
+          circle(mn.x, mn.y, mn.r, null, "rgba(255,205,80,0.95)", 2.5);
           ctx.shadowBlur = 0;
+          ctx.setLineDash([]);
+          circle(mn.x, mn.y, r, "rgba(224,48,31,0.4)", null);
+        } else {
+          ctx.shadowColor = COLORS.danger; ctx.shadowBlur = 14;
+          circle(mn.x, mn.y, r, COLORS.danger, "#ffb4a6", 2.5);
+          ctx.shadowBlur = 0;
+          circle(mn.x, mn.y, r + 2, null, "rgba(16,12,7,0.55)", 1.5);   // dark rim off the sand
         }
       }
       drawTelegraphs();
@@ -2930,14 +3529,14 @@
     if (shown === GS.TRANSITION && banner) {
       ctx.save();
       ctx.textAlign = "center";
-      ctx.fillStyle = "rgba(14,14,18,0.55)";
+      ctx.fillStyle = "rgba(16,12,7,0.55)";
       ctx.fillRect(0, H / 2 - 60, W, 120);
       ctx.fillStyle = COLORS.warn;
-      ctx.font = "700 40px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.font = `700 40px ${FONT}`;
       ctx.fillText(banner, W / 2, H / 2 + 4);
-      ctx.fillStyle = COLORS.muted || "#8a8a9a";
-      ctx.font = "500 18px -apple-system, Segoe UI, Roboto, sans-serif";
-      ctx.fillStyle = "#8a8a9a";
+      ctx.fillStyle = COLORS.muted || "#a08f76";
+      ctx.font = `500 18px ${FONT}`;
+      ctx.fillStyle = "#a08f76";
       ctx.fillText("get ready", W / 2, H / 2 + 38);
       ctx.restore();
     }
@@ -2982,7 +3581,7 @@
     const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
     if (inHot) { hudTimer.textContent = "×3 DRAINING"; hudTimer.style.color = "#7f9dff"; }
     else if (inZone) { hudTimer.textContent = "DRAINING"; hudTimer.style.color = COLORS.safe; }
-    else { hudTimer.textContent = "find blue"; hudTimer.style.color = "#8a8a9a"; }
+    else { hudTimer.textContent = "find blue"; hudTimer.style.color = "#a08f76"; }
   }
 
   // ---- Loop ----
@@ -3007,6 +3606,9 @@
 
   function refreshMenu() {
     renderBattles();
+    renderLibrary();
+    renderPrizes();
+    renderShop();
   }
 
   renderCampaign();
