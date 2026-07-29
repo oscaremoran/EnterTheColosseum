@@ -1,0 +1,3018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enter The Colosseum</title>
+<style>
+  :root {
+    --bg: #0e0e12;
+    --grid: #191922;
+    --safe: #4dd7ff;
+    --danger: #ff3b3b;
+    --warn: #ffd23b;
+    --text: #e8e8ef;
+    --muted: #8a8a9a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto;          /* the page scrolls when a panel outgrows the window */
+    padding: 12px 0;
+  }
+  #wrap {
+    position: relative;
+    margin: auto;
+    width: min(92vw, 92vh, 720px);
+    aspect-ratio: 1 / 1;
+  }
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 14px;
+    background: var(--bg);
+    box-shadow: 0 0 0 1px #23232e, 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    gap: 18px;
+    overflow-y: auto;          /* and each screen scrolls inside the arena */
+    background: rgba(14, 14, 18, 0.82);
+    backdrop-filter: blur(3px);
+    border-radius: 14px;
+  }
+  .screen.hidden { display: none; }
+  h1 {
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  h1 .accent { color: var(--danger); }
+  h2 { font-size: clamp(22px, 5vw, 34px); font-weight: 700; }
+  p.sub { color: var(--muted); font-size: clamp(13px, 2.6vw, 16px); max-width: 34ch; line-height: 1.55; }
+  .stat { color: var(--safe); font-weight: 600; font-size: clamp(15px, 3vw, 19px); }
+  .btnrow { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  button {
+    font: inherit; font-weight: 600; color: var(--text);
+    background: #1c1c26; border: 1px solid #2e2e3c;
+    padding: 12px 20px; border-radius: 10px; cursor: pointer;
+    transition: transform .08s ease, border-color .15s ease, background .15s ease;
+  }
+  button:hover { border-color: var(--safe); background: #22222f; }
+  button:active { transform: translateY(1px); }
+  button.primary { border-color: var(--safe); }
+  #campaignRow button { padding: 9px 18px; }
+  #campaignRow button.on { border-color: currentColor; background: #23232f; }
+  #campaignRow button .cname { font-weight: 700; }
+  #campaignRow button .csub { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+  .hint { color: var(--muted); font-size: 13px; }
+  #custom.hidden { display: none; }
+  #customRow button { padding: 8px 12px; font-size: 13px; }
+  .stages { color: var(--muted); font-size: clamp(12px, 2.4vw, 14px); line-height: 1.7; text-align: left; }
+  .stages b { color: var(--text); }
+  .stages .pu { font-weight: 600; }
+  #hud {
+    position: absolute; top: 12px; left: 14px; right: 14px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    font-variant-numeric: tabular-nums; font-weight: 600;
+    font-size: clamp(13px, 2.6vw, 16px); pointer-events: none;
+    text-shadow: 0 1px 6px rgba(0,0,0,.6);
+  }
+  #hud .label { color: var(--muted); font-weight: 500; margin-right: 6px; }
+  #hud.hidden { display: none; }
+  #hudStageName { color: var(--danger); }
+  /* Stage progress pips */
+  #pips { display: flex; gap: 5px; margin-top: 6px; }
+  #pips i {
+    width: 15px; height: 5px; border-radius: 3px; background: #2a2a38; display: block;
+  }
+  #pips i.done { background: var(--danger); }
+  #pips i.active { background: var(--safe); }
+  /* Group heading above each boss's block of battles */
+  .grouphead {
+    display: flex; align-items: center; gap: 9px; width: 100%; max-width: 460px;
+    font-size: 11px; letter-spacing: 2.2px; font-weight: 800; margin-top: 4px;
+  }
+  .grouphead::after { content: ""; flex: 1; height: 1px; background: currentColor; opacity: .28; }
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; border-bottom: 1px solid #26263300; }
+  .tabs button {
+    padding: 8px 14px; font-size: 13px; border-radius: 9px 9px 0 0;
+    background: transparent; border: 1px solid transparent; border-bottom: 2px solid transparent;
+    color: var(--muted);
+  }
+  .tabs button:hover { background: #1c1c26; color: var(--text); border-color: transparent; }
+  .tabs button.on { color: var(--text); background: #1c1c26; border-bottom-color: var(--safe); }
+  .tabpanel { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
+  .tabpanel.hidden { display: none; }
+  /* Library + boss editor */
+  .screen.scroll { justify-content: flex-start; overflow-y: auto; gap: 12px; padding: 22px 20px; }
+  .liblist { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 460px; }
+  .libitem {
+    display: flex; align-items: center; gap: 10px; text-align: left;
+    background: #17171f; border: 1px solid #2a2a38; border-radius: 10px; padding: 10px 12px;
+  }
+  .libitem .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; align-self: flex-start; margin-top: 6px; }
+  .libitem .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .libitem .nm { font-weight: 700; font-size: 15px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .libitem .diff { font-size: 10px; letter-spacing: 1px; }
+  .libitem .tick { color: var(--safe); font-size: 11px; font-weight: 600; }
+  .libitem .blurb { color: var(--text); font-size: 12.5px; line-height: 1.45; }
+  .libitem .sub2 { color: var(--muted); font-size: 11.5px; }
+  .libitem button { padding: 7px 12px; font-size: 12px; align-self: center; flex: none; }
+  .divider { width: 100%; max-width: 460px; height: 1px; background: #26263a; margin: 2px 0; }
+  .libempty { color: var(--muted); font-size: 13px; padding: 6px 10px; }
+  .editrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .editrow label, .stagerow label { color: var(--muted); font-size: 12px; font-weight: 600; }
+  input, select {
+    font: inherit; font-size: 13px; color: var(--text); background: #17171f;
+    border: 1px solid #2e2e3c; border-radius: 8px; padding: 7px 9px;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--safe); }
+  /* ---- Level editor ---- */
+  #editor { gap: 14px; }
+  .edithead {
+    display: flex; flex-direction: column; gap: 4px; align-items: center;
+    width: 100%; max-width: 520px;
+  }
+  .editbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
+    width: 100%; max-width: 520px; background: #15151d; border: 1px solid #26263a;
+    border-radius: 12px; padding: 11px 14px;
+  }
+  .editbar .grow { flex: 1; min-width: 120px; }
+  .swatches { display: flex; gap: 6px; }
+  .swatch {
+    width: 22px; height: 22px; border-radius: 7px; cursor: pointer; padding: 0;
+    border: 2px solid transparent; background-clip: padding-box;
+  }
+  .swatch.on { border-color: var(--text); transform: scale(1.12); }
+  .swatch:hover { border-color: #6a6a86; }
+  /* Stage cards */
+  .stagerows { display: flex; flex-direction: column; gap: 9px; width: 100%; max-width: 520px; }
+  .stagerow {
+    display: grid; gap: 8px 10px; align-items: center;
+    grid-template-columns: 22px 1fr auto;
+    background: #15151d; border: 1px solid #2a2a38; border-left: 3px solid #2a2a38;
+    border-radius: 11px; padding: 10px 12px;
+  }
+  .stagerow .num {
+    color: var(--bg); background: var(--muted); font-weight: 800; font-size: 11px;
+    width: 21px; height: 21px; border-radius: 6px; display: grid; place-items: center;
+  }
+  .stagerow select { width: 100%; min-width: 0; }
+  .stagerow .ops { display: flex; gap: 4px; }
+  .stagerow .ops button { padding: 5px 8px; font-size: 12px; line-height: 1; }
+  /* Second line of a card: the numeric knobs */
+  .knobs {
+    grid-column: 1 / -1; display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+    border-top: 1px dashed #2a2a38; padding-top: 9px;
+  }
+  .knob { display: flex; align-items: center; gap: 6px; }
+  .knob label { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .4px; }
+  .knob input[type=number] { width: 60px; }
+  .knob input[type=range] { width: 84px; accent-color: var(--safe); }
+  .knob .val {
+    color: var(--text); font-size: 11.5px; font-weight: 700; width: 34px;
+    font-variant-numeric: tabular-nums;
+  }
+  .knob.chk { color: var(--muted); font-size: 12px; cursor: pointer; }
+  /* Live summary of what the level will play like */
+  .editsummary {
+    width: 100%; max-width: 520px; background: #131319; border: 1px solid #26263a;
+    border-radius: 11px; padding: 11px 14px; display: flex; flex-direction: column; gap: 5px;
+  }
+  .editsummary .chain { font-size: 13px; font-weight: 700; line-height: 1.6; }
+  .editsummary .chain span { color: var(--muted); font-weight: 500; }
+  .editsummary .facts { color: var(--muted); font-size: 11.5px; }
+  #shareRow { width: 100%; max-width: 520px; display: flex; gap: 8px; align-items: center; }
+  #shareRow input { flex: 1; min-width: 0; font-size: 11.5px; font-family: ui-monospace, Menlo, monospace; }
+  #shareMsg { color: var(--safe); font-size: 12px; min-height: 1.3em; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <canvas id="game" width="720" height="720"></canvas>
+
+    <div id="hud" class="hidden">
+      <div>
+        <div><span class="label">Stage</span><span id="hudStageNum">1/7</span> · <span id="hudStageName">—</span></div>
+        <div id="pips"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div style="text-align:right"><span class="label" id="hudTimerLabel">Left</span><span id="hudTimer">0.0</span></div>
+    </div>
+
+    <!-- Menu -->
+    <div id="menu" class="screen scroll">
+      <h1>ENTER THE<br><span class="accent">COLOSSEUM</span></h1>
+
+      <div class="tabs" id="tabs">
+        <button data-tab="play" class="on">Play</button>
+        <button data-tab="library">Library</button>
+        <button data-tab="help">How to Play</button>
+      </div>
+
+      <!-- Play -->
+      <div class="tabpanel" data-panel="play">
+        <div class="btnrow">
+          <button id="practiceBtn">Practice: Off</button>
+          <button id="soundBtn">Sound: On</button>
+          <button id="musicBtn">Music: On</button>
+        </div>
+        <div class="btnrow" id="diffRow"></div>
+
+        <div class="divider"></div>
+
+        <p class="sub"><b style="color:var(--text)">Battles</b> — all <b style="color:var(--text)">14</b> forms, each on its own. Fight them in any order.</p>
+        <div id="battleList" class="liblist"></div>
+
+        <div class="divider"></div>
+
+        <p class="sub">Or take one boss end to end — pick which, then fight all seven of its forms straight through, or start from a stage of your choosing.</p>
+        <div class="btnrow" id="campaignRow"></div>
+        <div class="stages" id="stageList"></div>
+        <div class="btnrow">
+          <button data-mode="boss" id="bossBtn">Boss Fight · 7 Stages</button>
+          <button id="customToggle">Custom Start</button>
+        </div>
+        <div id="custom" class="hidden">
+          <p class="hint" style="margin-bottom:8px">Pick the stage to start from (play through to the end):</p>
+          <div class="btnrow" id="customRow"></div>
+        </div>
+        <p class="sub" style="margin-top:2px">From stage 3 on, red <b style="color:var(--text)">minions</b> also fade in (yellow warning first) — dodge them too.</p>
+      </div>
+
+      <!-- Library -->
+      <div class="tabpanel hidden" data-panel="library">
+        <p class="sub">Built levels: fixed runs that chain patterns the two campaigns never put together. Difficulty is the dot rating.</p>
+        <div id="libList" class="liblist"></div>
+        <div class="divider"></div>
+        <p class="sub"><b style="color:var(--text)">Your levels</b> — build your own out of any of the 14 patterns.</p>
+        <div id="myList" class="liblist"></div>
+        <div class="btnrow">
+          <button class="primary" id="newLevelBtn">New Level</button>
+        </div>
+      </div>
+
+      <!-- How to play -->
+      <div class="tabpanel hidden" data-panel="help">
+        <p class="sub"><b style="color:var(--text)">Arrow keys</b> to move. Stand inside the <b style="color:var(--safe)">blue circle</b> to drain the boss's health — it keeps relocating, so chase it through the bullets.</p>
+        <p class="sub">There are <b style="color:var(--safe)">two</b> damage zones. The big <b style="color:var(--safe)">light blue</b> circle drains normally and keeps relocating. The small <b style="color:#5b78ff">dark blue ×3</b> circle is tethered to the boss and orbits it, draining three times as fast — safe ground and fast damage are never in the same place.</p>
+        <p class="sub">Every red thing costs one hit: <b style="color:var(--safe)">5 / 3 / 1</b> depending on difficulty. The markers at the bottom are what's left, and clearing a stage gives one back. Big attacks flash <b style="color:var(--warn)">yellow</b> before they fire — the shape you see is the shape that arrives.</p>
+        <div class="stages">
+          <div><b>Pickups</b> — grab the big glowing circles (never red):</div>
+          <div><span class="pu" style="color:#3ddc84">● Green</span> — shield, eats one hit</div>
+          <div><span class="pu" style="color:#b06bff">● Purple</span> — slow-mo, only the red stuff crawls</div>
+          <div><span class="pu" style="color:#4dd7ff">● Blue</span> — double zone damage, 8s</div>
+          <div style="margin-top:6px"><b>Practice</b> — flip it on to play any mode without taking damage. Nothing is recorded.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level editor -->
+    <div id="editor" class="screen hidden scroll">
+      <div class="edithead">
+        <h2 id="editorTitle">New Level</h2>
+        <p class="hint" id="editHint">Add stages — each is a pattern with its own health.</p>
+      </div>
+
+      <div class="editbar">
+        <label for="lvlName">Name</label>
+        <input id="lvlName" class="grow" maxlength="24" placeholder="My level">
+        <div class="swatches" id="lvlColor"></div>
+      </div>
+
+      <div id="stageRows" class="stagerows"></div>
+      <div class="btnrow">
+        <button id="addStageBtn">+ Add Stage</button>
+      </div>
+
+      <div class="editsummary">
+        <div class="chain" id="editChain"></div>
+        <div class="facts" id="editFacts"></div>
+      </div>
+
+      <div id="shareRow">
+        <input id="shareCode" placeholder="Paste a share code here to import a level" spellcheck="false">
+        <button id="copyCodeBtn">Copy</button>
+        <button id="importBtn">Import</button>
+      </div>
+      <p id="shareMsg"></p>
+
+      <div class="btnrow">
+        <button class="primary" id="saveLevelBtn">Save</button>
+        <button id="testLevelBtn">Save &amp; Fight</button>
+        <button id="cancelLevelBtn">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Game over / Win -->
+    <div id="end" class="screen hidden">
+      <h2 id="endTitle">Game Over</h2>
+      <p class="stat" id="endStat"></p>
+      <p class="sub" id="endBest"></p>
+      <div class="btnrow">
+        <button class="primary" id="againBtn">Play Again</button>
+        <button id="menuBtn">Menu</button>
+      </div>
+      <p class="hint">Space to play again</p>
+    </div>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+
+  const menuEl = document.getElementById("menu");
+  const endEl = document.getElementById("end");
+  const hudEl = document.getElementById("hud");
+  const hudStageNum = document.getElementById("hudStageNum");
+  const hudStageName = document.getElementById("hudStageName");
+  const hudTimer = document.getElementById("hudTimer");
+  const hudTimerLabel = document.getElementById("hudTimerLabel");
+  const pipsEl = document.getElementById("pips");
+  let pips = [];
+  const tabsEl = document.getElementById("tabs");
+  const tabPanels = [...document.querySelectorAll(".tabpanel")];
+  const libList = document.getElementById("libList");
+  const myList = document.getElementById("myList");
+  const editorEl = document.getElementById("editor");
+  const editorTitle = document.getElementById("editorTitle");
+  const lvlName = document.getElementById("lvlName");
+  const lvlColor = document.getElementById("lvlColor");
+  const stageRows = document.getElementById("stageRows");
+  const addStageBtn = document.getElementById("addStageBtn");
+  const editHint = document.getElementById("editHint");
+  const editChain = document.getElementById("editChain");
+  const editFacts = document.getElementById("editFacts");
+  const shareCode = document.getElementById("shareCode");
+  const shareMsg = document.getElementById("shareMsg");
+  const battleList = document.getElementById("battleList");
+  const againBtn = document.getElementById("againBtn");
+  const endTitle = document.getElementById("endTitle");
+  const endStat = document.getElementById("endStat");
+  const endBest = document.getElementById("endBest");
+
+  const COLORS = {
+    safe: "#4dd7ff",
+    danger: "#ff3b3b",
+    warn: "#ffd23b",
+    dangerSoft: "rgba(255,59,59,0.22)",
+    grid: "#191922",
+  };
+
+  // ---- Powerups ----
+  // Colored pickup circles. Never red — red is always lethal.
+  const POWERUPS = {
+    shield: { color: "#3ddc84", label: "SHIELD",  dur: 0    },  // absorbs one hit
+    slow:   { color: "#b06bff", label: "SLOW-MO", dur: 5.0  },  // everything red crawls
+    double: { color: "#4dd7ff", label: "×2 ZONE", dur: 8.0  },  // double zone drain
+  };
+  const PU_KEYS = Object.keys(POWERUPS);
+  const PU_SPAWN = 6.5;   // seconds between drops
+  const PU_LIFE = 9.0;    // seconds a drop sits there before fading out
+  const SLOW_FACTOR = 0.4;
+
+  const CENTER = { x: W / 2, y: H / 2 };
+
+  // ---- Campaigns ----
+  // Two separate bosses, each with its own seven stages and its own final form.
+  // hp = damage you must deal (via the blue zone) to clear the stage.
+  const CAMPAIGNS = {
+    inferno: {
+      name: "Inferno",
+      sub: "Hades and his seven trials",
+      accent: "#ff5a2b",
+      stages: [
+        { name: "Pursuer", key: "pursuer", hp: 45, desc: "stalks you, jabs & fans" },
+        { name: "Nova",    key: "nova",    hp: 60, desc: "blooming rings with escape gaps" },
+        { name: "Charger", key: "charger", hp: 55, desc: "telegraphs, then dashes" },
+        { name: "Spiral",  key: "spiral",  hp: 50, desc: "a galaxy that reverses its spin" },
+        { name: "Gatling", key: "gatling", hp: 50, desc: "orbits, then locks on & focus-fires" },
+        { name: "Lattice", key: "lattice", hp: 85, desc: "spinning lines of darts" },
+        { name: "Hades",   key: "hades",   hp: 95, desc: "final boss: curling flames + volleys", final: true },
+      ],
+    },
+    void: {
+      name: "Void",
+      sub: "the collapsing star",
+      accent: "#7b5cff",
+      stages: [
+        { name: "Weaver",  key: "weaver",  hp: 45, desc: "sways across the top, firing paired shots" },
+        { name: "Mirror",  key: "mirror",  hp: 55, desc: "shoots from itself and its reflection" },
+        { name: "Pulsar",  key: "pulsar",  hp: 55, desc: "sits dead center, pulsing gapped rings" },
+        { name: "Serpent", key: "serpent", hp: 55, desc: "a snaking stream that whips side to side" },
+        { name: "Cross",   key: "cross",   hp: 55, desc: "two counter-rotating cross beams" },
+        { name: "Swarm",   key: "swarm",   hp: 60, desc: "light fire, but minions flood in" },
+        { name: "Void",    key: "void",    hp: 95, desc: "final boss: the arena implodes inward", final: true },
+      ],
+    },
+  };
+
+  let campaign = "inferno";
+  // Whichever boss is actually being fought — one of CAMPAIGNS, or a custom one
+  // built in the Library. Anything drawn mid-fight reads from here.
+  let activeCamp = CAMPAIGNS[campaign];
+  let activeLevel = null;   // the Library level being fought, if any
+  let STAGES = CAMPAIGNS[campaign].stages;
+
+  // Every attack pattern the engine knows, for the custom boss builder.
+  const PATTERNS = [];
+  for (const c of Object.values(CAMPAIGNS)) {
+    for (const s of c.stages) PATTERNS.push({ key: s.key, name: s.name, desc: s.desc });
+  }
+  const PATTERN_BY_KEY = Object.fromEntries(PATTERNS.map((p) => [p.key, p]));
+
+  // ---- Library ----
+  // Hand-built levels: fixed pattern chains that the two campaigns never put
+  // together. Each is a short run fought straight through.
+  const SOUND_KEY = "dodger_sound";
+  const MUSIC_KEY = "dodger_music";
+  let soundOn = localStorage.getItem(SOUND_KEY) !== "off";
+  let musicOn = localStorage.getItem(MUSIC_KEY) !== "off";
+  let actx = null;
+  const CLEARED_KEY = "dodger_levels_cleared";
+  // Levels you build yourself, kept next to the built-in ones.
+  const MINE_KEY = "dodger_my_levels";
+  const TIMES_KEY = "dodger_level_times";
+  const MAX_CUSTOM_STAGES = 8;
+  const LEVEL_COLORS = [
+    ["Ember", "#ff5a2b"], ["Violet", "#7b5cff"], ["Ice", "#4dd7ff"],
+    ["Acid", "#3ddc84"], ["Gold", "#ffd23b"], ["Rose", "#ff66c4"],
+  ];
+  let myLevels = [];
+  let editing = null;
+
+  const LEVELS = [
+    {
+      id: "warmup", name: "Warm-Up", accent: "#4dd7ff", rating: 1,
+      blurb: "Two slow forms and plenty of room. Good for learning what the pickups do.",
+      stages: [
+        { key: "pursuer", hp: 35, minions: false },
+        { key: "nova",    hp: 45, minions: false },
+      ],
+    },
+    {
+      id: "geometry", name: "Geometry", accent: "#7b5cff", rating: 2,
+      blurb: "Nothing chases you and nothing aims. Four spinning patterns — read them or don't.",
+      stages: [
+        { key: "lattice", hp: 45, minions: false },
+        { key: "cross",   hp: 50, minions: false },
+        { key: "spiral",  hp: 45, minions: false },
+        { key: "pulsar",  hp: 55, minions: false },
+      ],
+    },
+    {
+      id: "orbit", name: "Orbit", accent: "#ffd23b", rating: 3,
+      blurb: "Three bosses that shoot while they move. You'll never get a stationary target.",
+      stages: [
+        { key: "gatling", hp: 50, minions: false },
+        { key: "weaver",  hp: 50, minions: false },
+        { key: "mirror",  hp: 60, minions: false },
+      ],
+    },
+    {
+      id: "infestation", name: "Infestation", accent: "#3ddc84", rating: 3,
+      blurb: "Minions on every stage, including the ones that never normally have them.",
+      stages: [
+        { key: "swarm",   hp: 55, minions: true },
+        { key: "pursuer", hp: 50, minions: true },
+        { key: "lattice", hp: 60, minions: true },
+      ],
+    },
+    {
+      id: "whiplash", name: "Whiplash", accent: "#ff66c4", rating: 4,
+      blurb: "Streams that never hold still. Stop moving for a second and it finds you.",
+      stages: [
+        { key: "serpent", hp: 50, minions: false },
+        { key: "spiral",  hp: 50, minions: true },
+        { key: "serpent", hp: 65, minions: true },
+      ],
+    },
+    {
+      id: "crucible", name: "Crucible", accent: "#ff5a2b", rating: 4,
+      blurb: "Hades' three most aggressive forms with no breathing room between them.",
+      stages: [
+        { key: "pursuer", hp: 45, minions: false },
+        { key: "charger", hp: 50, minions: true },
+        { key: "hades",   hp: 80, minions: true },
+      ],
+    },
+    {
+      id: "mirrors", name: "Hall of Mirrors", accent: "#b06bff", rating: 3,
+      blurb: "Mirror twice, with a Pulsar between them. Learn to watch two shooters at once.",
+      stages: [
+        { key: "mirror", hp: 50, minions: false },
+        { key: "pulsar", hp: 55, minions: false },
+        { key: "mirror", hp: 65, minions: true },
+      ],
+    },
+    {
+      id: "closequarters", name: "Close Quarters", accent: "#ff5a2b", rating: 4,
+      blurb: "Three bosses that come to you. Nowhere is far enough away for long.",
+      stages: [
+        { key: "pursuer", hp: 50, minions: true },
+        { key: "charger", hp: 55, minions: true },
+        { key: "swarm",   hp: 60, minions: true },
+      ],
+    },
+    {
+      id: "bloom", name: "Bloom", accent: "#3ddc84", rating: 2,
+      blurb: "Nothing but rings and gaps. Practice reading an opening and committing to it.",
+      stages: [
+        { key: "nova",   hp: 50, minions: false },
+        { key: "pulsar", hp: 55, minions: false },
+        { key: "nova",   hp: 60, minions: false },
+      ],
+    },
+    {
+      id: "clockwork", name: "Clockwork", accent: "#ffd23b", rating: 3,
+      blurb: "Four patterns on strict timers. Once you hear the rhythm it plays itself.",
+      stages: [
+        { key: "lattice", hp: 45, minions: false },
+        { key: "gatling", hp: 50, minions: false },
+        { key: "cross",   hp: 50, minions: false },
+        { key: "weaver",  hp: 55, minions: true },
+      ],
+    },
+    {
+      id: "twofinals", name: "Both Crowns", accent: "#ff66c4", rating: 5,
+      blurb: "Hades and the Void, one after the other, no forms in between to warm up on.",
+      stages: [
+        { key: "hades", hp: 90, minions: true },
+        { key: "void",  hp: 95, minions: true },
+      ],
+    },
+    {
+      id: "longnight", name: "The Long Night", accent: "#8f6bff", rating: 5,
+      blurb: "Five closing acts in a row, both bosses, ending where the campaign ends.",
+      stages: [
+        { key: "nova",   hp: 55, minions: false },
+        { key: "pulsar", hp: 60, minions: true },
+        { key: "cross",  hp: 60, minions: true },
+        { key: "hades",  hp: 85, minions: true },
+        { key: "void",   hp: 95, minions: true },
+      ],
+    },
+  ];
+
+  // ---- Battles ----
+  // Every form in the game, flattened into one flat list. Each is fought on its
+  // own; nothing is locked, and the order is yours.
+  const BATTLES = [];
+  for (const key of ["inferno", "void"]) {
+    CAMPAIGNS[key].stages.forEach((s, i) => {
+      BATTLES.push({
+        id: "battle:" + key + ":" + s.key + ":" + i,
+        campaign: key,
+        stageIdx: i,
+        stage: s,
+        // Roughly how hard the form is on its own: position in its boss's run,
+        // with the two crowns pinned to the top.
+        rating: s.final ? 5 : Math.max(1, Math.min(4, Math.round(1 + i * 0.7))),
+      });
+    });
+  }
+
+  // ---- Game state ----
+  const GS = { MENU: "menu", PLAYING: "playing", TRANSITION: "transition", OVER: "over" };
+  let state = GS.MENU;
+  let mode = "boss"; // "boss" | "campaign" | "level"
+
+  const keys = Object.create(null);
+
+  let player, boss, bullets, zone, minions, minionTimer, stageIdx, stageTime, totalTime, banner, transTime;
+  let powerups, puTimer, fx, shockwaves, pickupFlash, hurtFlash, hotZone, pending;
+  let shake, freeze, phase2, particles, trail;
+  let stageSpd = 1, stageRate = 1;
+
+  // Every red thing costs one hit; how many you get depends on difficulty.
+  const DIFFS = [
+    ["easy", "Easy", 5], ["normal", "Normal", 3], ["hard", "Hard", 1],
+  ];
+  const DIFF_KEY = "dodger_difficulty";
+  let difficulty = "normal";
+  let maxHits = 3;
+  const MERCY = 1.0;        // seconds of invulnerability after taking a hit
+  let practice = false;     // practice mode: you take no damage at all
+
+  const ZONE_DRAIN = 15;     // boss HP drained per second while you stand in the blue zone
+  const ZONE_MOVE = 4.5;     // seconds before the zone relocates
+  const HOT_MULT = 3;        // the hot zone hurts three times as fast
+  const HOT_ORBIT = 96;      // how far the hot zone rides from the boss
+
+  function resetGame() {
+    player = { x: W / 2, y: H * 0.75, r: 13, speed: 640, hits: maxHits };
+    hurtFlash = 0;
+    boss = {
+      x: W / 2, y: H * 0.22, r: 34,
+      fire: 0, fire2: 0, spin: 0, hp: 1, maxhp: 1, hitFlash: 0,
+      dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
+    };
+    bullets = [];
+    zone = { x: W / 2, y: H / 2, r: 46, moveT: ZONE_MOVE, pulse: 0 };
+    // The hot zone: small, three times the drain, and it orbits the boss — safe
+    // ground and fast damage are never in the same place.
+    hotZone = { x: W / 2, y: H * 0.22, r: 27, ang: Math.random() * Math.PI * 2 };
+    minions = [];
+    minionTimer = 2.0;
+    stageIdx = 0;
+    stageTime = 0;
+    totalTime = 0;
+    banner = null;
+    transTime = 0;
+    powerups = [];
+    puTimer = 3.0;
+    shockwaves = [];
+    pending = [];
+    pickupFlash = null;
+    shake = 0;
+    freeze = 0;
+    phase2 = false;
+    particles = [];
+    trail = [];
+    fx = { shield: false, slow: 0, double: 0, invuln: 0 };
+  }
+
+  function difficultyMul() {
+    // Global speed factor — everything moves fast.
+    return 1.5;
+  }
+
+  let startIdx = 0; // remembered start stage (for Space-to-restart)
+
+  function startGame(selectedMode, fromStage) {
+    mode = selectedMode;
+    startIdx = fromStage || 0;
+    resetGame();
+    state = GS.PLAYING;
+    beginStage(startIdx);
+    menuEl.classList.add("hidden");
+    endEl.classList.add("hidden");
+    hudEl.classList.remove("hidden");
+  }
+
+  function toMenu() {
+    state = GS.MENU;
+    stopMusic();
+    renderCampaign();
+    menuEl.classList.remove("hidden");
+    endEl.classList.add("hidden");
+    hudEl.classList.add("hidden");
+    editorEl.classList.add("hidden");
+  }
+
+  // ---- Battle flow ----
+  // One form, fought on its own. Clears and best times are stored with the same
+  // machinery the Library uses, so a battle row looks and behaves like a level.
+  function playBattle(b) {
+    campaign = b.campaign;
+    activeLevel = { id: b.id, name: b.stage.name };
+    activeCamp = {
+      name: b.stage.name,
+      accent: CAMPAIGNS[b.campaign].accent,
+      stages: [Object.assign({}, b.stage, { final: true })],
+    };
+    STAGES = activeCamp.stages;
+    menuEl.classList.add("hidden");
+    buildPips(1);
+    startGame("level", 0);
+  }
+
+  // A boss coming apart: a wide ring, its own color thrown outward, and a
+  // second slower wave of embers behind it.
+  function bossDeathBurst() {
+    const col = mode === "level" ? activeCamp.accent : COLORS.danger;
+    burst(boss.x, boss.y, 46, col, 460, { life: 0.9 });
+    burst(boss.x, boss.y, 26, "#ffffff", 300, { life: 0.4 });
+    burst(boss.x, boss.y, 30, COLORS.warn, 190, { life: 1.3, drag: 1.4 });
+  }
+
+  function beginStage(idx) {
+    stageIdx = idx;
+    stageTime = 0;
+    boss.fire = 0.6;
+    boss.fire2 = 1.4;
+    boss.spin = 0;
+    boss.hitFlash = 0;
+    boss.maxhp = STAGES[idx].hp;
+    boss.hp = boss.maxhp;
+    boss.dash.phase = "idle";
+    boss.dash.t = 0;
+    phase2 = false;
+    // Per-stage tuning from the level builder; the campaigns leave these at 1.
+    stageSpd = STAGES[idx].spd || 1;
+    stageRate = STAGES[idx].rate || 1;
+    placeZone();
+    updateHudStage();
+    startMusic(STAGES[idx].key);
+  }
+
+  // Put the damage zone somewhere reachable, away from the boss and not on top of you.
+  function placeZone() {
+    let x, y;
+    for (let tries = 0; tries < 20; tries++) {
+      x = 70 + Math.random() * (W - 140);
+      y = 70 + Math.random() * (H - 140);
+      if (Math.hypot(x - boss.x, y - boss.y) > 130 &&
+          Math.hypot(x - player.x, y - player.y) > 120) break;
+    }
+    zone.x = x; zone.y = y;
+    zone.moveT = ZONE_MOVE;
+  }
+
+  function nextStage() {
+    // Enter a short telegraphed transition before the next stage.
+    bullets = [];
+    minions = [];
+    pending = [];
+    shockwaves.push({ x: boss.x, y: boss.y, t: 0, dur: 0.6 });   // the screen gets swept clean
+    bossDeathBurst();
+    shake = 18;
+    freeze = 0.18;
+    sfx("clear");
+    powerups = [];        // uncollected drops don't carry over — active effects do
+    puTimer = 2.5;
+    player.hits = Math.min(maxHits, player.hits + 1);   // one hit back between stages
+    state = GS.TRANSITION;
+    transTime = 0;
+    const nextIdx = stageIdx + 1;
+    banner = `STAGE ${nextIdx + 1} — ${STAGES[nextIdx].name.toUpperCase()}`;
+    boss._pendingStage = nextIdx;
+  }
+
+  function winGame() {
+    state = GS.OVER;
+    stopMusic();
+    hudEl.classList.add("hidden");
+    endEl.classList.remove("hidden");
+    sfx("win");
+    endTitle.textContent = `${activeCamp.name} defeated!`;
+    endTitle.style.color = COLORS.safe;
+    if (mode === "level" && activeLevel) {
+      markCleared(activeLevel.id);
+      const res = recordTime(activeLevel.id, totalTime);
+      if (practice) endBest.textContent = "Practice run — not recorded.";
+      else if (res && res.best) {
+        endBest.textContent = res.prev == null
+          ? `First clear: ${totalTime.toFixed(1)}s`
+          : `New best! ${totalTime.toFixed(1)}s (was ${res.prev.toFixed(1)}s)`;
+      } else if (res) {
+        endBest.textContent = `Best: ${res.prev.toFixed(1)}s`;
+      }
+      return;
+    }
+    againBtn.textContent = "Play Again";
+    endStat.textContent = `All ${STAGES.length} stages cleared in ${totalTime.toFixed(1)}s.`;
+    endBest.textContent = "";
+  }
+
+  function loseGame() {
+    state = GS.OVER;
+    stopMusic();
+    hudEl.classList.add("hidden");
+    endEl.classList.remove("hidden");
+    endTitle.textContent = "Game Over";
+    endTitle.style.color = COLORS.danger;
+    const stageName = STAGES[stageIdx].name;
+    againBtn.textContent = STAGES.length === 1 ? "Retry Battle" : "Play Again";
+    if (STAGES.length === 1) {
+      // A single battle: nothing to report but how long you lasted.
+      endStat.textContent = `${stageName} still stands. Lasted ${totalTime.toFixed(1)}s.`;
+      endBest.textContent = "";
+      return;
+    }
+    endStat.textContent = `Fell on Stage ${stageIdx + 1} — ${stageName}. Lasted ${totalTime.toFixed(1)}s.`;
+    endBest.textContent = `Clear all ${STAGES.length} stages to win.`;
+  }
+
+  // ---- Input ----
+  const MOVE_KEYS = { ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1 };
+  window.addEventListener("keydown", (e) => {
+    if (e.key in MOVE_KEYS) { keys[e.key] = true; e.preventDefault(); return; }
+    if (e.code === "Space" || e.key === " ") {
+      // Only the Play tab reacts to Space, and never while the editor is open.
+      if (!editorEl.classList.contains("hidden")) return;
+      if (state === GS.MENU && tab !== "play") return;
+      e.preventDefault();
+      if (state === GS.MENU || state === GS.OVER) replay();
+    }
+  });
+  window.addEventListener("keyup", (e) => {
+    if (e.key in MOVE_KEYS) { keys[e.key] = false; e.preventDefault(); }
+  });
+  // Space on the end screen: run the same thing back.
+  function replay() {
+    if (mode === "level" && activeLevel) {
+      // Battles and Library levels both re-enter through their own definition.
+      const b = BATTLES.find((x) => x.id === activeLevel.id);
+      if (b) return playBattle(b);
+      const lv = LEVELS.concat(myLevels).find((x) => x.id === activeLevel.id);
+      if (lv) return playLevel(lv);
+    }
+    startBossRun(startIdx);
+  }
+
+  // Fighting a whole boss: point the engine back at that boss's seven stages
+  // first, because a battle or a Library level may have left STAGES elsewhere.
+  function startBossRun(fromStage) {
+    activeLevel = null;
+    activeCamp = CAMPAIGNS[campaign];
+    STAGES = activeCamp.stages;
+    buildPips(STAGES.length);
+    startGame("boss", fromStage || 0);
+  }
+
+  menuEl.querySelectorAll("button[data-mode]").forEach((b) => {
+    b.addEventListener("click", () => startBossRun(0));
+  });
+
+  // Tabs
+  tabsEl.querySelectorAll("button").forEach((b) => {
+    b.addEventListener("click", () => {
+      setTab(b.dataset.tab);
+      if (b.dataset.tab === "library") renderLibrary();
+    });
+  });
+
+  // Level editor wiring — the accent is picked from swatches rather than a
+  // dropdown, because the color is the thing you're actually choosing.
+  LEVEL_COLORS.forEach(([label, hex]) => {
+    const b = document.createElement("button");
+    b.className = "swatch";
+    b.dataset.hex = hex;
+    b.title = label;
+    b.style.background = hex;
+    b.addEventListener("click", () => {
+      if (!editing) return;
+      editing.accent = hex;
+      paintSwatches();
+      renderSummary();
+    });
+    lvlColor.appendChild(b);
+  });
+  function paintSwatches() {
+    lvlColor.querySelectorAll(".swatch").forEach((b) => {
+      b.classList.toggle("on", editing && b.dataset.hex === editing.accent);
+    });
+  }
+  document.getElementById("newLevelBtn").addEventListener("click", () => openEditor(null));
+  addStageBtn.addEventListener("click", () => {
+    if (!editing || editing.stages.length >= MAX_CUSTOM_STAGES) return;
+    // A new stage copies the last one, because that's usually the closest start.
+    editing.stages.push(newStage(editing.stages[editing.stages.length - 1]));
+    renderStageRows();
+  });
+
+  // Share codes: copy this level out, or paste someone else's in.
+  document.getElementById("copyCodeBtn").addEventListener("click", () => {
+    if (!editing) return;
+    const code = encodeLevel(editing);
+    shareCode.value = code;
+    shareCode.select();
+    const done = (ok) => {
+      shareMsg.style.color = ok ? "" : "#ffd23b";
+      shareMsg.textContent = ok ? "Code copied — paste it to anyone." : "Press ⌘C to copy the selected code.";
+    };
+    if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(() => done(true), () => done(false));
+    } else {
+      done(false);
+    }
+  });
+  document.getElementById("importBtn").addEventListener("click", () => {
+    const lv = decodeLevel(shareCode.value);
+    if (!lv) {
+      shareMsg.style.color = "#ff3b3b";
+      shareMsg.textContent = "That isn't a valid share code.";
+      return;
+    }
+    // Import replaces what's on screen; it isn't saved until you hit Save.
+    editing = Object.assign(lv, { _idx: null });
+    editorTitle.textContent = "Imported Level";
+    lvlName.value = editing.name;
+    paintSwatches();
+    renderStageRows();
+    shareMsg.style.color = "";
+    shareMsg.textContent = `Imported "${editing.name}" — Save to keep it.`;
+  });
+  document.getElementById("saveLevelBtn").addEventListener("click", () => { commitEditor(); openLibrary(); });
+  document.getElementById("testLevelBtn").addEventListener("click", () => playLevel(commitEditor()));
+  document.getElementById("cancelLevelBtn").addEventListener("click", openLibrary);
+  // Practice applies to whatever you start next: no damage, and nothing is recorded.
+  // Difficulty only changes how many hits you get: 5 / 3 / 1.
+  const diffRow = document.getElementById("diffRow");
+  function setDifficulty(key) {
+    const d = DIFFS.find((x) => x[0] === key) || DIFFS[1];
+    difficulty = d[0];
+    maxHits = d[2];
+    localStorage.setItem(DIFF_KEY, difficulty);
+    diffRow.querySelectorAll("button").forEach((b) => {
+      const on = b.dataset.diff === difficulty;
+      b.classList.toggle("on", on);
+      b.style.borderColor = on ? COLORS.safe : "";
+      b.style.color = on ? COLORS.safe : "";
+    });
+  }
+  DIFFS.forEach(([key, label, hits]) => {
+    const b = document.createElement("button");
+    b.dataset.diff = key;
+    b.textContent = `${label} · ${hits} ${hits === 1 ? "life" : "lives"}`;
+    b.addEventListener("click", () => setDifficulty(key));
+    diffRow.appendChild(b);
+  });
+  setDifficulty(localStorage.getItem(DIFF_KEY) || "normal");
+
+  const soundBtn = document.getElementById("soundBtn");
+  function refreshSoundBtn() {
+    soundBtn.textContent = `Sound: ${soundOn ? "On" : "Off"}`;
+    soundBtn.style.color = soundOn ? "" : "#8a8a9a";
+  }
+  soundBtn.addEventListener("click", () => {
+    soundOn = !soundOn;
+    localStorage.setItem(SOUND_KEY, soundOn ? "on" : "off");
+    refreshSoundBtn();
+    if (soundOn) sfx("pickup");
+  });
+  refreshSoundBtn();
+
+  const musicBtn = document.getElementById("musicBtn");
+  function refreshMusicBtn() {
+    musicBtn.textContent = `Music: ${musicOn ? "On" : "Off"}`;
+    musicBtn.style.color = musicOn ? "" : "#8a8a9a";
+  }
+  musicBtn.addEventListener("click", () => {
+    musicOn = !musicOn;
+    localStorage.setItem(MUSIC_KEY, musicOn ? "on" : "off");
+    refreshMusicBtn();
+    // Take effect immediately rather than waiting for the next stage.
+    if (!musicOn) stopMusic();
+    else if (state === GS.PLAYING) startMusic(STAGES[stageIdx].key);
+  });
+  refreshMusicBtn();
+
+  const practiceBtn = document.getElementById("practiceBtn");
+  practiceBtn.addEventListener("click", () => {
+    practice = !practice;
+    practiceBtn.textContent = `Practice: ${practice ? "On" : "Off"}`;
+    practiceBtn.style.color = practice ? "#3ddc84" : "";
+    practiceBtn.style.borderColor = practice ? "#3ddc84" : "";
+  });
+  againBtn.addEventListener("click", replay);
+  document.getElementById("menuBtn").addEventListener("click", toMenu);
+
+  // Custom start: pick which stage to begin from (plays through to the end).
+  const customEl = document.getElementById("custom");
+  document.getElementById("customToggle").addEventListener("click", () => {
+    customEl.classList.toggle("hidden");
+  });
+  const customRow = document.getElementById("customRow");
+  const stageListEl = document.getElementById("stageList");
+  const campaignRow = document.getElementById("campaignRow");
+  const bossBtn = document.getElementById("bossBtn");
+
+  // Rebuild everything that depends on which boss you've picked.
+  function renderCampaign() {
+    activeCamp = CAMPAIGNS[campaign];
+    STAGES = CAMPAIGNS[campaign].stages;
+
+    campaignRow.querySelectorAll("button").forEach((b) => {
+      const on = b.dataset.campaign === campaign;
+      b.classList.toggle("on", on);
+      b.style.color = on ? CAMPAIGNS[b.dataset.campaign].accent : "";
+    });
+
+    stageListEl.innerHTML = "";
+    STAGES.forEach((s, i) => {
+      const row = document.createElement("div");
+      const b = document.createElement("b");
+      b.textContent = `${i + 1} · ${s.name}`;
+      if (s.final) b.style.color = CAMPAIGNS[campaign].accent;
+      row.appendChild(b);
+      row.appendChild(document.createTextNode(` — ${s.desc}`));
+      stageListEl.appendChild(row);
+    });
+
+    customRow.innerHTML = "";
+    STAGES.forEach((s, i) => {
+      const b = document.createElement("button");
+      b.textContent = `${i + 1} · ${s.name}`;
+      b.addEventListener("click", () => startBossRun(i));
+      customRow.appendChild(b);
+    });
+
+    bossBtn.textContent = `Fight ${CAMPAIGNS[campaign].name} · ${STAGES.length} Stages`;
+    buildPips();
+    refreshMenu();
+  }
+
+  Object.entries(CAMPAIGNS).forEach(([key, c]) => {
+    const b = document.createElement("button");
+    b.dataset.campaign = key;
+    b.innerHTML = `<span class="cname">${c.name}</span><span class="csub">${c.sub}</span>`;
+    b.addEventListener("click", () => { campaign = key; renderCampaign(); });
+    campaignRow.appendChild(b);
+  });
+
+  // Which menu tab is showing.
+  let tab = "play";
+  function setTab(name) {
+    tab = name;
+    tabsEl.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
+    tabPanels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== name));
+    menuEl.scrollTop = 0;
+  }
+
+  // ---- Library ----
+  function readJSON(key, fallback) {
+    try {
+      const v = JSON.parse(localStorage.getItem(key) || "null");
+      return v == null ? fallback : v;
+    } catch (e) {
+      return fallback;      // corrupt storage shouldn't cost you the Library
+    }
+  }
+  function loadMine() {
+    const raw = readJSON(MINE_KEY, []);
+    myLevels = Array.isArray(raw) ? raw.filter(validLevel) : [];
+  }
+  function validLevel(l) {
+    return l && typeof l.name === "string" && Array.isArray(l.stages) && l.stages.length > 0
+      && l.stages.every((s) => PATTERN_BY_KEY[s.key]);
+  }
+  function saveMine() { localStorage.setItem(MINE_KEY, JSON.stringify(myLevels)); }
+
+  // Best clear time per level — no score, just how fast you did it.
+  function bestTimes() { return readJSON(TIMES_KEY, {}) || {}; }
+  function recordTime(id, secs) {
+    if (practice) return null;
+    const times = bestTimes();
+    const prev = times[id];
+    if (prev == null || secs < prev) {
+      times[id] = Number(secs.toFixed(1));
+      localStorage.setItem(TIMES_KEY, JSON.stringify(times));
+      return { best: true, prev };
+    }
+    return { best: false, prev };
+  }
+
+  function loadCleared() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CLEARED_KEY) || "[]");
+      return Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      return [];   // corrupt storage shouldn't cost you the Library
+    }
+  }
+  function markCleared(id) {
+    if (practice) return;
+    const done = loadCleared();
+    if (done.includes(id)) return;
+    done.push(id);
+    localStorage.setItem(CLEARED_KEY, JSON.stringify(done));
+  }
+
+  function openLibrary() {
+    state = GS.MENU;
+    editorEl.classList.add("hidden");
+    endEl.classList.add("hidden");
+    hudEl.classList.add("hidden");
+    menuEl.classList.remove("hidden");
+    setTab("library");
+    renderLibrary();
+  }
+
+  // One row per level; `mine` rows also get Edit/Delete.
+  function levelRow(lv, mine) {
+    const done = loadCleared();
+    const times = bestTimes();
+    const row = document.createElement("div");
+    row.className = "libitem";
+
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    dot.style.background = lv.accent;
+    row.appendChild(dot);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+
+    const nm = document.createElement("div");
+    nm.className = "nm";
+    nm.textContent = lv.name;
+    if (done.includes(lv.id)) {
+      const tick = document.createElement("span");
+      tick.className = "tick";
+      tick.textContent = times[lv.id] != null ? `✓ best ${times[lv.id].toFixed(1)}s` : "✓ cleared";
+      nm.appendChild(tick);
+    }
+    if (lv.rating) {
+      const diff = document.createElement("span");
+      diff.className = "diff";
+      diff.style.color = lv.accent;
+      diff.textContent = "●".repeat(lv.rating) + "○".repeat(5 - lv.rating);
+      nm.appendChild(diff);
+    }
+    meta.appendChild(nm);
+
+    if (lv.blurb) {
+      const bl = document.createElement("div");
+      bl.className = "blurb";
+      bl.textContent = lv.blurb;
+      meta.appendChild(bl);
+    }
+
+    const chain = document.createElement("div");
+    chain.className = "sub2";
+    chain.textContent = lv.stages.map((s) => PATTERN_BY_KEY[s.key].name).join(" → ");
+    // Say so when a level leans on the builder's speed/fire-rate knobs, since
+    // that changes how it plays more than the pattern list suggests.
+    const tuned = lv.stages.filter((s) => (s.spd && s.spd !== 1) || (s.rate && s.rate !== 1)).length;
+    if (tuned) chain.textContent += ` · ${tuned} tuned`;
+    meta.appendChild(chain);
+    row.appendChild(meta);
+
+    const play = document.createElement("button");
+    play.className = "primary";
+    play.textContent = "Fight";
+    play.addEventListener("click", () => playLevel(lv));
+    row.appendChild(play);
+
+    if (mine) {
+      const edit = document.createElement("button");
+      edit.textContent = "Edit";
+      edit.addEventListener("click", () => openEditor(myLevels.indexOf(lv)));
+      row.appendChild(edit);
+
+      const del = document.createElement("button");
+      del.textContent = "Delete";
+      del.addEventListener("click", () => {
+        myLevels.splice(myLevels.indexOf(lv), 1);
+        saveMine();
+        renderLibrary();
+      });
+      row.appendChild(del);
+    }
+    return row;
+  }
+
+  function renderLibrary() {
+    loadMine();
+    libList.innerHTML = "";
+    LEVELS.forEach((lv) => libList.appendChild(levelRow(lv, false)));
+
+    myList.innerHTML = "";
+    if (!myLevels.length) {
+      const p = document.createElement("div");
+      p.className = "libempty";
+      p.textContent = "None yet. Build one and it shows up here.";
+      myList.appendChild(p);
+    } else {
+      myLevels.forEach((lv) => myList.appendChild(levelRow(lv, true)));
+    }
+  }
+
+  // ---- Battle list ----
+  // Same shape as a Library row, but each entry is a single form rather than a
+  // chain. Grouped by which boss it belongs to; nothing is locked.
+  function battleRow(b) {
+    const done = loadCleared();
+    const times = bestTimes();
+    const accent = CAMPAIGNS[b.campaign].accent;
+
+    const row = document.createElement("div");
+    row.className = "libitem";
+
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    dot.style.background = accent;
+    row.appendChild(dot);
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+
+    const nm = document.createElement("div");
+    nm.className = "nm";
+    nm.textContent = b.stage.name;
+    if (b.stage.final) {
+      const crown = document.createElement("span");
+      crown.className = "diff";
+      crown.style.color = accent;
+      crown.textContent = "FINAL FORM";
+      nm.appendChild(crown);
+    }
+    if (done.includes(b.id)) {
+      const tick = document.createElement("span");
+      tick.className = "tick";
+      tick.textContent = times[b.id] != null ? `✓ best ${times[b.id].toFixed(1)}s` : "✓ cleared";
+      nm.appendChild(tick);
+    }
+    const diff = document.createElement("span");
+    diff.className = "diff";
+    diff.style.color = accent;
+    diff.textContent = "●".repeat(b.rating) + "○".repeat(5 - b.rating);
+    nm.appendChild(diff);
+    meta.appendChild(nm);
+
+    const bl = document.createElement("div");
+    bl.className = "blurb";
+    bl.textContent = b.stage.desc;
+    meta.appendChild(bl);
+
+    const sub = document.createElement("div");
+    sub.className = "sub2";
+    sub.textContent = `${CAMPAIGNS[b.campaign].name} · form ${b.stageIdx + 1} of 7 · ${b.stage.hp} HP`;
+    meta.appendChild(sub);
+    row.appendChild(meta);
+
+    const play = document.createElement("button");
+    play.className = "primary";
+    play.textContent = "Fight";
+    play.addEventListener("click", () => playBattle(b));
+    row.appendChild(play);
+    return row;
+  }
+
+  function renderBattles() {
+    if (!battleList) return;
+    battleList.innerHTML = "";
+    for (const key of ["inferno", "void"]) {
+      const head = document.createElement("div");
+      head.className = "grouphead";
+      head.style.color = CAMPAIGNS[key].accent;
+      head.textContent = CAMPAIGNS[key].name.toUpperCase();
+      battleList.appendChild(head);
+      BATTLES.filter((b) => b.campaign === key)
+             .forEach((b) => battleList.appendChild(battleRow(b)));
+    }
+  }
+
+  // ---- Level editor ----
+  const DEF_STAGE = { hp: 55, minions: false, spd: 1, rate: 1 };
+  function newStage(from) {
+    return Object.assign({ key: PATTERNS[0].key }, DEF_STAGE, from || {});
+  }
+  // Older saved levels predate the speed/rate knobs — fill them in on load.
+  function normalizeStage(st) {
+    return {
+      key: st.key,
+      hp: Math.max(10, Math.min(400, st.hp | 0 || 55)),
+      minions: !!st.minions,
+      spd: clampNum(st.spd, 0.5, 2, 1),
+      rate: clampNum(st.rate, 0.5, 2, 1),
+    };
+  }
+  function clampNum(v, lo, hi, dflt) {
+    const n = Number(v);
+    if (!isFinite(n)) return dflt;
+    return Math.max(lo, Math.min(hi, Math.round(n * 20) / 20));
+  }
+
+  function openEditor(idx) {
+    const src = idx == null ? null : myLevels[idx];
+    if (idx != null && !src) return;    // row went stale; nothing to edit
+    editing = src
+      ? { id: src.id, name: src.name, accent: src.accent, stages: src.stages.map(normalizeStage) }
+      : { id: "my" + Date.now(), name: "", accent: LEVEL_COLORS[0][1], stages: [newStage()] };
+    editing._idx = idx;
+    editorTitle.textContent = idx == null ? "New Level" : `Edit · ${src.name}`;
+    lvlName.value = editing.name;
+    lvlName.oninput = renderSummary;
+    shareMsg.textContent = "";
+    shareCode.value = "";
+    paintSwatches();
+    menuEl.classList.add("hidden");
+    editorEl.classList.remove("hidden");
+    renderStageRows();
+  }
+
+  // A labelled slider that reports its value as a multiplier.
+  function knobSlider(label, value, onChange) {
+    const wrap = document.createElement("div");
+    wrap.className = "knob";
+    const lb = document.createElement("label");
+    lb.textContent = label;
+    wrap.appendChild(lb);
+    const sl = document.createElement("input");
+    sl.type = "range"; sl.min = "0.5"; sl.max = "2"; sl.step = "0.05"; sl.value = value;
+    const val = document.createElement("span");
+    val.className = "val";
+    val.textContent = `${(+value).toFixed(2)}×`;
+    sl.addEventListener("input", () => {
+      const v = clampNum(sl.value, 0.5, 2, 1);
+      val.textContent = `${v.toFixed(2)}×`;
+      onChange(v);
+    });
+    wrap.appendChild(sl);
+    wrap.appendChild(val);
+    return wrap;
+  }
+
+  function renderStageRows() {
+    stageRows.innerHTML = "";
+    editing.stages.forEach((st, i) => {
+      const row = document.createElement("div");
+      row.className = "stagerow";
+      row.style.borderLeftColor = editing.accent;
+
+      const num = document.createElement("span");
+      num.className = "num";
+      num.textContent = i + 1;
+      row.appendChild(num);
+
+      const sel = document.createElement("select");
+      PATTERNS.forEach((p) => {
+        const o = document.createElement("option");
+        o.value = p.key;
+        o.textContent = `${p.name} — ${p.desc}`;
+        sel.appendChild(o);
+      });
+      sel.value = st.key;
+      sel.addEventListener("change", () => { st.key = sel.value; renderSummary(); });
+      row.appendChild(sel);
+
+      const ops = document.createElement("div");
+      ops.className = "ops";
+      const mk = (txt, title, off, disabled) => {
+        const b = document.createElement("button");
+        b.textContent = txt;
+        b.title = title;
+        b.disabled = disabled;
+        b.addEventListener("click", () => {
+          if (off === "del") editing.stages.splice(i, 1);
+          else if (off === "dup") editing.stages.splice(i + 1, 0, newStage(st));
+          else editing.stages.splice(i + off, 0, editing.stages.splice(i, 1)[0]);
+          renderStageRows();
+        });
+        ops.appendChild(b);
+      };
+      mk("↑", "Move up", -1, i === 0);
+      mk("↓", "Move down", 1, i === editing.stages.length - 1);
+      mk("⧉", "Duplicate", "dup", editing.stages.length >= MAX_CUSTOM_STAGES);
+      mk("✕", "Remove", "del", editing.stages.length === 1);   // a level needs one stage
+      row.appendChild(ops);
+
+      // Second line: the numbers that decide how the stage actually plays.
+      const knobs = document.createElement("div");
+      knobs.className = "knobs";
+
+      const hpK = document.createElement("div");
+      hpK.className = "knob";
+      const hpL = document.createElement("label");
+      hpL.textContent = "HP";
+      hpK.appendChild(hpL);
+      const hp = document.createElement("input");
+      hp.type = "number"; hp.min = "10"; hp.max = "400"; hp.step = "5"; hp.value = st.hp;
+      hp.addEventListener("change", () => {
+        st.hp = Math.max(10, Math.min(400, parseInt(hp.value, 10) || 55));
+        hp.value = st.hp;
+        renderSummary();
+      });
+      hpK.appendChild(hp);
+      knobs.appendChild(hpK);
+
+      knobs.appendChild(knobSlider("SPEED", st.spd, (v) => { st.spd = v; renderSummary(); }));
+      knobs.appendChild(knobSlider("FIRE RATE", st.rate, (v) => { st.rate = v; renderSummary(); }));
+
+      const chk = document.createElement("label");
+      chk.className = "knob chk";
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = !!st.minions;
+      cb.addEventListener("change", () => { st.minions = cb.checked; renderSummary(); });
+      chk.appendChild(cb);
+      chk.appendChild(document.createTextNode("minions"));
+      knobs.appendChild(chk);
+
+      row.appendChild(knobs);
+      stageRows.appendChild(row);
+    });
+    editHint.textContent = `${editing.stages.length}/${MAX_CUSTOM_STAGES} stages · fought in order, last one wears the crown.`;
+    addStageBtn.disabled = editing.stages.length >= MAX_CUSTOM_STAGES;
+    renderSummary();
+  }
+
+  // Live read-out: what the level is, and roughly how hard you've made it.
+  function renderSummary() {
+    if (!editing) return;
+    editing.accent = editing.accent || LEVEL_COLORS[0][1];
+    editChain.innerHTML = "";
+    editing.stages.forEach((st, i) => {
+      if (i) {
+        const arrow = document.createElement("span");
+        arrow.textContent = "  →  ";
+        editChain.appendChild(arrow);
+      }
+      const nm = document.createElement("b");
+      nm.textContent = PATTERN_BY_KEY[st.key].name;
+      nm.style.color = editing.accent;
+      editChain.appendChild(nm);
+    });
+    const totalHp = editing.stages.reduce((a, s) => a + s.hp, 0);
+    // A rough 1–5 rating from total health and how far the knobs are pushed.
+    const load = editing.stages.reduce((a, s) => a + s.spd * s.rate + (s.minions ? 0.35 : 0), 0)
+                 / editing.stages.length;
+    const rating = Math.max(1, Math.min(5, Math.round(load * 2.1 + totalHp / 220)));
+    const mins = editing.stages.filter((s) => s.minions).length;
+    editFacts.textContent =
+      `${editing.stages.length} ${editing.stages.length === 1 ? "stage" : "stages"} · ` +
+      `${totalHp} total HP · ${mins} with minions · ` +
+      `estimated difficulty ${"●".repeat(rating)}${"○".repeat(5 - rating)}`;
+    stageRows.querySelectorAll(".stagerow").forEach((r) => { r.style.borderLeftColor = editing.accent; });
+    shareCode.value = encodeLevel(editing);
+  }
+
+  // ---- Share codes ----
+  // A level is small enough to fit in a URL-safe base64 blob, so a code is just
+  // the level itself rather than anything that needs a server.
+  function encodeLevel(lv) {
+    try {
+      const compact = {
+        n: (lvlName.value || lv.name || "Unnamed Level").slice(0, 24),
+        c: lv.accent,
+        s: lv.stages.map((s) => [s.key, s.hp, s.minions ? 1 : 0, s.spd, s.rate]),
+      };
+      const json = JSON.stringify(compact);
+      // btoa is latin1-only; percent-encode first so names with any character survive.
+      return "DODGER1:" + btoa(unescape(encodeURIComponent(json)))
+        .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    } catch (e) {
+      return "";
+    }
+  }
+  function decodeLevel(code) {
+    const raw = String(code || "").trim().replace(/^DODGER1:/, "");
+    if (!raw) return null;
+    try {
+      const b64 = raw.replace(/-/g, "+").replace(/_/g, "/");
+      const obj = JSON.parse(decodeURIComponent(escape(atob(b64))));
+      if (!obj || !Array.isArray(obj.s) || !obj.s.length) return null;
+      const stages = obj.s
+        .filter((a) => Array.isArray(a) && PATTERN_BY_KEY[a[0]])
+        .slice(0, MAX_CUSTOM_STAGES)
+        .map((a) => normalizeStage({ key: a[0], hp: a[1], minions: a[2], spd: a[3], rate: a[4] }));
+      if (!stages.length) return null;
+      const known = LEVEL_COLORS.some(([, hex]) => hex === obj.c);
+      return {
+        id: "my" + Date.now(),
+        name: String(obj.n || "Imported Level").slice(0, 24),
+        accent: known ? obj.c : LEVEL_COLORS[0][1],
+        stages,
+      };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function commitEditor() {
+    editing.name = (lvlName.value || "").trim() || "Unnamed Level";
+    const stages = editing.stages.map(normalizeStage);
+    const totalHp = stages.reduce((a, s) => a + s.hp, 0);
+    const load = stages.reduce((a, s) => a + s.spd * s.rate + (s.minions ? 0.35 : 0), 0) / stages.length;
+    const saved = {
+      id: editing.id, name: editing.name, accent: editing.accent, stages,
+      // Stored so the Library row can show dots like the built-in levels do.
+      rating: Math.max(1, Math.min(5, Math.round(load * 2.1 + totalHp / 220))),
+    };
+    if (editing._idx == null) myLevels.push(saved);
+    else myLevels[editing._idx] = saved;
+    saveMine();
+    return saved;
+  }
+
+  // Turn a level into something the engine can fight.
+  function playLevel(lv) {
+    activeLevel = lv;
+    activeCamp = {
+      name: lv.name,
+      accent: lv.accent,
+      stages: lv.stages.map((s, i) => ({
+        name: PATTERN_BY_KEY[s.key].name,
+        key: s.key,
+        hp: s.hp,
+        minions: !!s.minions,
+        spd: clampNum(s.spd, 0.5, 2, 1),      // builder knobs reach the engine here
+        rate: clampNum(s.rate, 0.5, 2, 1),
+        final: i === lv.stages.length - 1,
+      })),
+    };
+    STAGES = activeCamp.stages;
+    editorEl.classList.add("hidden");
+    buildPips(STAGES.length);
+    startGame("level", 0);
+  }
+
+  // ---- Bullet spawners ----
+  function spawn(x, y, angle, speed, r) {
+    bullets.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, r: r || 7 });
+  }
+  function angleToPlayer() {
+    return Math.atan2(player.y - boss.y, player.x - boss.x);
+  }
+  function aimed(speed, r) { spawn(boss.x, boss.y, angleToPlayer(), speed, r); }
+  function spread(count, spreadRad, speed, r) {
+    const base = angleToPlayer() - spreadRad / 2;
+    const step = count > 1 ? spreadRad / (count - 1) : 0;
+    for (let i = 0; i < count; i++) spawn(boss.x, boss.y, base + step * i, speed, r);
+  }
+  function radial(count, offset, speed, r) {
+    for (let i = 0; i < count; i++) spawn(boss.x, boss.y, offset + (i / count) * Math.PI * 2, speed, r);
+  }
+  // ---- Sound ----
+  // Everything is synthesized at runtime — no files, so the game stays one page.
+  // The context is created on the first real interaction, because browsers won't
+  // let it start before one.
+  let masterGain = null, sfxBus = null, musicBus = null, noiseBuf = null;
+
+  function ensureAudio() {
+    if (actx) return true;
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = actx.createGain();
+      masterGain.gain.value = 0.9;
+      masterGain.connect(actx.destination);
+      sfxBus = actx.createGain();
+      sfxBus.gain.value = 1;
+      sfxBus.connect(masterGain);
+      musicBus = actx.createGain();
+      musicBus.gain.value = 0;      // faded in when a theme starts
+      musicBus.connect(masterGain);
+      // One second of white noise, reused by every percussive voice.
+      noiseBuf = actx.createBuffer(1, actx.sampleRate, actx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      return true;
+    } catch (e) {
+      actx = null;
+      soundOn = false; musicOn = false;
+      if (typeof refreshSoundBtn === "function") refreshSoundBtn();
+      return false;
+    }
+  }
+  function resumeAudio() {
+    if (!ensureAudio()) return false;
+    if (actx.state === "suspended") actx.resume();
+    return true;
+  }
+
+  // ---- Voice primitives ----
+  // A pitched blip with an optional second detuned copy for weight.
+  function tone(o) {
+    const t0 = o.t0 != null ? o.t0 : actx.currentTime;
+    const dest = o.dest || sfxBus;
+    const osc = actx.createOscillator();
+    const g = actx.createGain();
+    osc.type = o.type || "square";
+    osc.frequency.setValueAtTime(o.from, t0);
+    if (o.to && o.to !== o.from) {
+      // exponentialRamp can't touch zero, and refuses to cross it.
+      osc.frequency.exponentialRampToValueAtTime(Math.max(1, o.to), t0 + o.dur);
+    }
+    if (o.detune) osc.detune.setValueAtTime(o.detune, t0);
+    let node = osc;
+    if (o.filter) {
+      const f = actx.createBiquadFilter();
+      f.type = o.filter;
+      f.frequency.setValueAtTime(o.fFrom || 2000, t0);
+      if (o.fTo) f.frequency.exponentialRampToValueAtTime(Math.max(20, o.fTo), t0 + o.dur);
+      f.Q.value = o.q || 1;
+      node.connect(f);
+      node = f;
+    }
+    const atk = o.atk != null ? o.atk : 0.005;
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, o.gain), t0 + atk);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+    node.connect(g).connect(dest);
+    osc.start(t0);
+    osc.stop(t0 + o.dur + 0.03);
+    return osc;
+  }
+  // Filtered noise — the body of every hit, impact and hi-hat.
+  function noise(o) {
+    const t0 = o.t0 != null ? o.t0 : actx.currentTime;
+    const dest = o.dest || sfxBus;
+    const src = actx.createBufferSource();
+    src.buffer = noiseBuf;
+    src.loop = true;
+    const f = actx.createBiquadFilter();
+    f.type = o.filter || "bandpass";
+    f.frequency.setValueAtTime(o.fFrom || 1200, t0);
+    if (o.fTo) f.frequency.exponentialRampToValueAtTime(Math.max(20, o.fTo), t0 + o.dur);
+    f.Q.value = o.q || 1;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, o.gain), t0 + (o.atk || 0.004));
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + o.dur);
+    src.connect(f).connect(g).connect(dest);
+    src.start(t0);
+    src.stop(t0 + o.dur + 0.03);
+  }
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  // ---- One-shot effects ----
+  // Each is a small stack of voices rather than a single ramp, so repeated hits
+  // don't sound identical and impacts have both a click and a body.
+  const SFX = {
+    pickup(t0) {
+      // Bright two-note lift, slightly randomized so a run of pickups sparkles.
+      const f = rnd(600, 700);
+      tone({ t0, type: "triangle", from: f, to: f, dur: 0.09, gain: 0.16 });
+      tone({ t0: t0 + 0.07, type: "triangle", from: f * 1.5, to: f * 1.5, dur: 0.16, gain: 0.14 });
+      tone({ t0: t0 + 0.07, type: "sine", from: f * 3, to: f * 3, dur: 0.12, gain: 0.05 });
+    },
+    hit(t0) {
+      // Click, thump, and a short burst of grit.
+      noise({ t0, filter: "highpass", fFrom: 3000, dur: 0.05, gain: 0.28 });
+      tone({ t0, type: "sawtooth", from: rnd(280, 330), to: 70, dur: 0.26, gain: 0.24,
+             filter: "lowpass", fFrom: 2200, fTo: 320 });
+      noise({ t0, filter: "bandpass", fFrom: 900, fTo: 180, q: 1.4, dur: 0.2, gain: 0.16 });
+    },
+    death(t0) {
+      noise({ t0, filter: "highpass", fFrom: 2600, dur: 0.09, gain: 0.3 });
+      tone({ t0, type: "sawtooth", from: 240, to: 32, dur: 0.9, gain: 0.26,
+             filter: "lowpass", fFrom: 1800, fTo: 140 });
+      tone({ t0: t0 + 0.02, type: "square", from: 120, to: 24, dur: 0.85, gain: 0.14 });
+      noise({ t0, filter: "lowpass", fFrom: 700, fTo: 90, dur: 0.7, gain: 0.2 });
+    },
+    clear(t0) {
+      // Rising major triad — the "that's done" sound.
+      [0, 4, 7].forEach((s, i) => {
+        const f = 440 * Math.pow(2, s / 12);
+        tone({ t0: t0 + i * 0.055, type: "triangle", from: f, to: f, dur: 0.34, gain: 0.15 });
+      });
+      noise({ t0, filter: "highpass", fFrom: 4000, dur: 0.14, gain: 0.12 });
+    },
+    phase(t0) {
+      // Downward sweep under a swell — used when a final boss changes gear.
+      tone({ t0, type: "sawtooth", from: 520, to: 90, dur: 0.6, gain: 0.18,
+             filter: "lowpass", fFrom: 3000, fTo: 400 });
+      tone({ t0, type: "square", from: 65, to: 65, dur: 0.7, gain: 0.14, atk: 0.2 });
+      noise({ t0, filter: "bandpass", fFrom: 300, fTo: 2600, q: 0.8, dur: 0.55, gain: 0.14 });
+    },
+    win(t0) {
+      [0, 4, 7, 12].forEach((s, i) => {
+        const f = 523.25 * Math.pow(2, s / 12);
+        tone({ t0: t0 + i * 0.1, type: "triangle", from: f, to: f, dur: 0.55, gain: 0.16 });
+        tone({ t0: t0 + i * 0.1, type: "sine", from: f * 2, to: f * 2, dur: 0.4, gain: 0.06 });
+      });
+    },
+    // Dialogue: a soft tick per advance, and a countdown blip before play resumes.
+    talk(t0) {
+      tone({ t0, type: "sine", from: rnd(760, 900), to: rnd(500, 600), dur: 0.07, gain: 0.07 });
+    },
+    tick(t0) {
+      tone({ t0, type: "square", from: 700, to: 700, dur: 0.07, gain: 0.10 });
+    },
+    go(t0) {
+      tone({ t0, type: "square", from: 1050, to: 1050, dur: 0.16, gain: 0.13 });
+    },
+  };
+
+  function sfx(kind, when) {
+    if (!soundOn || !SFX[kind]) return;
+    if (!resumeAudio()) return;
+    try { SFX[kind](when != null ? when : actx.currentTime); } catch (e) { /* keep playing silently */ }
+  }
+
+  // ---- Music ----
+  // Each boss gets a theme built from a step sequencer scheduled a little ahead of
+  // the clock. Act I themes are warm and keep a pulse; Act II detunes and loses it.
+  // Easier forms share their act's tier theme; the ones with a real identity get
+  // their own.
+  const SCALE = { minor: [0, 2, 3, 5, 7, 8, 10], phryg: [0, 1, 3, 5, 7, 8, 10], whole: [0, 2, 4, 6, 8, 10] };
+
+  const THEMES = {
+    // --- Act I: the furnace. Rooted, driving, warm sawtooth. ---
+    ember: {
+      bpm: 132, root: 55, scale: SCALE.minor, gain: 0.5,
+      bass: [0, null, 0, null, 3, null, 0, null, 5, null, 3, null, 0, null, -2, null],
+      arp:  [7, 10, 12, 10, 7, 5, 7, 12, 14, 12, 10, 7, 5, 7, 10, 12],
+      kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0],
+      hat:  [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1],
+      bassType: "sawtooth", arpType: "square", arpGain: 0.055, warm: true,
+    },
+    // --- Act II: the gap. No kick, detuned pads, arp thins out. ---
+    gap: {
+      bpm: 96, root: 49, scale: SCALE.phryg, gain: 0.5,
+      bass: [0, null, null, null, -5, null, null, null, -2, null, null, null, -7, null, null, null],
+      arp:  [12, null, 15, null, 14, null, 12, null, 10, null, 12, null, 15, null, 17, null],
+      kick: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      hat:  [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+      bassType: "sine", arpType: "triangle", arpGain: 0.06, detune: 14, pad: true,
+    },
+    // --- Bespoke: Hades. Same key as ember, faster, heavier, relentless. ---
+    hades: {
+      bpm: 154, root: 41, scale: SCALE.minor, gain: 0.62,
+      bass: [0, 0, null, 0, 0, null, 3, null, 0, 0, null, 0, 5, null, 3, 2],
+      arp:  [12, 15, 19, 15, 12, 15, 19, 22, 24, 22, 19, 15, 12, 15, 19, 15],
+      kick: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1],
+      hat:  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      bassType: "sawtooth", arpType: "sawtooth", arpGain: 0.05, warm: true, lead: true,
+    },
+    // --- Bespoke: the Void. Whole-tone, no root movement, everything drifts. ---
+    void: {
+      bpm: 84, root: 37, scale: SCALE.whole, gain: 0.66,
+      bass: [0, null, null, null, null, null, null, null, 0, null, null, null, null, null, null, null],
+      arp:  [12, null, 18, null, 12, null, 6, null, 12, null, 18, null, 24, null, 18, null],
+      kick: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      hat:  [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+      bassType: "sine", arpType: "sine", arpGain: 0.07, detune: 26, pad: true, tritone: true,
+    },
+    // --- Bespoke: Mirror. The arp is answered by its own inversion, half a bar late. ---
+    mirror: {
+      bpm: 104, root: 49, scale: SCALE.phryg, gain: 0.52,
+      bass: [0, null, null, null, 0, null, null, null, -5, null, null, null, -5, null, null, null],
+      arp:  [12, 14, 15, 17, 19, 17, 15, 14, 12, 14, 15, 17, 19, 17, 15, 14],
+      kick: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      hat:  [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+      bassType: "triangle", arpType: "triangle", arpGain: 0.055, detune: 8, canon: true, pad: true,
+    },
+    // --- Bespoke: Pulsar. Strict metronome, one note, everything on the count. ---
+    pulsar: {
+      bpm: 112, root: 45, scale: SCALE.minor, gain: 0.54,
+      bass: [0, null, null, null, 0, null, null, null, 0, null, null, null, 0, null, null, null],
+      arp:  [12, null, null, null, 12, null, null, null, 12, null, null, 19, 12, null, null, null],
+      kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+      hat:  [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+      bassType: "square", arpType: "square", arpGain: 0.05, pad: true,
+    },
+  };
+
+  // Which theme each of the 14 forms plays. The plain forms reuse their act's tier.
+  const THEME_BY_KEY = {
+    pursuer: "ember", nova: "ember", charger: "ember", spiral: "ember",
+    gatling: "ember", lattice: "ember", hades: "hades",
+    weaver: "gap", serpent: "gap", cross: "gap", swarm: "gap",
+    mirror: "mirror", pulsar: "pulsar", void: "void",
+  };
+
+  const music = { name: null, theme: null, step: 0, nextTime: 0, timer: null, intensity: 1 };
+  const LOOKAHEAD = 0.12;   // seconds of notes scheduled ahead of the clock
+
+  function midiToFreq(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  // Degrees are scale steps, so a pattern transposes correctly into any mode.
+  function degToMidi(root, scale, deg) {
+    const oct = Math.floor(deg / scale.length);
+    let i = deg % scale.length;
+    if (i < 0) i += scale.length;
+    return root + oct * 12 + scale[i];
+  }
+
+  function scheduleStep(th, step, t) {
+    const bus = musicBus;
+    const g = th.gain;
+    const beat = 60 / th.bpm / 2;   // one step is an eighth note
+    const inten = music.intensity;  // rises in a final boss's second phase
+
+    const b = th.bass[step % th.bass.length];
+    if (b != null) {
+      const f = midiToFreq(degToMidi(th.root, th.scale, b));
+      tone({ t0: t, dest: bus, type: th.bassType, from: f, to: f, dur: beat * 1.8,
+             gain: 0.13 * g, filter: "lowpass", fFrom: th.warm ? 900 : 500, q: 1.2 });
+      if (th.detune) {
+        tone({ t0: t, dest: bus, type: th.bassType, from: f, to: f, dur: beat * 1.8,
+               gain: 0.09 * g, detune: th.detune, filter: "lowpass", fFrom: 600 });
+      }
+    }
+
+    const a = th.arp[step % th.arp.length];
+    if (a != null) {
+      const md = degToMidi(th.root, th.scale, a) + (th.tritone && step % 8 >= 4 ? 6 : 0);
+      const f = midiToFreq(md);
+      tone({ t0: t, dest: bus, type: th.arpType, from: f, to: f, dur: beat * (th.pad ? 3.2 : 0.9),
+             gain: th.arpGain * g * inten, atk: th.pad ? 0.08 : 0.005,
+             filter: "lowpass", fFrom: th.warm ? 3200 : 1800, fTo: th.pad ? 700 : null });
+      if (th.detune) {
+        tone({ t0: t, dest: bus, type: th.arpType, from: f, to: f, dur: beat * 3.2,
+               gain: th.arpGain * 0.7 * g, detune: -th.detune, atk: 0.1, filter: "lowpass", fFrom: 1400 });
+      }
+      // Mirror answers itself: the same line, inverted, half a bar behind.
+      if (th.canon) {
+        const inv = midiToFreq(degToMidi(th.root, th.scale, 24 - a));
+        tone({ t0: t + beat * 8, dest: bus, type: th.arpType, from: inv, to: inv,
+               dur: beat * 2.4, gain: th.arpGain * 0.55 * g, atk: 0.06,
+               filter: "lowpass", fFrom: 1600 });
+      }
+      // Hades carries an octave lead over the top once he's relit.
+      if (th.lead && inten > 1) {
+        tone({ t0: t, dest: bus, type: "square", from: f * 2, to: f * 2, dur: beat * 0.7,
+               gain: 0.03 * g, filter: "lowpass", fFrom: 4000 });
+      }
+    }
+
+    if (th.kick[step % th.kick.length]) {
+      tone({ t0: t, dest: bus, type: "sine", from: 130, to: 42, dur: 0.18, gain: 0.5 * g });
+      noise({ t0: t, dest: bus, filter: "lowpass", fFrom: 700, fTo: 100, dur: 0.07, gain: 0.16 * g });
+    }
+    if (th.hat[step % th.hat.length]) {
+      noise({ t0: t, dest: bus, filter: "highpass", fFrom: 7000, dur: 0.035,
+              gain: (step % 4 === 0 ? 0.10 : 0.06) * g });
+    }
+  }
+
+  function musicTick() {
+    if (!actx || !music.theme) return;
+    const beat = 60 / music.theme.bpm / 2;
+    while (music.nextTime < actx.currentTime + LOOKAHEAD) {
+      if (music.nextTime < actx.currentTime) music.nextTime = actx.currentTime + 0.02;
+      try { scheduleStep(music.theme, music.step, music.nextTime); } catch (e) { /* skip a step */ }
+      music.step++;
+      music.nextTime += beat;
+    }
+  }
+
+  // Start the theme for a pattern key. Re-calling with the same theme is a no-op,
+  // so chaining two stages that share a tier doesn't restart the loop.
+  function startMusic(key) {
+    if (!musicOn) return;
+    const name = THEME_BY_KEY[key] || "ember";
+    if (music.name === name && music.timer) { setMusicIntensity(1); return; }
+    if (!resumeAudio()) return;
+    stopMusic(true);
+    music.name = name;
+    music.theme = THEMES[name];
+    music.step = 0;
+    music.intensity = 1;
+    music.nextTime = actx.currentTime + 0.05;
+    musicBus.gain.cancelScheduledValues(actx.currentTime);
+    musicBus.gain.setValueAtTime(0.0001, actx.currentTime);
+    musicBus.gain.linearRampToValueAtTime(1, actx.currentTime + 1.2);
+    music.timer = setInterval(musicTick, 25);
+    musicTick();
+  }
+
+  function stopMusic(immediate) {
+    if (music.timer) { clearInterval(music.timer); music.timer = null; }
+    music.name = null;
+    music.theme = null;
+    if (actx && musicBus) {
+      musicBus.gain.cancelScheduledValues(actx.currentTime);
+      const now = actx.currentTime;
+      if (immediate) musicBus.gain.setValueAtTime(0.0001, now);
+      else {
+        musicBus.gain.setValueAtTime(musicBus.gain.value, now);
+        musicBus.gain.linearRampToValueAtTime(0.0001, now + 0.5);
+      }
+    }
+  }
+
+  // Second phase of a final boss: push the theme harder without restarting it.
+  function setMusicIntensity(v) {
+    music.intensity = v;
+  }
+  // Dialogue ducks the music rather than cutting it, so the pause still has a floor.
+  function duckMusic(on) {
+    if (!actx || !musicBus || !music.timer) return;
+    const now = actx.currentTime;
+    musicBus.gain.cancelScheduledValues(now);
+    musicBus.gain.setValueAtTime(musicBus.gain.value, now);
+    musicBus.gain.linearRampToValueAtTime(on ? 0.3 : 1, now + 0.35);
+  }
+
+  // ---- Telegraphs ----
+  // Big attacks announce themselves in yellow first, then fire exactly what was
+  // drawn — the shape is captured when it's scheduled, not when it goes off.
+  function telegraph(lead, kind, data, fire) {
+    pending.push({ t: 0, lead, kind, data, fire });
+  }
+  function updatePending(dt) {
+    for (let i = pending.length - 1; i >= 0; i--) {
+      const p = pending[i];
+      p.t += dt;
+      if (p.t >= p.lead) { pending.splice(i, 1); p.fire(); }
+    }
+  }
+  function drawTelegraphs() {
+    ctx.save();
+    for (const p of pending) {
+      const k = p.t / p.lead;                       // 0 → 1 as it winds up
+      const a = 0.25 + 0.5 * k;
+      ctx.strokeStyle = `rgba(255,210,59,${a})`;
+      ctx.lineWidth = 2 + k * 1.5;
+      ctx.setLineDash([8, 8]);
+      ctx.lineDashOffset = -totalTime * 40;
+      const d = p.data;
+      if (p.kind === "ring") {
+        // Draw the ring with its gap left open — steer into the opening.
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, 40 + k * 60, d.gap + d.half, d.gap - d.half + Math.PI * 2);
+        ctx.stroke();
+      } else if (p.kind === "volley") {
+        // The cone the shots will cover.
+        for (const ang of d.angles) {
+          ctx.beginPath();
+          ctx.moveTo(d.x, d.y);
+          ctx.lineTo(d.x + Math.cos(ang) * 900, d.y + Math.sin(ang) * 900);
+          ctx.stroke();
+        }
+      } else if (p.kind === "implode") {
+        // The arena edge is about to collapse inward.
+        ctx.beginPath();
+        ctx.arc(CENTER.x, CENTER.y, d.R * (1 - k * 0.08), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        for (let i = 0; i < 12; i++) {
+          const ang = d.offset + (i / 12) * Math.PI * 2;
+          const rr = d.R * (1 - k * 0.08);
+          ctx.beginPath();
+          ctx.moveTo(CENTER.x + Math.cos(ang) * rr, CENTER.y + Math.sin(ang) * rr);
+          ctx.lineTo(CENTER.x + Math.cos(ang) * (rr - 34), CENTER.y + Math.sin(ang) * (rr - 34));
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  // A spread that shows its cone first, then fires along exactly those lines.
+  function volleyTelegraphed(count, spreadRad, speed) {
+    const base = angleToPlayer() - spreadRad / 2;
+    const step = count > 1 ? spreadRad / (count - 1) : 0;
+    const angles = [];
+    for (let i = 0; i < count; i++) angles.push(base + step * i);
+    const x = boss.x, y = boss.y;
+    telegraph(0.5, "volley", { x, y, angles },
+      () => angles.forEach((a) => spawn(x, y, a, speed, 7)));
+  }
+
+  function aimedFrom(x, y, speed, r) {
+    spawn(x, y, Math.atan2(player.y - y, player.x - x), speed, r);
+  }
+  // A ring that spawns just off-screen and collapses toward the center.
+  function implode(count, offset, speed, r) {
+    const R = 380;
+    for (let i = 0; i < count; i++) {
+      const a = offset + (i / count) * Math.PI * 2;
+      spawn(CENTER.x + Math.cos(a) * R, CENTER.y + Math.sin(a) * R, a + Math.PI, speed, r);
+    }
+  }
+  // A full ring with a wedge cut out — an escape gap you must steer into.
+  function ringGap(count, offset, speed, r, gapAngle, gapHalf) {
+    for (let i = 0; i < count; i++) {
+      const a = offset + (i / count) * Math.PI * 2;
+      const d = Math.atan2(Math.sin(a - gapAngle), Math.cos(a - gapAngle));
+      if (Math.abs(d) < gapHalf) continue;
+      spawn(boss.x, boss.y, a, speed, r);
+    }
+  }
+
+  // ---- Minions (stages 3+): red blobs that fade in, hunt briefly, fade out ----
+  function spawnMinion() {
+    let x, y;
+    for (let tries = 0; tries < 12; tries++) {
+      x = 50 + Math.random() * (W - 100);
+      y = 50 + Math.random() * (H - 100);
+      if (Math.hypot(x - player.x, y - player.y) > 150) break; // never spawn on top of the player
+    }
+    minions.push({ x, y, r: 15, t: 0, phase: "in", inT: 0.7, activeT: 3.2, outT: 0.55 });
+  }
+
+  function updateMinions(dt, m) {
+    const swarm = STAGES[stageIdx].key === "swarm";
+    minionTimer -= dt;
+    if (minionTimer <= 0) {
+      minionTimer = Math.max(0.9, 2.2 - stageIdx * 0.15) / (0.7 + 0.3 * m);
+      if (swarm) minionTimer *= 0.45;
+      spawnMinion();
+      if (stageIdx >= 5) spawnMinion(); // later stages send them in pairs
+      if (swarm) spawnMinion();
+    }
+    for (let i = minions.length - 1; i >= 0; i--) {
+      const mn = minions[i];
+      mn.t += dt;
+      if (mn.phase === "in") {
+        if (mn.t >= mn.inT) { mn.phase = "active"; mn.t = 0; }
+      } else if (mn.phase === "active") {
+        // Drift slowly toward the player while lethal.
+        const dx = player.x - mn.x, dy = player.y - mn.y, d = Math.hypot(dx, dy) || 1;
+        const sp = 60 * m;
+        mn.x += (dx / d) * sp * dt; mn.y += (dy / d) * sp * dt;
+        if (mn.t >= mn.activeT) { mn.phase = "out"; mn.t = 0; }
+      } else if (mn.phase === "out") {
+        if (mn.t >= mn.outT) { minions.splice(i, 1); }
+      }
+    }
+  }
+
+  function minionRadius(mn) {
+    if (mn.phase === "in") return mn.r * (mn.t / mn.inT);
+    if (mn.phase === "out") return mn.r * (1 - mn.t / mn.outT);
+    return mn.r;
+  }
+
+  // ---- Powerup drops ----
+  function spawnPowerup() {
+    let x, y;
+    for (let tries = 0; tries < 15; tries++) {
+      x = 60 + Math.random() * (W - 120);
+      y = 60 + Math.random() * (H - 120);
+      // Not on the boss, not in your lap, and not sitting inside the blue zone.
+      if (Math.hypot(x - boss.x, y - boss.y) > 110 &&
+          Math.hypot(x - player.x, y - player.y) > 110 &&
+          Math.hypot(x - zone.x, y - zone.y) > zone.r + 40) break;
+    }
+    const type = PU_KEYS[Math.floor(Math.random() * PU_KEYS.length)];
+    powerups.push({ x, y, r: 28, type, t: 0, life: PU_LIFE });
+  }
+
+  function collectPowerup(pu) {
+    const def = POWERUPS[pu.type];
+    switch (pu.type) {
+      case "shield": fx.shield = true; break;
+      case "slow":   fx.slow = def.dur; break;
+      case "double": fx.double = def.dur; break;
+    }
+    pickupFlash = { label: def.label, color: def.color, t: 0 };
+    burst(pu.x, pu.y, 24, def.color, 260, { life: 0.65 });
+    shockwaves.push({ x: pu.x, y: pu.y, t: 0, dur: 0.3 });
+    sfx("pickup");
+  }
+
+  function updatePowerups(dt) {
+    puTimer -= dt;
+    if (puTimer <= 0) {
+      puTimer = PU_SPAWN;
+      if (powerups.length < 3) spawnPowerup();
+    }
+    for (let i = powerups.length - 1; i >= 0; i--) {
+      const pu = powerups[i];
+      pu.t += dt;
+      if (Math.hypot(player.x - pu.x, player.y - pu.y) <= player.r + pu.r) {
+        collectPowerup(pu);
+        powerups.splice(i, 1);
+      } else if (pu.t >= pu.life) {
+        powerups.splice(i, 1);
+      }
+    }
+    // Tick down the timed effects.
+    for (const k of ["slow", "double", "invuln"]) {
+      if (fx[k] > 0) fx[k] = Math.max(0, fx[k] - dt);
+    }
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+      shockwaves[i].t += dt;
+      if (shockwaves[i].t >= shockwaves[i].dur) shockwaves.splice(i, 1);
+    }
+    if (pickupFlash) { pickupFlash.t += dt; if (pickupFlash.t > 1.2) pickupFlash = null; }
+  }
+
+  // Something red touched you. Returns true only if that killed you.
+  function playerHit() {
+    if (fx.invuln > 0) return false;
+    if (practice) { fx.invuln = 0.5; hurtFlash = 0.2; return false; }
+    if (fx.shield) {
+      // The shield eats one hit whole and buys a longer moment of mercy.
+      fx.shield = false;
+      fx.invuln = 1.3;
+      shockwaves.push({ x: player.x, y: player.y, t: 0, dur: 0.4 });
+      pickupFlash = { label: "SHIELD BROKEN", color: POWERUPS.shield.color, t: 0 };
+      burst(player.x, player.y, 26, POWERUPS.shield.color, 300, { life: 0.5 });
+      shake = 9;
+      freeze = 0.06;
+      return false;
+    }
+    player.hits--;
+    fx.invuln = MERCY;
+    hurtFlash = 0.5;
+    shockwaves.push({ x: player.x, y: player.y, t: 0, dur: 0.35 });
+    // A death gets a bigger, slower spray than a survivable hit.
+    const dead = player.hits <= 0;
+    burst(player.x, player.y, dead ? 60 : 22, COLORS.safe, dead ? 420 : 280,
+          { life: dead ? 1.1 : 0.5 });
+    burst(player.x, player.y, dead ? 30 : 12, COLORS.danger, dead ? 380 : 240, { life: 0.6 });
+    shake = dead ? 26 : 12;
+    freeze = dead ? 0.22 : 0.09;
+    sfx(dead ? "death" : "hit");
+    if (player.hits <= 0) { player.hits = 0; loseGame(); return true; }
+    return false;
+  }
+
+  // ---- Boss movement helpers ----
+  function moveToward(tx, ty, speed, dt) {
+    const dx = tx - boss.x, dy = ty - boss.y, d = Math.hypot(dx, dy) || 1;
+    boss.x += (dx / d) * speed * dt;
+    boss.y += (dy / d) * speed * dt;
+  }
+
+  // ---- Per-stage behaviour ----
+  function runStage(key, dt, m) {
+    // stageRate shortens or lengthens every cooldown at once, so a builder can
+    // make a pattern fire denser without touching each case below.
+    boss.fire -= dt * stageRate;
+    switch (key) {
+      case "pursuer": {
+        // Stalks you, alternating quick aimed jabs with a small spreading fan.
+        moveToward(player.x, player.y, 105 * m, dt);
+        if (boss.fire <= 0) {
+          if (Math.floor(stageTime / 1.8) % 2 === 0) { boss.fire = 0.55 / m; aimed(215 * m); }
+          else { boss.fire = 1.1 / m; spread(3, Math.PI * 0.22, 195 * m); }
+        }
+        break;
+      }
+      case "nova": {
+        // Blooms: a ring with a rotating escape gap you steer into, alternating
+        // with a burst of paired flower-petals.
+        moveToward(W / 2, H * 0.28, 55 * m, dt);
+        boss.spin += dt * 0.9;
+        if (boss.fire <= 0) {
+          if (Math.floor(stageTime / 2.4) % 2 === 0) {
+            boss.fire = 1.3 / m;
+            const off = boss.spin, gap = boss.spin * 2.3;
+            telegraph(0.55, "ring", { x: boss.x, y: boss.y, gap, half: 0.5 },
+              () => ringGap(20, off, 125 * m, 6, gap, 0.5));
+          } else {
+            boss.fire = 0.9 / m;
+            for (let p = 0; p < 6; p++) {
+              const base = boss.spin + p * (Math.PI / 3);
+              spawn(boss.x, boss.y, base, 150 * m, 6);
+              spawn(boss.x, boss.y, base + 0.13, 150 * m, 6); // paired petals
+            }
+          }
+        }
+        break;
+      }
+      case "charger": {
+        const d = boss.dash;
+        if (d.phase === "idle") { d.phase = "aim"; d.t = 1.2; }
+        else if (d.phase === "aim") {
+          moveToward(CENTER.x, CENTER.y, 40 * m, dt); // ease toward center while winding up
+          d.t -= dt;
+          if (d.t <= 0) {
+            d.phase = "dash";
+            d.tx = player.x; d.ty = player.y;         // lock on
+            const a = Math.atan2(d.ty - boss.y, d.tx - boss.x);
+            d.vx = Math.cos(a) * 300 * m; d.vy = Math.sin(a) * 300 * m;
+            spread(3, Math.PI * 0.55, 190 * m);        // spray as it launches
+          }
+        } else if (d.phase === "dash") {
+          boss.x += d.vx * dt; boss.y += d.vy * dt;
+          // Bounce off walls, lose a little speed; recover to aim after slowing.
+          if (boss.x < boss.r || boss.x > W - boss.r) { d.vx *= -0.7; boss.x = Math.max(boss.r, Math.min(W - boss.r, boss.x)); }
+          if (boss.y < boss.r || boss.y > H - boss.r) { d.vy *= -0.7; boss.y = Math.max(boss.r, Math.min(H - boss.r, boss.y)); }
+          d.vx *= (1 - 0.9 * dt); d.vy *= (1 - 0.9 * dt);
+          if (Math.hypot(d.vx, d.vy) < 90) { d.phase = "idle"; }
+        }
+        break;
+      }
+      case "spiral": {
+        // A three-armed galaxy that reverses its spin every ~3s — each reversal
+        // throws a readable wave that curls back the other way.
+        moveToward(W / 2, H * 0.30, 50 * m, dt);
+        const dir = Math.floor(stageTime / 3) % 2 === 0 ? 1 : -1;
+        boss.spin += dt * 1.7 * dir;
+        if (boss.fire <= 0) {
+          boss.fire = 0.17 / m;
+          for (let k = 0; k < 3; k++) {
+            spawn(boss.x, boss.y, boss.spin + k * (Math.PI * 2 / 3), 150 * m, 6);
+          }
+        }
+        break;
+      }
+      case "gatling": {
+        // Two moods: orbits the arena firing tight bursts, then locks in place
+        // and unloads a focused aimed stream — circle-strafe to survive it.
+        const focusing = Math.floor(stageTime / 3.5) % 2 === 1;
+        if (!focusing) {
+          boss.spin += dt * 0.8;
+          boss.x = CENTER.x + Math.cos(boss.spin) * 235;
+          boss.y = CENTER.y + Math.sin(boss.spin) * 235;
+          if (boss.fire <= 0) { boss.fire = 0.55 / m; spread(3, Math.PI * 0.12, 205 * m); }
+        } else {
+          // Locked in place, steady aimed shots you circle-strafe around.
+          if (boss.fire <= 0) { boss.fire = 0.26 / m; aimed(225 * m); }
+        }
+        break;
+      }
+      case "lattice": {
+        // Three slow spinning spokes with wide 120° gaps between them — settle into
+        // a gap and drift along with it. Very sparse so it's easy to read.
+        moveToward(W / 2, H * 0.30, 45 * m, dt);
+        boss.spin += dt * 0.32;
+        if (boss.fire <= 0) {
+          boss.fire = 0.22 / m;
+          radial(3, boss.spin, 120 * m, 6);
+        }
+        break;
+      }
+      case "hades": {
+        // Final boss. Curling "flame" spirals sweep the arena while Hades
+        // periodically hurls an aimed volley straight at you. Fair but relentless.
+        moveToward(W / 2, H * 0.30, (phase2 ? 70 : 45) * m, dt);
+        boss.spin += dt * (phase2 ? 1.05 : 0.7);
+        // Phase A: curling flame-arms. Phase B: a big ring with a wide moving gap.
+        // Past half health he adds a fourth arm and stokes the whole rhythm.
+        if (boss.fire <= 0) {
+          if (Math.floor(stageTime / 4) % 2 === 0) {
+            boss.fire = (phase2 ? 0.2 : 0.22) / m;
+            const arms = phase2 ? 4 : 3;
+            for (let k = 0; k < arms; k++) {
+              spawn(boss.x, boss.y, boss.spin + k * (Math.PI * 2 / arms), 135 * m, 6);
+            }
+          } else {
+            boss.fire = 1.6 / m;
+            const off = boss.spin, gap = boss.spin * 1.5;
+            telegraph(0.6, "ring", { x: boss.x, y: boss.y, gap, half: 0.65 },
+              () => ringGap(20, off, 125 * m, 6, gap, 0.65));
+          }
+        }
+        // Aimed volley on a slower, separate beat so there's a rhythm to read.
+        boss.fire2 -= dt * stageRate;
+        if (boss.fire2 <= 0) {
+          boss.fire2 = (phase2 ? 2.1 : 3.0) / m;
+          volleyTelegraphed(phase2 ? 5 : 3, Math.PI * 0.4, 195 * m);
+        }
+        break;
+      }
+
+      // ===== Void campaign =====
+      case "weaver": {
+        // Sways along the top on a sine path, dropping paired shots at your feet.
+        boss.spin += dt * 0.75 * m;
+        boss.x = CENTER.x + Math.sin(boss.spin) * 240;
+        boss.y = H * 0.20;
+        if (boss.fire <= 0) { boss.fire = 0.52 / m; spread(2, Math.PI * 0.16, 200 * m); }
+        break;
+      }
+      case "mirror": {
+        // Drifts slowly; every shot is doubled by a phantom mirrored through the
+        // center, so the safe lane is never simply "opposite the boss".
+        boss.spin += dt * 0.5;
+        boss.x = CENTER.x + Math.cos(boss.spin) * 190;
+        boss.y = CENTER.y + Math.sin(boss.spin * 1.3) * 150;
+        if (boss.fire <= 0) {
+          boss.fire = 0.75 / m;
+          aimed(205 * m);
+          aimedFrom(2 * CENTER.x - boss.x, 2 * CENTER.y - boss.y, 205 * m);
+        }
+        break;
+      }
+      case "pulsar": {
+        // Parks in the middle and breathes: a wide-gap ring, then a slow dense
+        // ring you walk through. All the danger comes from one place.
+        moveToward(CENTER.x, CENTER.y, 70 * m, dt);
+        boss.spin += dt * 1.1;
+        if (boss.fire <= 0) {
+          if (Math.floor(stageTime / 2.6) % 2 === 0) {
+            boss.fire = 1.5 / m;
+            ringGap(22, boss.spin, 140 * m, 6, boss.spin * 1.7, 0.55);
+          } else {
+            boss.fire = 1.5 / m;
+            ringGap(30, boss.spin, 95 * m, 6, -boss.spin * 2.1, 0.45);
+          }
+        }
+        break;
+      }
+      case "serpent": {
+        // One continuous stream whose angle whips back and forth — a rope of
+        // bullets you step over rather than a wall you hide from.
+        moveToward(W / 2, H * 0.26, 55 * m, dt);
+        if (boss.fire <= 0) {
+          boss.fire = 0.085 / m;
+          const a = angleToPlayer() + Math.sin(stageTime * 2.6) * 1.15;
+          spawn(boss.x, boss.y, a, 210 * m, 6);
+          spawn(boss.x, boss.y, a + Math.PI, 210 * m, 6); // tail whips the other way
+        }
+        break;
+      }
+      case "cross": {
+        // Two four-spoke crosses turning against each other; the safe pockets
+        // open and close on a steady beat.
+        moveToward(CENTER.x, CENTER.y, 45 * m, dt);
+        boss.spin += dt * 0.45;
+        if (boss.fire <= 0) {
+          boss.fire = 0.42 / m;                    // sparser than it used to be
+          radial(4, boss.spin, 110 * m, 6);
+          radial(4, -boss.spin * 1.0 + Math.PI / 4, 110 * m, 6);
+        }
+        break;
+      }
+      case "swarm": {
+        // Barely shoots. The pressure is the minions, which arrive constantly.
+        moveToward(player.x, player.y, 70 * m, dt);
+        if (boss.fire <= 0) { boss.fire = 1.3 / m; spread(3, Math.PI * 0.5, 165 * m); }
+        break;
+      }
+      case "void": {
+        // Final boss. The arena itself closes in: rings implode from off-screen,
+        // alternating with an outward spiral, plus aimed volleys on a slow beat.
+        moveToward(CENTER.x, CENTER.y, 40 * m, dt);
+        boss.spin += dt * 0.8;
+        if (boss.fire <= 0) {
+          if (Math.floor(stageTime / 4.5) % 2 === 0) {
+            boss.fire = 2.3 / m;
+            const off = boss.spin;
+            telegraph(0.7, "implode", { R: 380, offset: off },
+              () => {
+                implode(22, off, 105 * m, 6);        // collapse inward
+                // Past half health a second, offset ring follows the first in.
+                if (phase2) telegraph(0.55, "implode", { R: 380, offset: off + 0.14 },
+                  () => implode(22, off + 0.14, 95 * m, 6));
+              });
+          } else {
+            boss.fire = 0.2 / m;
+            for (let k = 0; k < 4; k++) {
+              spawn(boss.x, boss.y, -boss.spin * 2 + k * (Math.PI / 2), 140 * m, 6);
+            }
+          }
+        }
+        boss.fire2 -= dt * stageRate;
+        if (boss.fire2 <= 0) {
+          boss.fire2 = (phase2 ? 2.2 : 3.1) / m;
+          volleyTelegraphed(phase2 ? 5 : 3, Math.PI * 0.35, 190 * m);
+        }
+        break;
+      }
+    }
+  }
+
+  // ---- Update ----
+  function updatePlaying(dt) {
+    stageTime += dt;
+    totalTime += dt;
+
+    if (boss.hitFlash > 0) boss.hitFlash -= dt;
+    if (hurtFlash > 0) hurtFlash -= dt;
+
+    // Slow-mo only drags on the red side of the fight — you keep full speed.
+    const edt = fx.slow > 0 ? dt * SLOW_FACTOR : dt;
+
+    updatePowerups(dt);
+
+    // Player movement
+    let dx = 0, dy = 0;
+    if (keys.ArrowLeft) dx -= 1;
+    if (keys.ArrowRight) dx += 1;
+    if (keys.ArrowUp) dy -= 1;
+    if (keys.ArrowDown) dy += 1;
+    if (dx || dy) {
+      const inv = 1 / Math.hypot(dx, dy);
+      player.x += dx * inv * player.speed * dt;
+      player.y += dy * inv * player.speed * dt;
+    }
+    player.x = Math.max(player.r, Math.min(W - player.r, player.x));
+    player.y = Math.max(player.r, Math.min(H - player.r, player.y));
+
+    // Damage zone: stand in the blue circle to drain the boss's health.
+    zone.pulse += dt;
+    zone.moveT -= dt;
+    if (zone.moveT <= 0) placeZone();  // it relocates so you keep moving
+    // The hot zone rides a slow orbit around the boss, clamped into the arena.
+    hotZone.ang += dt * 0.55;
+    hotZone.x = Math.max(hotZone.r, Math.min(W - hotZone.r, boss.x + Math.cos(hotZone.ang) * HOT_ORBIT));
+    hotZone.y = Math.max(hotZone.r, Math.min(H - hotZone.r, boss.y + Math.sin(hotZone.ang) * HOT_ORBIT));
+
+    const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
+    const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+    const mult = (inHot ? HOT_MULT : inZone ? 1 : 0) * (fx.double > 0 ? 2 : 1);
+    if (mult) {
+      boss.hp -= ZONE_DRAIN * mult * dt;
+      boss.hitFlash = 0.08;
+      // Embers stream off the boss while you're draining it — the feedback for
+      // "this is working" that a shrinking bar alone doesn't give.
+      if (Math.random() < mult * 3.2 * dt) {
+        const a = Math.random() * Math.PI * 2;
+        burst(boss.x + Math.cos(a) * boss.r, boss.y + Math.sin(a) * boss.r,
+              1, inHot ? "#7f9dff" : COLORS.safe, 150, { life: 0.5, r: 2.2 });
+      }
+    }
+
+    // Hades and the Void change gear at half health.
+    const key = STAGES[stageIdx].key;
+    if (!phase2 && (key === "hades" || key === "void") && boss.hp <= boss.maxhp * 0.5) {
+      phase2 = true;
+      bullets.length = 0;                       // a clean slate for the new phase
+      pending.length = 0;
+      shockwaves.push({ x: boss.x, y: boss.y, t: 0, dur: 0.6 });
+      shake = 14;
+      freeze = 0.16;
+      pickupFlash = { label: key === "void" ? "THE VOID OPENS" : "HADES RELIGHTS", color: COLORS.warn, t: 0 };
+      sfx("phase");
+      setMusicIntensity(1.45);        // the theme leans in rather than restarting
+      burst(boss.x, boss.y, 34, key === "void" ? "#8f6bff" : "#ff5a2b", 320);
+    }
+
+    // Boss behaviour for this stage
+    runStage(STAGES[stageIdx].key, edt, difficultyMul() * stageSpd);
+
+    // Minions appear from stage 3 onward — unless a custom stage says otherwise
+    const wantMinions = STAGES[stageIdx].minions !== undefined ? STAGES[stageIdx].minions : stageIdx >= 2;
+    if (wantMinions) updateMinions(edt, difficultyMul());
+
+    updatePending(edt);
+
+    // Move enemy bullets, cull off-screen
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      const b = bullets[i];
+      b.x += b.vx * edt; b.y += b.vy * edt;
+      if (b.x < -50 || b.x > W + 50 || b.y < -50 || b.y > H + 50) bullets.splice(i, 1);
+    }
+
+    // Collisions — every red thing costs exactly one of your three hits
+    if (hit(player, boss) && playerHit()) return;
+    for (const b of bullets) if (hit(player, b) && playerHit()) return;
+    for (const mn of minions) {
+      if (mn.phase === "active" && hit(player, { x: mn.x, y: mn.y, r: mn.r }) && playerHit()) return;
+    }
+
+    // Stage clear when the boss's HP is depleted
+    if (boss.hp <= 0) {
+      if ((mode === "boss" || mode === "level") && stageIdx >= STAGES.length - 1) return winGame();
+      nextStage();
+    }
+  }
+
+  function updateTransition(dt) {
+    transTime += dt;
+    // Ease boss toward top-center during the breather.
+    moveToward(W / 2, H * 0.22, 160, dt);
+    if (transTime >= 1.6) {
+      state = GS.PLAYING;
+      beginStage(boss._pendingStage);
+      banner = null;
+    }
+  }
+
+  function hit(a, b) {
+    const rr = a.r + b.r;
+    return (a.x - b.x) ** 2 + (a.y - b.y) ** 2 <= rr * rr;
+  }
+
+  // ---- Render ----
+  function drawGrid() {
+    ctx.strokeStyle = COLORS.grid;
+    ctx.lineWidth = 1;
+    const step = 60;
+    ctx.beginPath();
+    for (let x = step; x < W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+    for (let y = step; y < H; y += step) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+    ctx.stroke();
+  }
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+  }
+  function circle(x, y, r, fill, stroke, lw) {
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 2; ctx.stroke(); }
+  }
+
+  function drawBoss() {
+    const key = STAGES[stageIdx] && STAGES[stageIdx].key;
+    // During charger "aim" phase, flash a warning telegraph.
+    const winding = key === "charger" && boss.dash.phase === "aim" && state === GS.PLAYING;
+    const isFinal = STAGES[stageIdx] && STAGES[stageIdx].final;
+    let glow = winding ? COLORS.warn : COLORS.danger;
+    if (isFinal && !winding) {
+      // Ominous pulsing crown + rotating spiky corona for the final boss.
+      // Void's crown counter-rotates and pulls inward; Hades' flares outward.
+      const isVoid = key === "void";
+      // Custom bosses wear the color their builder picked.
+      const acc = mode === "level" ? activeCamp.accent : null;
+      glow = acc || (isVoid ? "#8f6bff" : "#ff5a2b");
+      const pulse = 0.5 + 0.5 * Math.sin(totalTime * 6);
+      ctx.save();
+      ctx.shadowColor = acc || (isVoid ? "#6b4bff" : "#ff2b2b");
+      ctx.shadowBlur = 34 + pulse * 24;
+      ctx.strokeStyle = acc ? acc + "bf" : (isVoid ? "rgba(150,110,255,0.75)" : "rgba(255,120,45,0.75)");
+      ctx.lineWidth = 3;
+      const spikes = 10;
+      for (let i = 0; i < spikes; i++) {
+        const a = totalTime * (isVoid ? -1.8 : 1.4) + i * (Math.PI * 2 / spikes);
+        const r1 = boss.r + 6, r2 = boss.r + 16 + (isVoid ? (1 - pulse) : pulse) * 12;
+        ctx.beginPath();
+        ctx.moveTo(boss.x + Math.cos(a) * r1, boss.y + Math.sin(a) * r1);
+        ctx.lineTo(boss.x + Math.cos(a) * r2, boss.y + Math.sin(a) * r2);
+        ctx.stroke();
+      }
+      circle(boss.x, boss.y, boss.r + 10 + pulse * 6, null, acc ? acc + "99" : (isVoid ? "rgba(143,107,255,0.6)" : "rgba(255,90,43,0.6)"), 3);
+      circle(boss.x, boss.y, boss.r + 22 + pulse * 10, null, acc ? acc + "47" : (isVoid ? "rgba(110,80,255,0.28)" : "rgba(255,60,30,0.28)"), 2);
+      ctx.restore();
+    }
+    if (key === "mirror") {
+      // Show the reflection: a yellow axis through the center, and a marker where
+      // the phantom is standing — that's the second shot's origin.
+      const mx = 2 * CENTER.x - boss.x, my = 2 * CENTER.y - boss.y;
+      const p = 0.5 + 0.5 * Math.sin(totalTime * 5);
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,210,59,0.4)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([9, 9]);
+      ctx.beginPath();
+      ctx.moveTo(boss.x, boss.y);
+      ctx.lineTo(mx, my);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.strokeStyle = `rgba(255,210,59,${0.5 + 0.35 * p})`;
+      circle(mx, my, boss.r * 0.75 + p * 3, "rgba(255,210,59,0.10)", `rgba(255,210,59,${0.55 + 0.3 * p})`, 2.5);
+      // Aim line from the phantom toward you, so its shot is readable.
+      ctx.strokeStyle = "rgba(255,210,59,0.22)";
+      ctx.setLineDash([5, 11]);
+      ctx.beginPath();
+      ctx.moveTo(mx, my);
+      ctx.lineTo(player.x, player.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+    if (winding) {
+      // Telegraph line toward the player.
+      ctx.save();
+      ctx.strokeStyle = "rgba(255,210,59,0.35)";
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(boss.x, boss.y);
+      ctx.lineTo(player.x, player.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.shadowColor = glow; ctx.shadowBlur = 24;
+    circle(boss.x, boss.y, boss.r, COLORS.dangerSoft, glow, 3);
+    ctx.shadowBlur = 0;
+    circle(boss.x, boss.y, boss.r * 0.42, boss.hitFlash > 0 ? "#ffffff" : glow, null);
+  }
+
+  // Small icon inside each drop so the colors are readable, not just pretty.
+  function drawPuIcon(type, x, y, s, color) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 3;
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    switch (type) {
+      case "shield": // a little crest
+        ctx.moveTo(0, -s);
+        ctx.lineTo(s * 0.8, -s * 0.4);
+        ctx.lineTo(s * 0.8, s * 0.25);
+        ctx.lineTo(0, s);
+        ctx.lineTo(-s * 0.8, s * 0.25);
+        ctx.lineTo(-s * 0.8, -s * 0.4);
+        ctx.closePath();
+        ctx.stroke();
+        break;
+      case "slow": // hourglass
+        ctx.moveTo(-s * 0.7, -s * 0.8);
+        ctx.lineTo(s * 0.7, -s * 0.8);
+        ctx.lineTo(-s * 0.7, s * 0.8);
+        ctx.lineTo(s * 0.7, s * 0.8);
+        ctx.closePath();
+        ctx.stroke();
+        break;
+      case "double": // ×2
+        ctx.restore();
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = color;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = `700 ${Math.round(s * 1.6)}px -apple-system, Segoe UI, Roboto, sans-serif`;
+        ctx.fillText("×2", 0, 1);
+        break;
+    }
+    ctx.restore();
+  }
+
+  function drawPowerups() {
+    for (const pu of powerups) {
+      const def = POWERUPS[pu.type];
+      // Blink out over the last 2 seconds so you know it's about to go.
+      const left = pu.life - pu.t;
+      if (left < 2 && Math.floor(left * 6) % 2 === 0) continue;
+      const bob = Math.sin(pu.t * 3) * 3;
+      const p = 0.5 + 0.5 * Math.sin(pu.t * 4);
+      const y = pu.y + bob;
+      const g = ctx.createRadialGradient(pu.x, y, 2, pu.x, y, pu.r * 2.2);
+      g.addColorStop(0, def.color + "55");
+      g.addColorStop(1, def.color + "00");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(pu.x, y, pu.r * 2.2, 0, Math.PI * 2); ctx.fill();
+
+      ctx.shadowColor = def.color; ctx.shadowBlur = 18 + p * 12;
+      circle(pu.x, y, pu.r, "rgba(14,14,18,0.75)", def.color, 3.5);
+      // A second, slowly breathing ring so big drops still read as "pick me up".
+      circle(pu.x, y, pu.r + 5 + p * 4, null, def.color + "66", 2);
+      ctx.shadowBlur = 0;
+      drawPuIcon(pu.type, pu.x, y, pu.r * 0.5, def.color);
+    }
+  }
+
+  // ---- Particles ----
+  // Purely cosmetic: nothing here can touch you, so it's capped and culled hard.
+  const MAX_PARTICLES = 260;
+  function burst(x, y, count, color, speed, opts) {
+    if (!particles) return;
+    const o = opts || {};
+    for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
+      const a = o.angle != null ? o.angle + (Math.random() - 0.5) * (o.spread || 1.2)
+                                : Math.random() * Math.PI * 2;
+      const sp = speed * (0.35 + Math.random() * 0.85);
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+        r: o.r || (1.6 + Math.random() * 2.8),
+        life: 0, max: (o.life || 0.55) * (0.6 + Math.random() * 0.7),
+        color, drag: o.drag || 2.6, glow: o.glow !== false,
+      });
+    }
+  }
+  function updateParticles(dt) {
+    if (!particles) return;
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.life += dt;
+      if (p.life >= p.max) { particles.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      const d = 1 - p.drag * dt;
+      p.vx *= d; p.vy *= d;
+    }
+    // Player trail: a short breadcrumb of where you've been, so fast movement reads.
+    if (trail && state === GS.PLAYING && player) {
+      trail.push({ x: player.x, y: player.y, t: 0 });
+      if (trail.length > 14) trail.shift();
+      for (const t of trail) t.t += dt;
+    }
+  }
+  function drawParticles() {
+    if (!particles) return;
+    ctx.save();
+    for (const p of particles) {
+      const k = 1 - p.life / p.max;
+      ctx.globalAlpha = k;
+      if (p.glow) { ctx.shadowColor = p.color; ctx.shadowBlur = 9 * k; }
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * (0.35 + k * 0.65), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawTrail() {
+    if (!trail || trail.length < 2) return;
+    ctx.save();
+    for (let i = 0; i < trail.length; i++) {
+      const k = i / trail.length;
+      ctx.globalAlpha = k * 0.34;
+      ctx.fillStyle = COLORS.safe;
+      ctx.beginPath();
+      ctx.arc(trail[i].x, trail[i].y, player.r * (0.28 + k * 0.55), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawShockwaves() {
+    for (const sw of shockwaves) {
+      const k = sw.t / sw.dur;
+      ctx.strokeStyle = `rgba(255,255,255,${(1 - k) * 0.8})`;
+      ctx.lineWidth = 4 * (1 - k) + 1;
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, 20 + k * 420, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  }
+
+  // Active-effect chips along the bottom, plus the pickup toast.
+  function drawEffects() {
+    const active = [];
+    if (fx.shield) active.push(["shield", null]);
+    if (fx.slow > 0) active.push(["slow", fx.slow]);
+    if (fx.double > 0) active.push(["double", fx.double]);
+
+    ctx.save();
+    ctx.textBaseline = "middle";
+    ctx.font = "700 14px -apple-system, Segoe UI, Roboto, sans-serif";
+    let x = 16;
+    const y = H - 74;   // sits above the health bar
+    for (const [type, t] of active) {
+      const def = POWERUPS[type];
+      const text = def.label + (t != null ? ` ${t.toFixed(1)}` : "");
+      const w = ctx.measureText(text).width + 20;
+      ctx.fillStyle = "rgba(14,14,18,0.7)";
+      ctx.strokeStyle = def.color;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(x, y - 13, w, 26, 8);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = def.color;
+      ctx.textAlign = "left";
+      ctx.fillText(text, x + 10, y + 1);
+      x += w + 8;
+    }
+
+    if (pickupFlash) {
+      const k = pickupFlash.t / 1.2;
+      ctx.globalAlpha = Math.max(0, 1 - k * k);
+      ctx.textAlign = "center";
+      ctx.fillStyle = pickupFlash.color;
+      ctx.font = "700 30px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.fillText(pickupFlash.label, W / 2, H * 0.34 - k * 26);
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  // Three markers instead of a bar: how many hits you have left, nothing more.
+  function drawHits() {
+    const gap = 30, r = 8;
+    const y = H - 32;
+    const x0 = W / 2 - ((maxHits - 1) * gap) / 2;
+    ctx.save();
+    if (practice) {
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#3ddc84";
+      ctx.font = "700 15px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.fillText("∞  PRACTICE", W / 2, y);
+      ctx.restore();
+      return;
+    }
+    const last = player.hits === 1;
+    const pulse = 0.5 + 0.5 * Math.sin(totalTime * 7);
+    for (let i = 0; i < maxHits; i++) {
+      const x = x0 + i * gap;
+      if (i < player.hits) {
+        // Your last hit pulses so you know you're one touch from done.
+        ctx.shadowColor = COLORS.safe;
+        ctx.shadowBlur = last ? 12 + pulse * 14 : 10;
+        circle(x, y, r + (last ? pulse * 1.5 : 0), COLORS.safe, "#eafcff", 2);
+        ctx.shadowBlur = 0;
+      } else {
+        circle(x, y, r, "rgba(255,255,255,0.05)", "rgba(255,255,255,0.20)", 2);
+      }
+    }
+    // A quick white ring on the marker you just lost.
+    if (hurtFlash > 0) {
+      const x = x0 + player.hits * gap;
+      ctx.strokeStyle = `rgba(255,255,255,${Math.min(0.9, hurtFlash * 2)})`;
+      ctx.lineWidth = 3;
+      circle(x, y, r + (0.5 - hurtFlash) * 26, null, ctx.strokeStyle, 3);
+    }
+    ctx.restore();
+  }
+
+  function drawBossHpBar() {
+    const bw = W * 0.6, bh = 8, bx = (W - bw) / 2, by = 52;
+    const frac = Math.max(0, boss.hp / boss.maxhp);
+    ctx.fillStyle = "rgba(255,255,255,0.10)";
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.fillStyle = COLORS.danger;
+    ctx.fillRect(bx, by, bw * frac, bh);
+    ctx.strokeStyle = "rgba(255,255,255,0.25)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+  }
+
+  // Safari < 16.4 has no roundRect; a plain rect is a fine stand-in.
+  if (!ctx.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) {
+      this.rect(x, y, w, h);
+      return this;
+    };
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    const shown = state;
+    ctx.save();
+    if (shake > 0) {
+      ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+    }
+    drawGrid();
+
+    // Slow-mo: a violet wash over the whole arena.
+    if (shown === GS.PLAYING && fx.slow > 0) {
+      ctx.fillStyle = `rgba(176,107,255,${0.10 + 0.04 * Math.sin(totalTime * 8)})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // Final bosses radiate: Hades an infernal glow, Void a cold pull from the edges.
+    if ((shown === GS.PLAYING || shown === GS.OVER) && STAGES[stageIdx] && STAGES[stageIdx].final) {
+      const p = 0.5 + 0.5 * Math.sin(totalTime * 4);
+      const isVoid = STAGES[stageIdx].key === "void";
+      const rgb = mode === "level" ? hexToRgb(activeCamp.accent) : (isVoid ? "110,70,255" : "255,60,20");
+      const g = isVoid
+        ? ctx.createRadialGradient(boss.x, boss.y, 260, boss.x, boss.y, 40)
+        : ctx.createRadialGradient(boss.x, boss.y, 20, boss.x, boss.y, 560);
+      g.addColorStop(0, `rgba(${rgb},${0.12 + 0.07 * p})`);
+      g.addColorStop(1, `rgba(${rgb},0)`);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    if (shown === GS.PLAYING || shown === GS.OVER) {
+      // Blue damage zone — stand inside to hurt the boss.
+      const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
+      const p = 0.5 + 0.5 * Math.sin(zone.pulse * 5);
+      const g = ctx.createRadialGradient(zone.x, zone.y, 4, zone.x, zone.y, zone.r);
+      g.addColorStop(0, inZone ? "rgba(77,215,255,0.42)" : "rgba(77,215,255,0.22)");
+      g.addColorStop(1, "rgba(77,215,255,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(zone.x, zone.y, zone.r, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowColor = COLORS.safe; ctx.shadowBlur = inZone ? 22 : 10;
+      ctx.strokeStyle = inZone ? "#bff3ff" : "rgba(77,215,255,0.8)";
+      ctx.lineWidth = inZone ? 3 : 2;
+      ctx.beginPath(); ctx.arc(zone.x, zone.y, zone.r - 2 + p * 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Hot zone — dark blue, tethered to the boss, three times the drain.
+      const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+      ctx.save();
+
+      // Tether, so it reads as something the boss is dragging around.
+      ctx.strokeStyle = "rgba(43,74,214,0.55)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 7]);
+      ctx.lineDashOffset = -totalTime * 18;
+      ctx.beginPath();
+      ctx.moveTo(boss.x, boss.y);
+      ctx.lineTo(hotZone.x, hotZone.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const hg = ctx.createRadialGradient(hotZone.x, hotZone.y, 2, hotZone.x, hotZone.y, hotZone.r);
+      hg.addColorStop(0, inHot ? "rgba(48,86,255,0.85)" : "rgba(34,62,200,0.62)");
+      hg.addColorStop(1, "rgba(24,40,150,0.06)");
+      ctx.fillStyle = hg;
+      ctx.beginPath(); ctx.arc(hotZone.x, hotZone.y, hotZone.r, 0, Math.PI * 2); ctx.fill();
+
+      ctx.shadowColor = "#2b4ad6"; ctx.shadowBlur = inHot ? 24 : 14;
+      ctx.strokeStyle = inHot ? "#7f9dff" : "#3b5cff";
+      ctx.lineWidth = inHot ? 4 : 3;
+      ctx.setLineDash([7, 6]);
+      ctx.lineDashOffset = -totalTime * 26;   // turns, so it never reads as scenery
+      ctx.beginPath(); ctx.arc(hotZone.x, hotZone.y, hotZone.r - 1 + p * 2, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+
+      // Labelled, because a second blue circle needs to say what it is.
+      ctx.save();
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "800 15px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.fillText("×3", hotZone.x, hotZone.y - 1);
+      ctx.fillStyle = inHot ? "#cfd9ff" : "rgba(150,175,255,0.9)";
+      ctx.font = "700 9px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.fillText("DAMAGE", hotZone.x, hotZone.y + 12);
+      ctx.restore();
+    }
+
+    if (shown === GS.PLAYING || shown === GS.OVER) drawPowerups();
+
+    if (shown === GS.PLAYING || shown === GS.TRANSITION || shown === GS.OVER) {
+      // Minions
+      for (const mn of minions) {
+        const r = minionRadius(mn);
+        if (mn.phase === "in") {
+          // Warning telegraph before it becomes lethal.
+          ctx.strokeStyle = "rgba(255,210,59,0.7)";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 6]);
+          circle(mn.x, mn.y, mn.r, null, "rgba(255,210,59,0.7)", 2);
+          ctx.setLineDash([]);
+          circle(mn.x, mn.y, r, "rgba(255,59,59,0.35)", null);
+        } else {
+          ctx.shadowColor = COLORS.danger; ctx.shadowBlur = 12;
+          circle(mn.x, mn.y, r, COLORS.danger, "#ff8f8f", 2);
+          ctx.shadowBlur = 0;
+        }
+      }
+      drawTelegraphs();
+      for (const b of bullets) {
+        ctx.shadowColor = COLORS.danger; ctx.shadowBlur = 10;
+        circle(b.x, b.y, b.r, COLORS.danger, null);
+      }
+      ctx.shadowBlur = 0;
+
+      drawBoss();
+
+      drawTrail();
+      // Player — flashes white during post-shield mercy invulnerability.
+      const body = fx.invuln > 0 && Math.floor(totalTime * 12) % 2 === 0 ? "#ffffff" : COLORS.safe;
+      ctx.shadowColor = body; ctx.shadowBlur = 14;
+      circle(player.x, player.y, player.r, body, "#eafcff", 2);
+      ctx.shadowBlur = 0;
+      if (fx.shield) {
+        const p = 0.5 + 0.5 * Math.sin(totalTime * 5);
+        ctx.shadowColor = POWERUPS.shield.color; ctx.shadowBlur = 16;
+        circle(player.x, player.y, player.r + 9 + p * 2, null, POWERUPS.shield.color, 2.5);
+        ctx.shadowBlur = 0;
+      }
+
+      drawShockwaves();
+      drawParticles();
+
+      if (state !== GS.TRANSITION) drawBossHpBar();
+      drawHits();
+      drawEffects();
+    }
+
+    if (shown === GS.TRANSITION && banner) {
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillStyle = "rgba(14,14,18,0.55)";
+      ctx.fillRect(0, H / 2 - 60, W, 120);
+      ctx.fillStyle = COLORS.warn;
+      ctx.font = "700 40px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.fillText(banner, W / 2, H / 2 + 4);
+      ctx.fillStyle = COLORS.muted || "#8a8a9a";
+      ctx.font = "500 18px -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.fillStyle = "#8a8a9a";
+      ctx.fillText("get ready", W / 2, H / 2 + 38);
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // ---- HUD ----
+  function buildPips(count) {
+    const n = count || STAGES.length;
+    pipsEl.innerHTML = "";
+    pips = [];
+    for (let i = 0; i < n; i++) {
+      const el = pipsEl.appendChild(document.createElement("i"));
+      if (n > 10) el.style.width = "9px";   // the 14-node campaign needs slimmer pips
+      pips.push(el);
+    }
+  }
+  function updateHudStage() {
+    const s = STAGES[stageIdx];
+    hudStageNum.textContent = `${stageIdx + 1}/${STAGES.length}`;
+    hudStageName.textContent = s.name;
+    hudStageName.style.color = mode === "level" ? activeCamp.accent : "";
+    const here = stageIdx;
+    pips.forEach((p, i) => {
+      p.className = i < here ? "done" : (i === here ? "active" : "");
+    });
+    hudTimerLabel.textContent = "Zone";
+  }
+  function updateHud() {
+    const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
+    const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+    if (inHot) { hudTimer.textContent = "×3 DRAINING"; hudTimer.style.color = "#7f9dff"; }
+    else if (inZone) { hudTimer.textContent = "DRAINING"; hudTimer.style.color = COLORS.safe; }
+    else { hudTimer.textContent = "find blue"; hudTimer.style.color = "#8a8a9a"; }
+  }
+
+  // ---- Loop ----
+  let lastTs = null;
+  function frame(ts) {
+    if (state === GS.PLAYING || state === GS.TRANSITION) {
+      if (lastTs == null) lastTs = ts;
+      let dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+      if (dt > 0.05) dt = 0.05;
+      if (shake > 0) shake = Math.max(0, shake - dt * 34);
+      if (freeze > 0) { freeze -= dt; totalTime += dt; }   // hit-stop: hold the frame
+      else if (state === GS.PLAYING) { updatePlaying(dt); if (state === GS.PLAYING) updateHud(); }
+      else updateTransition(dt);
+      updateParticles(dt);
+    } else {
+      lastTs = null;
+    }
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  function refreshMenu() {
+    renderBattles();
+  }
+
+  renderCampaign();
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
