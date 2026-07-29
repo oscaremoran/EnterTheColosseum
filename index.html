@@ -120,8 +120,10 @@
   }
   #campaignRow button { padding: 9px 18px; }
   #campaignRow button.on { border-color: currentColor; background: linear-gradient(180deg, #3a2b18 0%, #251b10 100%); }
-  #campaignRow button .cname { font-weight: 700; }
-  #campaignRow button .csub { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+  #campaignRow button .cname, #diffRow button .cname { font-weight: 700; }
+  #campaignRow button .csub, #diffRow button .csub {
+    display: block; font-size: 11px; color: var(--muted); font-weight: 500;
+  }
   .hint { color: var(--muted); font-size: 13px; }
   #custom.hidden { display: none; }
   #customRow button { padding: 8px 12px; font-size: 13px; }
@@ -243,6 +245,69 @@
     background: linear-gradient(90deg, rgba(107,79,42,0) 0%, var(--bronze) 50%, rgba(107,79,42,0) 100%);
   }
   .libempty { color: var(--muted); font-size: 13px; padding: 6px 10px; }
+  /* ---- Ladder (the gladiator ranking) ---- */
+  #ladderHead {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-family: var(--serif);
+  }
+  #ladderTier {
+    font-size: 21px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase;
+    color: var(--gold); text-shadow: 0 0 20px rgba(217,164,65,.28);
+  }
+  #ladderRank { font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); }
+  #ladderBoard { font-size: 11.5px; color: var(--muted); max-width: 430px; line-height: 1.45; margin-top: 3px; }
+  #ladderTilt { font-size: 11.5px; color: var(--warn); max-width: 430px; line-height: 1.45; font-weight: 600; }
+  #ladderTilt:empty, #ladderBoard:empty { display: none; }
+  .rung {
+    display: flex; align-items: center; gap: 11px; text-align: left; width: 100%;
+    background: linear-gradient(180deg, #221a11 0%, #1a140c 100%);
+    border: 1px solid #3a2c1a; border-left: 3px solid var(--bronze);
+    border-radius: 4px; padding: 9px 12px;
+  }
+  /* The rung you're standing on, and the one you may challenge. */
+  .rung.self {
+    border-left-color: var(--gold); background: linear-gradient(180deg, #2e2415 0%, #201810 100%);
+    box-shadow: inset 0 1px 0 rgba(217,164,65,0.16);
+  }
+  .rung.next { border-left-color: var(--danger); }
+  .rung.beaten { opacity: .62; }
+  .rung.beaten .rname { text-decoration: line-through; text-decoration-color: rgba(160,143,118,.6); }
+  .rung .num {
+    font-family: var(--serif); font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    color: var(--muted); min-width: 40px; text-align: right; flex: none;
+  }
+  .rung.self .num, .rung.next .num { color: var(--gold); }
+  .rung .rmeta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .rung .rname {
+    font-family: var(--serif); font-weight: 700; font-size: 14.5px; letter-spacing: 1.2px;
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  }
+  .rung .arm { font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; }
+  .rung .rblurb { color: var(--text); font-size: 12px; line-height: 1.4; }
+  .rung .rrec { color: var(--muted); font-size: 11px; letter-spacing: .6px; }
+  .rung button { padding: 7px 12px; font-size: 12px; align-self: center; flex: none; }
+  /* ---- Necropolis (carved inscriptions) ---- */
+  .cippus {
+    width: 100%; max-width: 340px; text-align: center; padding: 15px 14px 17px;
+    background: linear-gradient(175deg, #2c251b 0%, #211b13 55%, #191309 100%);
+    border: 1px solid #46351f; border-top: 2px solid #5d4726;
+    border-radius: 3px 3px 5px 5px;
+    box-shadow: inset 0 1px 0 rgba(217,164,65,.10), 0 3px 10px rgba(0,0,0,.5);
+  }
+  /* Letters cut into stone: dark fill, a lit top edge, a shadow below. */
+  .cippus .line {
+    font-family: var(--serif); font-weight: 700;
+    color: #0f0b06; letter-spacing: 2.6px; line-height: 1.7;
+    text-shadow: 0 1px 0 rgba(226,196,140,.30), 0 -1px 1px rgba(0,0,0,.65);
+  }
+  .cippus .l1 { font-size: 14px; letter-spacing: 3.4px; }
+  .cippus .l2 { font-size: 10.5px; letter-spacing: 2px; }
+  .cippus .l3 { font-size: 11.5px; letter-spacing: 3.6px; margin-top: 5px; }
+  .cippus.mine { border-top-color: var(--gold); max-width: 380px; }
+  .cippus.mine .line { text-shadow: 0 1px 0 rgba(240,210,150,.38), 0 -1px 1px rgba(0,0,0,.65); }
+  .cippusgrid { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%; }
+  .cippusgrid .cippus { max-width: 218px; }
+  .cippusgrid .cippus .l1 { font-size: 12px; letter-spacing: 2.4px; }
   .editrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
   .editrow label, .stagerow label { color: var(--muted); font-size: 12px; font-weight: 600; }
   input, select {
@@ -319,7 +384,7 @@
 
     <div id="hud" class="hidden">
       <div>
-        <div><span class="label">Stage</span><span id="hudStageNum">1/7</span> · <span id="hudStageName">—</span></div>
+        <div><span class="label">Munus</span><span id="hudStageNum">I/VII</span> · <span id="hudStageName">—</span></div>
         <div id="pips"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div style="text-align:right"><span class="label" id="hudTimerLabel">Left</span><span id="hudTimer">0.0</span></div>
@@ -331,24 +396,26 @@
 
       <div class="tabs" id="tabs">
         <button data-tab="play" class="on">Play</button>
+        <button data-tab="ladder">Ladder</button>
         <button data-tab="library">Library</button>
         <button data-tab="horreum">Horreum</button>
         <button data-tab="vault">Vault</button>
+        <button data-tab="necropolis">Necropolis</button>
         <button data-tab="help">How to Play</button>
       </div>
 
       <!-- Play -->
       <div class="tabpanel" data-panel="play">
         <div class="btnrow">
-          <button id="practiceBtn">Practice: Off</button>
           <button id="soundBtn">Sound: On</button>
           <button id="musicBtn">Music: On</button>
         </div>
         <div class="btnrow" id="diffRow"></div>
+        <p class="hint" id="diffHint"></p>
 
         <div class="divider"></div>
 
-        <p class="sub"><b style="color:var(--text)">Battles</b> — single forms, fought on their own. Each stays sealed until you put it down inside its boss's run.</p>
+        <p class="sub"><b style="color:var(--text)">Battles</b> — single forms, fought one at a time. <b style="color:var(--warn)">Start here.</b> Each boss's first form is open; beating it unseals the next. Learn all seven this way and the run at the bottom becomes something you can actually survive.</p>
         <details class="fold" data-fold="inferno">
           <summary>
             <span class="foldname" data-foldname="inferno">Vulcan</span>
@@ -368,18 +435,31 @@
 
         <div class="divider"></div>
 
-        <p class="sub">Or take one boss end to end — pick which, then fight all seven of its forms straight through.</p>
+        <p class="sub">Then take one boss end to end — all seven forms straight through, one life pool, no menu between them.</p>
         <div class="btnrow" id="campaignRow"></div>
         <div class="stages" id="stageList"></div>
         <div class="btnrow">
           <button data-mode="boss" id="bossBtn">Boss Fight · 7 Stages</button>
         </div>
+        <p class="hint" id="bossHint"></p>
         <p class="sub" style="margin-top:2px">From stage 3 on, red <b style="color:var(--text)">minions</b> also fade in (yellow warning first) — dodge them too.</p>
+      </div>
+
+      <!-- Ladder -->
+      <div class="tabpanel hidden" data-panel="ladder">
+        <div id="ladderHead">
+          <div id="ladderTier">—</div>
+          <div id="ladderRank">unranked</div>
+          <div id="ladderBoard"></div>
+          <div id="ladderTilt"></div>
+        </div>
+        <p class="sub" id="ladderNote">Twenty-four fighters hold the board. You may only call out the one standing directly above you — beat them and you take their rung; lose and you slip one down. Lose to the <i>same</i> fighter three times running and you drop two. Take rank <b>I</b> and the <b>munerarius</b> — the magistrate paying for the games — grants you the <b>rudis</b>, the wooden sword that means discharge.</p>
+        <div id="ladderList" class="liblist"></div>
       </div>
 
       <!-- Library -->
       <div class="tabpanel hidden" data-panel="library">
-        <p class="sub">Built levels: fixed runs that chain patterns the two campaigns never put together. Each opens once you've beaten every form it uses. The rank beside the name is how hard it hits.</p>
+        <p class="sub">Built levels: fixed runs that chain patterns the two campaigns never put together. Each opens once you've beaten every form it uses. The name beside it is how hard it hits.</p>
         <div id="libList" class="liblist"></div>
         <div class="divider"></div>
         <p class="sub"><b style="color:var(--text)">Your levels</b> — build your own out of any of the 14 patterns.</p>
@@ -394,7 +474,7 @@
       <div class="tabpanel hidden" data-panel="horreum">
         <p class="sub">The granary under the stands, where the codes are kept. Win fights, earn denarii, buy what's on the shelf — then take the code to the Vault.</p>
         <div id="purse"><span class="coin">✦</span><span id="purseNum">0</span> <span class="unit">denarii</span></div>
-        <p class="hint">A clear pays its rank: Tiro 1, up to Primus Palus 5. A full boss run pays every form it contains, doubled. Easy pays half, Hard pays triple. Practice pays nothing.</p>
+        <p class="hint">A clear pays its peril: Tiro 1, up to Primus Palus 5. A full boss run pays every form it contains, doubled. Sine Missione pays triple. The Ludus pays nothing — wooden swords earn no denarii.</p>
         <div id="shopList" class="liblist"></div>
         <p id="shopMsg"></p>
       </div>
@@ -414,20 +494,34 @@
         <div class="btnrow">
           <button id="wipeBtn">Clear All Progress</button>
         </div>
-        <p class="hint" id="wipeHint">Wipes clears, best times and unlocked forms. Levels you built stay put.</p>
+        <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms, your rung on the Ladder and every stone in the Necropolis. Levels you built stay put.</p>
+      </div>
+
+      <!-- Necropolis -->
+      <div class="tabpanel hidden" data-panel="necropolis">
+        <p class="sub">The burial road outside the walls, where a gladiator's record is cut in stone. Your own <i>cippus</i> stands first; below it, everyone you put down.</p>
+        <div id="myStone"></div>
+        <p class="hint">PVGN — fights · VIC — victories · MISS — times the crowd spared you. ADHVC STAT: still standing.</p>
+        <div class="divider"></div>
+        <p class="sub"><b style="color:var(--text)">The fallen</b></p>
+        <div id="stoneGrid" class="cippusgrid"></div>
       </div>
 
       <!-- How to play -->
       <div class="tabpanel hidden" data-panel="help">
-        <p class="sub"><b style="color:var(--text)">Arrow keys</b> to move. Stand inside the <b style="color:var(--safe)">blue circle</b> to drain the boss's health — it keeps relocating, so chase it through the bullets.</p>
-        <p class="sub">There are <b style="color:var(--safe)">two</b> damage zones. The big <b style="color:var(--safe)">light blue</b> circle drains normally and keeps relocating. The small <b style="color:#5b78ff">dark blue ×3</b> circle is tethered to the boss and orbits it, draining three times as fast — safe ground and fast damage are never in the same place.</p>
-        <p class="sub">Every red thing costs one hit: <b style="color:var(--safe)">5 / 3 / 1</b> depending on difficulty. The markers at the bottom are what's left, and clearing a stage gives one back. Big attacks flash <b style="color:var(--warn)">yellow</b> before they fire — the shape you see is the shape that arrives.</p>
+        <p class="sub"><b style="color:var(--text)">Arrow keys</b> to move. Stand inside the <b style="color:var(--safe)">oculus imperatoris</b> — the emperor's eye, the patch of sand he is watching — to drain your opponent. Only what happens under his eye counts, and the eye keeps moving.</p>
+        <p class="sub">There are <b style="color:var(--safe)">two</b> such places. The wide <b style="color:var(--safe)">eye</b> drains normally and relocates. The small <b style="color:#5b78ff">sub umbone ×III</b> circle sits under your opponent's shield-boss and orbits with them, draining three times as fast — safe ground and fast damage are never in the same place. The crowd knows the difference.</p>
+        <p class="sub">Every red thing costs one hit: <b style="color:var(--safe)">Ludus</b> none, <b style="color:var(--safe)">Munus Legitimum</b> three, <b style="color:var(--safe)">Sine Missione</b> one. The markers at the bottom are what's left, and clearing a bout gives one back. Big attacks flash <b style="color:var(--warn)">yellow</b> before they land — the shape you see is the shape that arrives.</p>
+        <p class="sub"><b style="color:var(--warn)">Go to the eye.</b> If an eye opens and you never set foot in it before it moves on, your opponent gets <b>an eighth of their health back</b> — the ring turns yellow and counts down first, so you'll see it coming. Waiting in a safe corner for the damage to come to you is not a plan.</p>
         <div class="stages">
-          <div><b>Pickups</b> — grab the big glowing circles (never red):</div>
-          <div><span class="pu" style="color:#3ddc84">● Green</span> — shield, eats one hit</div>
-          <div><span class="pu" style="color:#b06bff">● Purple</span> — slow-mo, only the red stuff crawls</div>
-          <div><span class="pu" style="color:#4dd7ff">● Blue</span> — double zone damage, 8s</div>
-          <div style="margin-top:6px"><b>Practice</b> — flip it on to play any mode without taking damage. Nothing is recorded.</div>
+          <div><b>Sparsiones</b> — the emperor's gifts, thrown into the sand (never red):</div>
+          <div><span class="pu" style="color:#3ddc84">● Green</span> — <b>Scutum</b>, a shield; eats one hit</div>
+          <div><span class="pu" style="color:#b06bff">● Purple</span> — <b>Filum Parcarum</b>, the Fates' thread; the red world crawls</div>
+          <div><span class="pu" style="color:#4dd7ff">● Blue</span> — <b>Laurea</b>, the laurel; double drain, 8s</div>
+        </div>
+        <div class="stages">
+          <div><b>Armaturae</b> — every fighter is trained to one pattern of arms, and it changes how they fight:</div>
+          <div id="helpArms"></div>
         </div>
       </div>
     </div>
@@ -471,14 +565,14 @@
 
     <!-- Game over / Win -->
     <div id="end" class="screen hidden">
-      <h2 id="endTitle">Game Over</h2>
+      <h2 id="endTitle">Defeated</h2>
       <p class="stat" id="endStat"></p>
       <p class="sub" id="endBest"></p>
       <div class="btnrow">
-        <button class="primary" id="againBtn">Play Again</button>
+        <button class="primary" id="againBtn">Fight Again</button>
         <button id="menuBtn">Menu</button>
       </div>
-      <p class="hint">Space to play again</p>
+      <p class="hint" id="endHint">Space to take the sand again</p>
     </div>
   </div>
 
@@ -518,6 +612,7 @@
   const endTitle = document.getElementById("endTitle");
   const endStat = document.getElementById("endStat");
   const endBest = document.getElementById("endBest");
+  const endHint = document.getElementById("endHint");
 
   const COLORS = {
     safe: "#4dd7ff",
@@ -534,12 +629,36 @@
   // Serif everywhere on the canvas too, to match the chrome.
   const FONT = 'Optima, "Palatino Linotype", Palatino, Georgia, serif';
 
+  // ---- Numerals ----
+  // Counts are shown the way they'd be cut into stone. Nothing in this game
+  // counts high enough to need more than a few thousand.
+  const NUMERALS = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"],
+    [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  function roman(n) {
+    n = Math.max(0, Math.round(Number(n) || 0));
+    if (!n) return "NVLLA";        // the Romans had no zero; they had a word for "none"
+    let out = "";
+    for (const [v, glyph] of NUMERALS) {
+      while (n >= v) { out += glyph; n -= v; }
+    }
+    return out;
+  }
+  // Inscriptions use V for U and have no J — the Latin alphabet as it was carved.
+  function lapidary(s) {
+    return String(s).toUpperCase().replace(/U/g, "V").replace(/J/g, "I");
+  }
+
   // ---- Powerups ----
   // Colored pickup circles. Never red — red is always lethal.
+  // Sparsiones — the gifts the emperor had flung into the sand mid-games. Each
+  // has a Roman name for the menus and a plain one for the HUD: mid-fight you
+  // need to read the label, not translate it.
   const POWERUPS = {
-    shield: { color: "#3ddc84", label: "SHIELD",  dur: 0    },  // absorbs one hit
-    slow:   { color: "#b06bff", label: "SLOW-MO", dur: 5.0  },  // everything red crawls
-    double: { color: "#4dd7ff", label: "×2 ZONE", dur: 8.0  },  // double zone drain
+    shield: { color: "#3ddc84", label: "SHIELD",    latin: "Scutum",          dur: 0   },  // absorbs one hit
+    slow:   { color: "#b06bff", label: "SLOW",      latin: "Filum Parcarum",  dur: 5.0 },  // everything red crawls
+    double: { color: "#4dd7ff", label: "×2 DAMAGE", latin: "Laurea",          dur: 8.0 },  // double zone drain
   };
   const PU_KEYS = Object.keys(POWERUPS);
   const PU_SPAWN = 6.5;   // seconds between drops
@@ -596,6 +715,207 @@
     for (const s of c.stages) PATTERNS.push({ key: s.key, name: s.name, desc: s.desc });
   }
   const PATTERN_BY_KEY = Object.fromEntries(PATTERNS.map((p) => [p.key, p]));
+
+  // ---- Armaturae ----
+  // A gladiator was not a generic fighter — he was trained to one specific
+  // pattern of arms, and the pairings were fixed. An armatura layers a single
+  // modifier on top of any of the 14 attack patterns, so a Murmillo running the
+  // "spiral" pattern fights nothing like a Sagittarius running the same one.
+  //
+  // Every field is optional. The engine reads them at these points:
+  //   spd    — multiplies the boss's movement/fire tempo
+  //   hp     — multiplies the bout's health
+  //   rate   — multiplies every cooldown at once
+  //   shield — half-width (radians) of a shield arc that BLOCKS zone drain
+  //   curve  — bullets bend, in rad/sec (the curved sica and the crescent blade)
+  //   twin   — every shot is doubled, offset by this many radians
+  //   volley — this many extra aimed shots follow each attack
+  //   net    — seconds between net throws that snare you instead of wounding
+  //   beasts — forces minions on and multiplies how fast they arrive
+  //   blind  — you fight in the dark, seeing only this far
+  const ARMATURAE = {
+    eques: {
+      name: "Eques", color: "#d8b26a",
+      desc: "horseman — opens the games, fast and light",
+      spd: 1.3, hp: 0.85,
+    },
+    thraex: {
+      name: "Thraex", color: "#8fbf5a",
+      desc: "the curved sica — his shots bend around your dodge",
+      curve: 1.5, spd: 1.05,
+    },
+    murmillo: {
+      name: "Murmillo", color: "#c9a227",
+      desc: "fish-crest and tower shield — slow, and his shield side gives no damage",
+      spd: 0.8, hp: 1.2, shield: 0.9,
+    },
+    hoplomachus: {
+      name: "Hoplomachus", color: "#5ac8bf",
+      desc: "spear and small round shield — thrusts from range behind a narrow guard",
+      volley: 1, spd: 0.95, shield: 0.5,
+    },
+    secutor: {
+      name: "Secutor", color: "#e07a3f",
+      desc: "the chaser — smooth helm, no crest to catch a net, and he never stops",
+      spd: 1.25, rate: 1.15, hp: 0.9,
+    },
+    retiarius: {
+      name: "Retiarius", color: "#4f9bd8",
+      desc: "net and trident — the net snares your legs instead of drawing blood",
+      net: 3.4, trident: true, spd: 1.15, hp: 0.85,
+    },
+    dimachaerus: {
+      name: "Dimachaerus", color: "#b06bff",
+      desc: "two swords, no shield — every attack arrives twice",
+      twin: 0.22, rate: 1.1,
+    },
+    provocator: {
+      name: "Provocator", color: "#9c9a92",
+      desc: "the only one in a breastplate — takes far longer to put down",
+      hp: 1.35, spd: 0.9,
+    },
+    scissor: {
+      name: "Scissor", color: "#ff66c4",
+      desc: "a crescent blade fixed to the arm — wide, hooking arcs",
+      curve: 2.4, rate: 0.85, hp: 1.1,
+    },
+    sagittarius: {
+      name: "Sagittarius", color: "#f0b429",
+      desc: "the archer — everything he throws is aimed, and there is always more of it",
+      volley: 2, spd: 1.1, rate: 1.2, hp: 0.8,
+    },
+    bestiarius: {
+      name: "Bestiarius", color: "#3ddc84",
+      desc: "the beast-fighter — he brings the beasts with him",
+      beasts: 1.8, spd: 0.95,
+    },
+    andabata: {
+      name: "Andabata", color: "#6b3f8f",
+      desc: "fought blind in a closed helm — so the crowd puts out the lights for you too",
+      blind: 210, spd: 0.85, hp: 1.1,
+    },
+  };
+  const DEF_ARM = { name: "Gregarius", color: "#a08f76", desc: "no formal training" };
+  function armOf(key) { return ARMATURAE[key] || DEF_ARM; }
+
+  // Who was matched against whom. The pairings were never arbitrary — a net-man
+  // was set against a chaser, a big shield against a small one. Used to keep the
+  // ladder's matchups legitimate rather than random.
+  const MATCHUPS = {
+    murmillo: ["thraex", "hoplomachus"],
+    thraex: ["murmillo"],
+    hoplomachus: ["murmillo", "thraex"],
+    retiarius: ["secutor"],
+    secutor: ["retiarius"],
+    provocator: ["provocator"],
+    dimachaerus: ["dimachaerus", "secutor"],
+    scissor: ["retiarius"],
+    sagittarius: ["sagittarius"],
+    eques: ["eques"],
+    bestiarius: [],
+    andabata: ["andabata"],
+  };
+
+  // ---- The Ladder ----
+  // Twenty-four fighters hold the board, rank XXIV at the bottom up to rank I.
+  // You may only call out the one standing directly above you. Names are drawn
+  // from the surviving inscriptions and graffiti — these were real people, and
+  // pugn/vic/miss are their real records where a record survives.
+  const LADDER = [
+    // rank 24 — bottom of the board
+    { id: "rapidus", name: "Rapidus", arm: "eques", key: "pursuer", hp: 40,
+      blurb: "First blood of the morning, and he knows it. Rides you down without a plan.",
+      pugn: 4, vic: 2, miss: 1 },
+    { id: "glauco", name: "Glauco", arm: "thraex", key: "nova", hp: 42,
+      blurb: "Mantua's own. Seven fights, and a stone paid for by his wife Aurelia.",
+      pugn: 7, vic: 5, miss: 1 },
+    { id: "danaos", name: "Danaos", arm: "hoplomachus", key: "weaver", hp: 44,
+      blurb: "Keeps the spear between you and him. Patient in a way the crowd hates.",
+      pugn: 9, vic: 6, miss: 2 },
+    { id: "bato", name: "Bato", arm: "murmillo", key: "charger", hp: 46,
+      blurb: "A Dacian, fought three in one day and won the first two. Still young.",
+      pugn: 3, vic: 2, miss: 0 },
+    { id: "urbicus", name: "Urbicus", arm: "secutor", key: "pursuer", hp: 48,
+      blurb: "Thirteen fights out of Florence. Left a daughter, five years old.",
+      pugn: 13, vic: 9, miss: 2 },
+    { id: "nikephoros", name: "Nikephoros", arm: "dimachaerus", key: "mirror", hp: 50,
+      blurb: "\"Victory-bearer\" — a slave name given as a joke that stopped being funny.",
+      pugn: 11, vic: 8, miss: 1 },
+    { id: "callimorphus", name: "Callimorphus", arm: "thraex", key: "spiral", hp: 52,
+      blurb: "Beautiful, and paid to be. Fights like the crowd is the point, because it is.",
+      pugn: 14, vic: 10, miss: 3 },
+    { id: "aptus", name: "Aptus", arm: "sagittarius", key: "gatling", hp: 52,
+      blurb: "Never closes. Never has to. Everything he throws already knows where you are.",
+      pugn: 12, vic: 9, miss: 1 },
+    { id: "severus", name: "Severus Niger", arm: "provocator", key: "lattice", hp: 58,
+      blurb: "In a breastplate, and in no hurry. You will be tired before he is.",
+      pugn: 16, vic: 11, miss: 4 },
+    { id: "cerinthus", name: "Cerinthus", arm: "bestiarius", key: "swarm", hp: 55,
+      blurb: "Comes up out of the hypogeum with whatever came up with him.",
+      pugn: 15, vic: 10, miss: 2 },
+    { id: "faustus", name: "Faustus", arm: "murmillo", key: "lattice", hp: 60,
+      blurb: "\"Lucky.\" Twelve wins says the name is doing some work.",
+      pugn: 18, vic: 12, miss: 3 },
+    { id: "pardus", name: "Pardus", arm: "scissor", key: "cross", hp: 56,
+      blurb: "The Leopard. The blade is welded to his arm; he cannot put it down.",
+      pugn: 17, vic: 12, miss: 2 },
+    { id: "amazonia", name: "Amazonia", arm: "dimachaerus", key: "mirror", hp: 58,
+      blurb: "Fought Achillia at Halicarnassus. Both walked off standing — look two rungs up.",
+      pugn: 13, vic: 10, miss: 3 },
+    { id: "achillia", name: "Achillia", arm: "murmillo", key: "charger", hp: 60,
+      blurb: "The other half of that draw. Neither of them has forgotten it.",
+      pugn: 13, vic: 10, miss: 3 },
+    { id: "diodorus", name: "Diodorus", arm: "provocator", key: "pulsar", hp: 62,
+      blurb: "His stone says he beat Demetrius and the referee gave it away anyway.",
+      pugn: 20, vic: 14, miss: 4 },
+    { id: "triumphus", name: "Triumphus", arm: "retiarius", key: "serpent", hp: 58,
+      blurb: "Net first, trident second. Cut the net loose or you don't get to dodge.",
+      pugn: 19, vic: 13, miss: 3 },
+    { id: "hermes", name: "Hermes", arm: "andabata", key: "pulsar", hp: 64,
+      blurb: "Martial wrote three poems about him. \"The grief and terror of his age.\"",
+      pugn: 24, vic: 19, miss: 2 },
+    { id: "crescens", name: "Crescens", arm: "secutor", key: "pursuer", hp: 60,
+      blurb: "Pompeii's walls call him \"lord of the girls.\" He fights like it's owed to him.",
+      pugn: 22, vic: 16, miss: 3 },
+    { id: "pugnax", name: "Pugnax", arm: "scissor", key: "cross", hp: 66,
+      blurb: "Nero's man out of the Neronian school. Three fights on the board, three wins.",
+      pugn: 21, vic: 17, miss: 1 },
+    { id: "carpophorus", name: "Carpophorus", arm: "bestiarius", key: "swarm", hp: 70,
+      blurb: "Killed twenty beasts in one morning. The sand has never fully dried out.",
+      pugn: 26, vic: 21, miss: 2 },
+    { id: "tetraites", name: "Tetraites", arm: "thraex", key: "spiral", hp: 68,
+      blurb: "Famous enough that they sell cups with his fight painted on them in Gaul.",
+      pugn: 27, vic: 22, miss: 3 },
+    { id: "verus", name: "Verus", arm: "murmillo", key: "hades", hp: 78,
+      blurb: "Fought Priscus at the opening of this building until neither could lift a shield.",
+      pugn: 30, vic: 24, miss: 5 },
+    { id: "priscus", name: "Priscus", arm: "murmillo", key: "void", hp: 82,
+      blurb: "The other man in that fight. Titus freed them both rather than choose.",
+      pugn: 30, vic: 24, miss: 5 },
+    // rank 1 — the top of the ladder
+    { id: "flamma", name: "Flamma", arm: "secutor", key: "hades", hp: 92,
+      blurb: "Offered the rudis four times and refused it four times. Died on the sand at thirty, Syrian, and still here.",
+      pugn: 34, vic: 21, miss: 9 },
+  ];
+  const LADDER_BY_ID = Object.fromEntries(LADDER.map((f) => [f.id, f]));
+  // Rank 1 is the top, so the array reads bottom-up: index 0 holds rank LADDER.length.
+  const UNRANKED = LADDER.length + 1;   // where a newcomer stands: below the board
+
+  // The tier titles a rank earns you. A tiro has never fought; the two palus
+  // ranks are the ones that got their names painted on the wall.
+  const TIERS = [
+    [1, 1, "Primus Palus", "first stake of the school"],
+    [2, 6, "Secundus Palus", "second stake — one man above you"],
+    [7, 12, "Veteranus", "has outlived the odds"],
+    [13, 19, "Gregarius", "one of the crowd of them"],
+    [20, LADDER.length, "Tiro", "blooded, barely"],
+  ];
+  function tierOf(rank) {
+    for (const [lo, hi, name, note] of TIERS) {
+      if (rank >= lo && rank <= hi) return { name, note };
+    }
+    return { name: "Tiro", note: "never yet on the sand" };
+  }
 
   // ---- Library ----
   // Hand-built levels: fixed pattern chains that the two campaigns never put
@@ -766,23 +1086,41 @@
   let powerups, puTimer, fx, shockwaves, pickupFlash, hurtFlash, hotZone, pending;
   let shake, freeze, phase2, particles, trail;
   let stageSpd = 1, stageRate = 1;
+  // The armatura the current opponent is trained to. Null means an unarmed form
+  // (the two campaigns and custom levels), which fights exactly as it always did.
+  let arm = null;
+  let nets = [];      // the retiarius's nets — they snare rather than wound
+  let curveSign = 1;  // curved blades alternate which way they hook
 
-  // Every red thing costs one hit; how many you get depends on difficulty.
+  // Not difficulty settings — the terms of the contract you fight under. A Roman
+  // bout was booked as one of these, and the name IS the rule:
+  //   Ludus          — the training school. Wooden swords: nobody dies, nobody is paid.
+  //   Munus Legitimum— the standard sanctioned bout.
+  //   Sine Missione  — "without reprieve." No appeal will be granted. One hit, triple purse.
+  // 0 hits means the Ludus, where you cannot be wounded at all.
   const DIFFS = [
-    ["easy", "Easy", 5], ["normal", "Normal", 3], ["hard", "Hard", 1],
+    ["ludus", "Ludus", 0, "Training", "wooden swords — you cannot be wounded, nothing is recorded, nothing is paid"],
+    ["normal", "Munus Legitimum", 3, "Standard", "the sanctioned bout — three lives"],
+    ["sine", "Sine Missione", 1, "No Reprieve", "one life, and no appeal will be granted · triple purse"],
   ];
-  // What the purse pays per difficulty: fewer lives, richer clears.
-  const PAY_MULT = { easy: 0.5, normal: 1, hard: 3 };
+  const DIFF_BY_KEY = Object.fromEntries(DIFFS.map((d) => [d[0], d]));
+  // What the purse pays per contract: less mercy, richer clears.
+  const PAY_MULT = { ludus: 0, normal: 1, sine: 3 };
+  // Saves written before the contracts were named used easy/normal/hard.
+  const DIFF_LEGACY = { easy: "ludus", normal: "normal", hard: "sine" };
   const DIFF_KEY = "dodger_difficulty";
   let difficulty = "normal";
   let maxHits = 3;
   const MERCY = 1.0;        // seconds of invulnerability after taking a hit
-  let practice = false;     // practice mode: you take no damage at all
+  // The Ludus and practice are the same thing now: wooden swords draw no blood.
+  let practice = false;
 
   const ZONE_DRAIN = 15;     // boss HP drained per second while you stand in the blue zone
   const ZONE_MOVE = 4.5;     // seconds before the zone relocates
   const HOT_MULT = 3;        // the hot zone hurts three times as fast
   const HOT_ORBIT = 96;      // how far the hot zone rides from the boss
+  const BULLET_LIFE = 20;    // seconds before a shot gives up, however it's moving
+  const ZONE_HEAL = 1 / 8;   // health returned if you ignore an eye for its whole stay
 
   function resetGame() {
     player = { x: W / 2, y: H * 0.75, r: 13, speed: 640, hits: maxHits };
@@ -793,7 +1131,7 @@
       dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
     };
     bullets = [];
-    zone = { x: W / 2, y: H / 2, r: 46, moveT: ZONE_MOVE, pulse: 0 };
+    zone = { x: W / 2, y: H / 2, r: 46, moveT: ZONE_MOVE, pulse: 0, touched: false };
     // The hot zone: small, three times the drain, and it orbits the boss — safe
     // ground and fast damage are never in the same place.
     hotZone = { x: W / 2, y: H * 0.22, r: 27, ang: Math.random() * Math.PI * 2 };
@@ -814,7 +1152,10 @@
     phase2 = false;
     particles = [];
     trail = [];
-    fx = { shield: false, slow: 0, double: 0, invuln: 0 };
+    nets = [];
+    boss.netT = 0;
+    boss.shieldAng = -Math.PI / 2;
+    fx = { shield: false, slow: 0, double: 0, invuln: 0, snare: 0 };
   }
 
   function difficultyMul() {
@@ -873,6 +1214,127 @@
     startGame("level", 0);
   }
 
+  // ---- Ladder bouts ----
+  // A challenge is a single bout against one named fighter, launched the same way
+  // a Battle is: synthesise a one-stage campaign and hand it to the engine. The
+  // difference is what happens afterwards — see resolveLadder().
+  let activeLadderFoe = null;
+  function fightLadder(f) {
+    const st = loadLadder();
+    const foe = challengeable(st);
+    // You can only ever call out the man directly above you.
+    if (!foe || foe.id !== f.id) return;
+    const rank = st.board[f.id];
+    activeLadderFoe = f;
+    activeLevel = null;
+    campaign = "inferno";
+    // What a win is worth: the higher the rung, the bigger the purse.
+    activeRating = Math.max(1, Math.min(5, Math.ceil((LADDER.length - rank + 1) / 5)));
+    // On the Sine Missione board these are the same people fighting like they
+    // expect to die: more health, and the pressure of a form several stages
+    // deeper into a run than its rung would normally earn.
+    const sine = onSine();
+    const depth = Math.max(0, Math.min(6,
+      Math.round((LADDER.length - rank) / 3.6) + (sine ? 2 : 0)));
+    activeCamp = {
+      name: f.name,
+      accent: armOf(f.arm).color,
+      stages: [{
+        name: f.name,
+        key: f.key,
+        hp: Math.round(f.hp * (sine ? 1.35 : 1)),
+        arm: f.arm,
+        // A ladder fight is stage 0, so carry the pressure its rung deserves:
+        // the top of the board fights like the end of a boss run.
+        depth: depth,
+        minions: sine || rank <= LADDER.length - 8,
+        final: rank === 1,
+      }],
+    };
+    STAGES = activeCamp.stages;
+    menuEl.classList.add("hidden");
+    buildPips(1);
+    startGame("ladder", 0);
+  }
+
+  // Win and you take their rung and they take yours. Lose and you slip one.
+  // Nothing is staked in the Ludus — wooden swords settle nothing.
+  function resolveLadder(won) {
+    const f = activeLadderFoe;
+    activeLadderFoe = null;
+    if (!f || practice) return null;
+
+    const st = loadLadder();
+    const rec = loadRecord();
+    rec.pugn++;
+    const theirRank = st.board[f.id];
+    const mine = st.rank;
+    let note;
+
+    if (won) {
+      rec.vic++;
+      // The swap: you take their rung, they take the one you were standing on.
+      st.board[f.id] = mine;
+      st.rank = theirRank;
+      st.tiltId = null;          // a win clears whatever you'd been losing to
+      st.tilt = 0;
+      // Struck off this board, and a stone on the burial road. The stone is for
+      // your whole career and outlives a Sine wipe; the board mark does not.
+      if (!st.felled.includes(f.id)) st.felled.push(f.id);
+      if (!rec.felled.includes(f.id)) rec.felled.push(f.id);
+      note = `You take rank ${roman(theirRank)}. ${f.name} steps down to ${roman(mine)}.`;
+      if (theirRank === 1 && !hasRudis()) {
+        localStorage.setItem(rudisKey(), "yes");
+        note = `Rank ${roman(1)} — first stake of the school. The munerarius comes down onto the sand and holds out the rudis, the wooden sword: you are discharged, a free citizen, and nobody owns your fights any more. ${f.name} was offered it four times and refused it four times. What you do with yours is your business.`;
+      } else {
+        note += ` You fight as ${tierOf(st.rank).name} now.`;
+      }
+    } else {
+      // Beaten, but you walked off the sand — stans missus, which the Romans
+      // counted separately from a win and separately from a death.
+      rec.miss++;
+
+      // Sine Missione is not a ladder you slip down. Lose once and the climb is
+      // gone: the contract said no reprieve, and it meant the career too.
+      if (onSine()) {
+        const lost = mine >= UNRANKED ? 0 : UNRANKED - mine;
+        wipeSineLadder();
+        saveRecord(rec);
+        return lost
+          ? `${f.name} holds rank ${roman(theirRank)}. Sine missione: no reprieve, and none for the climb either — ${roman(lost)} ${lost === 1 ? "rung" : "rungs"} gone. You start again from below the board.`
+          : `${f.name} holds rank ${roman(theirRank)}. You were never on the board to lose it.`;
+      }
+
+      // Losing to the same fighter over and over is its own problem. Three
+      // straight and the board stops pretending it was bad luck.
+      st.tilt = st.tiltId === f.id ? st.tilt + 1 : 1;
+      st.tiltId = f.id;
+      const tilted = st.tilt >= TILT;
+
+      if (mine >= UNRANKED) {
+        note = `${f.name} holds rank ${roman(theirRank)}. You are still unranked — there is nowhere further to fall.`;
+        if (tilted) { st.tilt = 0; note += ` That's ${TILT} to ${f.name} running, and the crowd has started to laugh.`; }
+      } else {
+        const passed = dropPlayer(st, tilted ? 2 : 1);
+        const names = passed.map((p) => p.name).join(" and ");
+        if (tilted) {
+          st.tilt = 0;   // the debt is paid; the count starts over
+          note = `${f.name} holds rank ${roman(theirRank)} — and that's ${TILT} in a row. `
+            + `The munerarius has seen enough: you drop two, to ${roman(st.rank)}`
+            + (names ? `, and ${names} step over you.` : ".");
+        } else {
+          note = `${f.name} holds rank ${roman(theirRank)}. You slip to ${roman(st.rank)}`
+            + (names ? `, and ${names} steps over you.` : ".");
+          const left = TILT - st.tilt;
+          if (left === 1) note += ` One more to ${f.name} and it costs you two rungs.`;
+        }
+      }
+    }
+    saveLadder(st);
+    saveRecord(rec);
+    return note;
+  }
+
   // A boss coming apart: a wide ring, its own color thrown outward, and a
   // second slower wave of embers behind it.
   function bossDeathBurst() {
@@ -889,17 +1351,23 @@
     boss.fire2 = 1.4;
     boss.spin = 0;
     boss.hitFlash = 0;
-    boss.maxhp = STAGES[idx].hp;
+    // The armatura, if this opponent has one, scales the bout before anything else.
+    arm = STAGES[idx].arm ? ARMATURAE[STAGES[idx].arm] || null : null;
+    boss.maxhp = Math.round(STAGES[idx].hp * ((arm && arm.hp) || 1));
     boss.hp = boss.maxhp;
     boss.dash.phase = "idle";
     boss.dash.t = 0;
+    boss.netT = arm && arm.net ? arm.net * 0.6 : 0;   // the first net comes early
+    boss.shieldAng = -Math.PI / 2;
+    nets = [];
+    fx.snare = 0;
     phase2 = false;
     // Per-stage tuning from the level builder; the campaigns leave these at 1.
-    stageSpd = STAGES[idx].spd || 1;
-    stageRate = STAGES[idx].rate || 1;
+    stageSpd = (STAGES[idx].spd || 1) * ((arm && arm.spd) || 1);
+    stageRate = (STAGES[idx].rate || 1) * ((arm && arm.rate) || 1);
     placeZone();
     updateHudStage();
-    startMusic(STAGES[idx].key);
+    startMusic(STAGES[idx].key, STAGES[idx].arm);
   }
 
   // Put the damage zone somewhere reachable, away from the boss and not on top of you.
@@ -913,6 +1381,32 @@
     }
     zone.x = x; zone.y = y;
     zone.moveT = ZONE_MOVE;
+    zone.touched = false;   // nobody has stood in this one yet
+  }
+
+  // The eye moved on and you never went to it. Waiting in a safe corner for the
+  // damage to come to you is not a strategy the crowd will sit through, so it
+  // costs: the fighter gets a portion of their health back.
+  function zoneIgnored() {
+    if (boss.hp <= 0) return;
+    boss.hp = Math.min(boss.maxhp, boss.hp + boss.maxhp * ZONE_HEAL);
+    pickupFlash = { label: "YOU NEVER CAME", color: COLORS.danger, t: 0 };
+    // Health flowing back in: embers falling inward, the reverse of the ones that
+    // stream off while you're draining it.
+    for (let i = 0; i < 20 && particles.length < MAX_PARTICLES; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = boss.r + 30 + Math.random() * 40;
+      particles.push({
+        x: boss.x + Math.cos(a) * d, y: boss.y + Math.sin(a) * d,
+        vx: -Math.cos(a) * (90 + Math.random() * 70),
+        vy: -Math.sin(a) * (90 + Math.random() * 70),
+        r: 2 + Math.random() * 1.6,
+        life: 0, max: 0.5 + Math.random() * 0.25,
+        color: "#ff8a6a", drag: 0.9, glow: true,
+      });
+    }
+    sfx("phase");
+    shake = 8;
   }
 
   function nextStage() {
@@ -932,7 +1426,7 @@
     transTime = 0;
     if (mode === "boss") markFormBeaten(campaign, stageIdx);   // this form is now fightable alone
     const nextIdx = stageIdx + 1;
-    banner = `STAGE ${nextIdx + 1} — ${STAGES[nextIdx].name.toUpperCase()}`;
+    banner = `MUNUS ${roman(nextIdx + 1)} · ${STAGES[nextIdx].name.toUpperCase()}`;
     boss._pendingStage = nextIdx;
   }
 
@@ -941,21 +1435,39 @@
     stopMusic();
     hudEl.classList.add("hidden");
     endEl.classList.remove("hidden");
+    endHint.textContent = "Space to take the sand again";
     sfx("win");
     endTitle.textContent = `${activeCamp.name} defeated!`;
     endTitle.style.color = COLORS.safe;
     if (mode === "boss") markFormBeaten(campaign, stageIdx);   // the crown counts too
 
-    // The purse: a clear pays out its rank, scaled by how many lives you gave
-    // yourself. Practice pays nothing.
+    // The purse: a clear pays out its peril, scaled by the contract you fought
+    // under. The Ludus pays nothing.
     const mult = PAY_MULT[difficulty] != null ? PAY_MULT[difficulty] : 1;
-    const paid = practice ? 0 : Math.max(1, Math.round(Math.max(1, activeRating | 0) * mult));
+    const paid = !mult || practice ? 0 : Math.max(1, Math.round(Math.max(1, activeRating | 0) * mult));
     if (paid) addDenarii(paid);
-    const note = mult === 1 ? "" : ` (${difficulty} ×${mult})`;
+    const label = (DIFF_BY_KEY[difficulty] || [])[1] || difficulty;
+    const note = mult === 1 ? "" : ` (${label} ×${mult})`;
     const purse = paid ? ` +${paid} denarii${note} · purse ${denarii()}` : "";
+
+    // A ladder bout settles a rung, and that outranks anything else we'd report.
+    if (mode === "ladder") {
+      const moved = resolveLadder(true);
+      endStat.textContent = `${activeCamp.name} is down in ${totalTime.toFixed(1)}s.${purse}`;
+      endBest.textContent = practice
+        ? "Fought in the Ludus — the board is unchanged."
+        : moved || "";
+      // A ladder bout is already settled, so there is nothing to re-fight — the
+      // only thing forward is whoever is above you now.
+      againBtn.textContent = "Next Challenge";
+      endHint.textContent = "Space for the next challenge";
+      return;
+    }
 
     if (mode === "level" && activeLevel) {
       markCleared(activeLevel.id);
+      // Winning the battle itself is what opens the next link in the chain.
+      if (activeLevel.id.startsWith("battle:")) markFormId(activeLevel.id);
       const res = recordTime(activeLevel.id, totalTime);
       endStat.textContent = `Cleared in ${totalTime.toFixed(1)}s.${purse}`;
       if (practice) endBest.textContent = "Practice run — not recorded.";
@@ -978,10 +1490,28 @@
     stopMusic();
     hudEl.classList.add("hidden");
     endEl.classList.remove("hidden");
-    endTitle.textContent = "Game Over";
+    endHint.textContent = "Space to take the sand again";
+    endTitle.textContent = "Defeated";
     endTitle.style.color = COLORS.danger;
     const stageName = STAGES[stageIdx].name;
-    againBtn.textContent = STAGES.length === 1 ? "Retry Battle" : "Play Again";
+    againBtn.textContent = STAGES.length === 1 ? "Fight Again" : "Play Again";
+
+    // Losing a ladder bout costs you a rung — the Roman part of the ladder is
+    // that standing can go down as well as up.
+    if (mode === "ladder") {
+      const moved = resolveLadder(false);
+      endTitle.textContent = "Stans Missus";
+      endStat.textContent = `${stageName} put you down after ${totalTime.toFixed(1)}s. The crowd let you walk off.`;
+      endBest.textContent = practice
+        ? "Fought in the Ludus — the board is unchanged."
+        : moved || "";
+      // A ladder bout is already settled, so there is nothing to re-fight — the
+      // only thing forward is whoever is above you now.
+      againBtn.textContent = "Next Challenge";
+      endHint.textContent = "Space for the next challenge";
+      return;
+    }
+
     if (STAGES.length === 1) {
       // A single battle: nothing to report but how long you lasted.
       endStat.textContent = `${stageName} still stands. Lasted ${totalTime.toFixed(1)}s.`;
@@ -1009,6 +1539,9 @@
   });
   // Space on the end screen: run the same thing back.
   function replay() {
+    // A ladder bout has already been settled by the time you get here, so there's
+    // nothing to replay — the board has moved and the next challenge is a new one.
+    if (mode === "ladder") return openLadder();
     if (mode === "level" && activeLevel) {
       // Battles and Library levels both re-enter through their own definition.
       const b = BATTLES.find((x) => x.id === activeLevel.id);
@@ -1046,6 +1579,8 @@
       if (b.dataset.tab === "library") renderLibrary();
       if (b.dataset.tab === "vault") { renderPrizes(); vaultMsg.textContent = ""; }
       if (b.dataset.tab === "horreum") { renderShop(); shopMsg.textContent = ""; }
+      if (b.dataset.tab === "ladder") renderLadder();
+      if (b.dataset.tab === "necropolis") renderNecropolis();
     });
   });
 
@@ -1285,29 +1820,45 @@
   document.getElementById("saveLevelBtn").addEventListener("click", () => { commitEditor(); openLibrary(); });
   document.getElementById("testLevelBtn").addEventListener("click", () => playLevel(commitEditor()));
   document.getElementById("cancelLevelBtn").addEventListener("click", openLibrary);
-  // Practice applies to whatever you start next: no damage, and nothing is recorded.
-  // Difficulty only changes how many hits you get: 5 / 3 / 1.
+  // The contract you fight under. The Ludus is what used to be Practice and Easy
+  // both — there's no reason to have a mode that barely hurts you AND a mode that
+  // can't, so the school absorbed them: no wounds, no records, no pay.
   const diffRow = document.getElementById("diffRow");
+  const diffHint = document.getElementById("diffHint");
   function setDifficulty(key) {
-    const d = DIFFS.find((x) => x[0] === key) || DIFFS[1];
+    const d = DIFF_BY_KEY[key] || DIFFS[1];
     difficulty = d[0];
-    maxHits = d[2];
+    practice = d[2] === 0;         // the Ludus is the only bout you cannot lose
+    maxHits = practice ? 3 : d[2];  // a nominal count so the pip row still builds
     localStorage.setItem(DIFF_KEY, difficulty);
     diffRow.querySelectorAll("button").forEach((b) => {
       const on = b.dataset.diff === difficulty;
       b.classList.toggle("on", on);
-      b.style.borderColor = on ? COLORS.safe : "";
-      b.style.color = on ? COLORS.safe : "";
+      const col = on ? (practice ? "#3ddc84" : COLORS.safe) : "";
+      b.style.borderColor = col;
+      b.style.color = col;
     });
+    diffHint.textContent = d[4];
   }
-  DIFFS.forEach(([key, label, hits]) => {
+  // Latin name for the contract, plain English for what it actually costs you.
+  DIFFS.forEach(([key, label, hits, gloss, note]) => {
     const b = document.createElement("button");
     b.dataset.diff = key;
-    b.textContent = `${label} · ${hits} ${hits === 1 ? "life" : "lives"}`;
-    b.addEventListener("click", () => setDifficulty(key));
+    b.innerHTML = `<span class="cname">${label}</span><span class="csub">${gloss}</span>`;
+    b.title = note;
+    b.addEventListener("click", () => {
+      setDifficulty(key);
+      // The contract picks which ladder board you're playing for, so the Ladder
+      // has to redraw. Only on click — at boot the tab isn't built yet.
+      renderLadder();
+      renderNecropolis();
+    });
     diffRow.appendChild(b);
   });
-  setDifficulty(localStorage.getItem(DIFF_KEY) || "normal");
+  (() => {
+    const saved = localStorage.getItem(DIFF_KEY) || "normal";
+    setDifficulty(DIFF_BY_KEY[saved] ? saved : (DIFF_LEGACY[saved] || "normal"));
+  })();
 
   const soundBtn = document.getElementById("soundBtn");
   function refreshSoundBtn() {
@@ -1333,23 +1884,17 @@
     refreshMusicBtn();
     // Take effect immediately rather than waiting for the next stage.
     if (!musicOn) stopMusic();
-    else if (state === GS.PLAYING) startMusic(STAGES[stageIdx].key);
+    else if (state === GS.PLAYING) startMusic(STAGES[stageIdx].key, STAGES[stageIdx].arm);
   });
   refreshMusicBtn();
 
-  const practiceBtn = document.getElementById("practiceBtn");
-  practiceBtn.addEventListener("click", () => {
-    practice = !practice;
-    practiceBtn.textContent = `Practice: ${practice ? "On" : "Off"}`;
-    practiceBtn.style.color = practice ? "#3ddc84" : "";
-    practiceBtn.style.borderColor = practice ? "#3ddc84" : "";
-  });
   againBtn.addEventListener("click", replay);
   document.getElementById("menuBtn").addEventListener("click", toMenu);
 
   const stageListEl = document.getElementById("stageList");
   const campaignRow = document.getElementById("campaignRow");
   const bossBtn = document.getElementById("bossBtn");
+  const bossHint = document.getElementById("bossHint");
 
   // Rebuild everything that depends on which boss you've picked.
   function renderCampaign() {
@@ -1379,6 +1924,19 @@
     });
 
     bossBtn.textContent = `Fight ${CAMPAIGNS[campaign].name} · ${STAGES.length} Stages`;
+    // Nudge, don't gate. The run stays available, but it says plainly how much of
+    // the boss you've actually met — going in blind is a choice, not an accident.
+    const known = formsKnown(campaign);
+    const total = STAGES.length;
+    if (known >= total) {
+      bossHint.textContent = `You've put down all ${roman(total)} of ${CAMPAIGNS[campaign].name}'s forms. You're ready for the run.`;
+      bossHint.style.color = COLORS.gold;
+      bossBtn.classList.add("primary");
+    } else {
+      bossHint.textContent = `You know ${roman(known)} of ${roman(total)} of ${CAMPAIGNS[campaign].name}'s forms. Learn the rest in Battles first — the run gives them to you back to back, on one pool of lives.`;
+      bossHint.style.color = "";
+      bossBtn.classList.remove("primary");
+    }
     buildPips();
     refreshMenu();
   }
@@ -1470,14 +2028,152 @@
     done.push(id);
     localStorage.setItem(FORMS_KEY, JSON.stringify(done));
   }
+  // Battles are a chain, not a reward for the boss run. The first form of each
+  // boss is always open, and every one after it opens when you put the previous
+  // one down — so the intended way in is to learn the forms one at a time and
+  // only then fight the run end to end.
   function formUnlocked(b) {
-    return loadForms().includes(b.id);
+    if (b.stageIdx === 0) return true;
+    const prev = BATTLES.find((x) => x.campaign === b.campaign && x.stageIdx === b.stageIdx - 1);
+    return !prev || loadForms().includes(prev.id);
   }
-  // Difficulty as a gladiator's standing, not a row of dots. 1 is a first-timer
-  // on the sand, 5 is the top of the ladder.
-  const RANKS = ["Tiro", "Gregarius", "Veteranus", "Secundus Palus", "Primus Palus"];
-  function rankName(rating) {
-    return RANKS[Math.max(1, Math.min(5, rating | 0)) - 1];
+  // Have you actually beaten this one, as opposed to merely being allowed to try?
+  function formBeaten(b) { return loadForms().includes(b.id); }
+  function markFormId(id) {
+    if (practice) return;
+    const done = loadForms();
+    if (done.includes(id)) return;
+    done.push(id);
+    localStorage.setItem(FORMS_KEY, JSON.stringify(done));
+  }
+  // How far along a boss's chain of forms you are.
+  function formsKnown(campKey) {
+    return BATTLES.filter((b) => b.campaign === campKey && formBeaten(b)).length;
+  }
+  // How hard a level hits, described as the standing you'd need to survive it.
+  // This is the level's PERIL — distinct from your own rank on the Ladder, which
+  // is a real position among real fighters. Same five titles, different meaning.
+  const PERILS = ["Tiro", "Gregarius", "Veteranus", "Secundus Palus", "Primus Palus"];
+  function perilName(rating) {
+    return PERILS[Math.max(1, Math.min(5, rating | 0)) - 1];
+  }
+
+  // ---- Ladder standing ----
+  // Where everyone is on the board, and where you are. Stored as { rank, board },
+  // where board maps a fighter's id to the rung they currently hold. Anything the
+  // save doesn't recognise is rebuilt from LADDER, so editing the roster later
+  // can't corrupt an existing standing.
+  // Sine Missione keeps its own board. Two separate careers: the sanctioned one,
+  // and the one where every bout is to the death. The Ludus settles nothing, so it
+  // just looks at the sanctioned board without ever writing to it.
+  const LADDER_KEY = "dodger_ladder";
+  const LADDER_SINE_KEY = "dodger_ladder_sine";
+  const RECORD_KEY = "dodger_record";
+  const RUDIS_KEY = "dodger_rudis";
+  const RUDIS_SINE_KEY = "dodger_rudis_sine";
+  // Which board the contract you're on plays for.
+  function onSine() { return difficulty === "sine"; }
+  function ladderKey() { return onSine() ? LADDER_SINE_KEY : LADDER_KEY; }
+  function rudisKey() { return onSine() ? RUDIS_SINE_KEY : RUDIS_KEY; }
+  // How many straight losses to the same fighter costs you an extra rung.
+  const TILT = 3;
+
+  // The board has one more rung than it has fighters, and you are always standing
+  // on one of them. That's what makes every result a clean swap: win and you trade
+  // rungs with the man above, lose and you trade with the man below.
+  function defaultBoard() {
+    // Index 0 is the bottom of the roster, so it holds the highest rank number.
+    const board = {};
+    LADDER.forEach((f, i) => { board[f.id] = LADDER.length - i; });
+    return board;   // fighters fill 1..LADDER.length; you start on UNRANKED
+  }
+  function loadLadder() {
+    const raw = readJSON(ladderKey(), null);
+    let board = defaultBoard();
+    let rank = UNRANKED;
+    // Who you've been losing to, and how many times running.
+    let tiltId = null, tilt = 0;
+    // Who you've beaten ON THIS BOARD. Kept per-board rather than on your career
+    // record: the two ladders are separate climbs, so beating Cerinthus under the
+    // sanctioned contract must not cross him off the Sine Missione board, or give
+    // away how he fights there.
+    let felled = [];
+    if (raw && typeof raw === "object") {
+      if (Number.isInteger(raw.rank) && raw.rank >= 1 && raw.rank <= UNRANKED) rank = raw.rank;
+      if (typeof raw.tiltId === "string" && LADDER_BY_ID[raw.tiltId]) {
+        tiltId = raw.tiltId;
+        tilt = Number.isInteger(raw.tilt) && raw.tilt > 0 ? Math.min(raw.tilt, 99) : 0;
+      }
+      if (Array.isArray(raw.felled)) {
+        felled = raw.felled.filter((id, i, a) => LADDER_BY_ID[id] && a.indexOf(id) === i);
+      }
+      if (raw.board && typeof raw.board === "object") {
+        // Trust only the rungs that are still valid, unclaimed, and not the one
+        // you're standing on; then repair whatever's left. Editing the roster
+        // later can shuffle people around but can never corrupt the board.
+        const next = {};
+        const taken = { [rank]: true };
+        for (const f of LADDER) {
+          const r = raw.board[f.id];
+          if (Number.isInteger(r) && r >= 1 && r <= UNRANKED && !taken[r]) {
+            next[f.id] = r;
+            taken[r] = true;
+          } else {
+            next[f.id] = null;
+          }
+        }
+        const free = [];
+        for (let r = 1; r <= UNRANKED; r++) if (!taken[r]) free.push(r);
+        for (const f of LADDER) if (next[f.id] == null) next[f.id] = free.shift();
+        board = next;
+      }
+    }
+    return { rank, board, tiltId, tilt, felled };
+  }
+  function saveLadder(st) {
+    localStorage.setItem(ladderKey(), JSON.stringify({
+      rank: st.rank, board: st.board, tiltId: st.tiltId, tilt: st.tilt, felled: st.felled,
+    }));
+  }
+  // Sine Missione has no memory. Lose once and the whole climb is gone — which is
+  // what "without reprieve" means when it's applied to a career and not a bout.
+  function wipeSineLadder() {
+    localStorage.removeItem(LADDER_SINE_KEY);
+    localStorage.removeItem(RUDIS_SINE_KEY);
+  }
+  // Move the player down `steps` rungs, one swap at a time so the board stays
+  // whole. Returns the fighters who stepped over you, in order.
+  function dropPlayer(st, steps) {
+    const passed = [];
+    for (let i = 0; i < steps && st.rank < UNRANKED; i++) {
+      const below = fighterAt(st.rank + 1, st);
+      if (!below) break;
+      st.board[below.id] = st.rank;
+      st.rank++;
+      passed.push(below);
+    }
+    return passed;
+  }
+  // Your own fight record, the numbers that end up cut into your stone.
+  function loadRecord() {
+    const r = readJSON(RECORD_KEY, null);
+    return {
+      pugn: (r && r.pugn) | 0,     // fights taken
+      vic: (r && r.vic) | 0,       // fights won
+      miss: (r && r.miss) | 0,     // times you were beaten and walked off anyway
+      felled: (r && Array.isArray(r.felled)) ? r.felled : [],
+    };
+  }
+  function saveRecord(r) { localStorage.setItem(RECORD_KEY, JSON.stringify(r)); }
+  function hasRudis() { return localStorage.getItem(rudisKey()) === "yes"; }
+
+  // The fighter standing on a given rung.
+  function fighterAt(rank, st) {
+    return LADDER.find((f) => st.board[f.id] === rank) || null;
+  }
+  // The only fighter you may call out: the one directly above you.
+  function challengeable(st) {
+    return st.rank <= 1 ? null : fighterAt(st.rank - 1, st);
   }
 
   // A pattern key is "known" once you've beaten that form in its boss's run —
@@ -1567,8 +2263,210 @@
   }
   // Everything you've earned, gone. Levels you built are yours and survive.
   function wipeProgress() {
-    [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY]
+    [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
+     LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY]
       .forEach((k) => localStorage.removeItem(k));
+  }
+
+  // ---- Ladder tab ----
+  const ladderList = document.getElementById("ladderList");
+  const ladderTier = document.getElementById("ladderTier");
+  const ladderRank = document.getElementById("ladderRank");
+  const ladderBoard = document.getElementById("ladderBoard");
+  const ladderTilt = document.getElementById("ladderTilt");
+
+  function openLadder() {
+    state = GS.MENU;
+    stopMusic();
+    editorEl.classList.add("hidden");
+    endEl.classList.add("hidden");
+    hudEl.classList.add("hidden");
+    menuEl.classList.remove("hidden");
+    setTab("ladder");
+    renderLadder();
+  }
+
+  // One rung per fighter, plus your own, top of the board first.
+  function renderLadder() {
+    const st = loadLadder();
+    const rec = loadRecord();
+    const foe = challengeable(st);
+    const tier = tierOf(st.rank);
+
+    ladderTier.textContent = hasRudis() ? "Rudiarius" : tier.name;
+    ladderRank.textContent = hasRudis()
+      ? `discharged with the wooden sword · rank ${roman(st.rank)} · ${rec.vic} of ${rec.pugn} won`
+      : st.rank >= UNRANKED
+        ? `unranked · ${tier.note}`
+        : `rank ${roman(st.rank)} of ${roman(LADDER.length)} · ${tier.note}`;
+
+    // Which board this is, and what it costs. The two are entirely separate
+    // careers, and it has to be obvious which one you're about to risk.
+    const c = DIFF_BY_KEY[difficulty] || DIFFS[1];
+    ladderBoard.textContent = onSine()
+      ? `${c[1]} board — the same fighters, heavier, and one loss wipes this climb to nothing.`
+      : practice
+        ? `${c[1]} — wooden swords. You can fight anyone on this board, but nothing you do here moves it.`
+        : `${c[1]} board. Sine Missione keeps a separate board of its own.`;
+    ladderBoard.style.color = onSine() ? "#ff9a8c" : practice ? "#3ddc84" : "";
+
+    // Warn before the third loss, not after it.
+    const t = st.tiltId && LADDER_BY_ID[st.tiltId];
+    if (t && st.tilt > 0 && !onSine()) {
+      ladderTilt.textContent = st.tilt >= TILT - 1
+        ? `You have lost to ${t.name} ${roman(st.tilt)} times running. One more and you drop two rungs.`
+        : `Lost to ${t.name} ${roman(st.tilt)}× running — ${TILT} costs you two rungs.`;
+      ladderTilt.style.color = st.tilt >= TILT - 1 ? COLORS.danger : "";
+    } else {
+      ladderTilt.textContent = "";
+    }
+
+    ladderList.innerHTML = "";
+    for (let r = 1; r <= UNRANKED; r++) {
+      if (r === st.rank) { ladderList.appendChild(myRung(st, rec)); continue; }
+      const f = fighterAt(r, st);
+      // st.felled, not rec.felled — what you've done on THIS board.
+      if (f) ladderList.appendChild(foeRung(f, r, foe, st.felled));
+    }
+  }
+
+  function myRung(st, rec) {
+    const row = document.createElement("div");
+    row.className = "rung self";
+    const num = document.createElement("span");
+    num.className = "num";
+    num.textContent = st.rank >= UNRANKED ? "—" : roman(st.rank);
+    row.appendChild(num);
+    const meta = document.createElement("div");
+    meta.className = "rmeta";
+    const nm = document.createElement("div");
+    nm.className = "rname";
+    nm.textContent = "You";
+    const t = document.createElement("span");
+    t.className = "arm";
+    t.style.color = COLORS.gold;
+    t.textContent = hasRudis() ? "Rudiarius" : tierOf(st.rank).name;
+    nm.appendChild(t);
+    meta.appendChild(nm);
+    const rr = document.createElement("div");
+    rr.className = "rrec";
+    rr.textContent = `${rec.pugn} fights · ${rec.vic} won · ${rec.miss} spared`;
+    meta.appendChild(rr);
+    row.appendChild(meta);
+    return row;
+  }
+
+  // `felled` is the list of ids beaten on the board being drawn, so a kill on one
+  // contract never marks or unmasks a fighter on the other.
+  function foeRung(f, rank, foe, felled) {
+    const a = armOf(f.arm);
+    const isNext = foe && foe.id === f.id;
+    const beaten = felled.includes(f.id);
+    const row = document.createElement("div");
+    row.className = "rung" + (isNext ? " next" : "") + (beaten ? " beaten" : "");
+
+    const num = document.createElement("span");
+    num.className = "num";
+    num.textContent = rank >= UNRANKED ? "—" : roman(rank);
+    row.appendChild(num);
+
+    const meta = document.createElement("div");
+    meta.className = "rmeta";
+    const nm = document.createElement("div");
+    nm.className = "rname";
+    nm.textContent = f.name;
+    const at = document.createElement("span");
+    at.className = "arm";
+    at.style.color = a.color;
+    at.textContent = a.name;
+    nm.appendChild(at);
+    meta.appendChild(nm);
+
+    // Only the fighter you can actually call out gives away how they fight.
+    // Everyone else is a name and a reputation until you get up there.
+    if (isNext || beaten) {
+      const bl = document.createElement("div");
+      bl.className = "rblurb";
+      bl.textContent = f.blurb;
+      meta.appendChild(bl);
+      const sub = document.createElement("div");
+      sub.className = "rrec";
+      sub.textContent = `${a.desc} · ${f.pugn} fights, ${f.vic} won`;
+      meta.appendChild(sub);
+    } else {
+      const sub = document.createElement("div");
+      sub.className = "rrec";
+      sub.textContent = `${f.pugn} fights, ${f.vic} won`;
+      meta.appendChild(sub);
+    }
+    row.appendChild(meta);
+
+    const btn = document.createElement("button");
+    if (isNext) {
+      btn.className = "primary";
+      btn.textContent = "Call out";
+      btn.addEventListener("click", () => fightLadder(f));
+    } else {
+      btn.className = "lockbtn";
+      btn.textContent = "—";
+      btn.disabled = true;
+      btn.title = "You may only call out the fighter standing directly above you.";
+    }
+    row.appendChild(btn);
+    return row;
+  }
+
+  // ---- Necropolis tab ----
+  const myStone = document.getElementById("myStone");
+  const stoneGrid = document.getElementById("stoneGrid");
+
+  // A gladiator's epitaph, in the form the surviving stones actually use:
+  // name and armatura, then the tally, then the formula.
+  function cippus(l1, l2, l3, mine) {
+    const el = document.createElement("div");
+    el.className = "cippus" + (mine ? " mine" : "");
+    [["l1", l1], ["l2", l2], ["l3", l3]].forEach(([cls, text]) => {
+      const d = document.createElement("div");
+      d.className = "line " + cls;
+      d.textContent = text;
+      el.appendChild(d);
+    });
+    return el;
+  }
+  function tally(pugn, vic, miss) {
+    const parts = [`PVGN · ${roman(pugn)}`, `VIC · ${roman(vic)}`];
+    if (miss) parts.push(`STANS · MISS · ${roman(miss)}`);
+    return parts.join(" · ");
+  }
+
+  function renderNecropolis() {
+    const st = loadLadder();
+    const rec = loadRecord();
+    // Yours says ADHVC STAT — "still stands" — because you are not on it yet.
+    myStone.innerHTML = "";
+    const title = hasRudis() ? "RVDIARIVS" : lapidary(tierOf(st.rank).name);
+    myStone.appendChild(cippus(
+      `TV · ${title}`,
+      tally(rec.pugn, rec.vic, rec.miss),
+      "ADHVC · STAT",
+      true));
+
+    stoneGrid.innerHTML = "";
+    const felled = LADDER.filter((f) => rec.felled.includes(f.id));
+    if (!felled.length) {
+      const p = document.createElement("div");
+      p.className = "libempty";
+      p.textContent = "No stones yet. The road is empty until you put someone under it.";
+      stoneGrid.appendChild(p);
+      return;
+    }
+    // Their own fights, plus the one you took off them.
+    for (const f of felled) {
+      stoneGrid.appendChild(cippus(
+        `${lapidary(f.name)} · ${lapidary(armOf(f.arm).name)}`,
+        tally(f.pugn + 1, f.vic, f.miss),
+        "HIC · SITVS · EST"));
+    }
   }
 
   function openLibrary() {
@@ -1612,7 +2510,7 @@
       const diff = document.createElement("span");
       diff.className = "diff";
       diff.style.color = open ? lv.accent : "";
-      diff.textContent = rankName(lv.rating);
+      diff.textContent = perilName(lv.rating);
       nm.appendChild(diff);
     }
     meta.appendChild(nm);
@@ -1737,16 +2635,17 @@
     const diff = document.createElement("span");
     diff.className = "diff";
     diff.style.color = open ? accent : "";
-    diff.textContent = rankName(b.rating);
+    diff.textContent = perilName(b.rating);
     nm.appendChild(diff);
     meta.appendChild(nm);
 
     const bl = document.createElement("div");
     bl.className = "blurb";
-    // Locked forms keep their secrets — you learn what they do in the boss run.
+    // Locked forms keep their secrets — you meet them in order, one at a time.
+    const prev = BATTLES.find((x) => x.campaign === b.campaign && x.stageIdx === b.stageIdx - 1);
     bl.textContent = open
       ? b.stage.desc
-      : `Sealed. Put this form down in ${CAMPAIGNS[b.campaign].name}'s run to earn it.`;
+      : `Sealed. Beat ${prev && formUnlocked(prev) ? prev.stage.name : "the form before it"} to earn this one.`;
     meta.appendChild(bl);
 
     const sub = document.createElement("div");
@@ -1778,17 +2677,19 @@
       if (!list) continue;
       list.innerHTML = "";
       const mine = BATTLES.filter((b) => b.campaign === key);
-      let open = 0;
+      let beaten = 0;
       mine.forEach((b) => {
-        if (formUnlocked(b)) open++;
+        if (formBeaten(b)) beaten++;
         list.appendChild(battleRow(b));
       });
       const count = document.querySelector(`[data-foldcount="${key}"]`);
-      if (count) count.textContent = `${open} / ${mine.length} unlocked`;
+      // Beaten, not merely unlocked — the chain means "unlocked" is always
+      // beaten+1 and would tell you nothing.
+      if (count) count.textContent = `${beaten} / ${mine.length} beaten`;
       const nm = document.querySelector(`[data-foldname="${key}"]`);
       if (nm) {
         nm.textContent = CAMPAIGNS[key].name;
-        nm.style.color = open ? CAMPAIGNS[key].accent : "";
+        nm.style.color = beaten ? CAMPAIGNS[key].accent : "";
       }
     }
   }
@@ -1964,7 +2865,7 @@
     editFacts.textContent =
       `${editing.stages.length} ${editing.stages.length === 1 ? "stage" : "stages"} · ` +
       `${totalHp} total HP · ${mins} with minions · ` +
-      `estimated difficulty · ${rankName(rating)}`;
+      `estimated difficulty · ${perilName(rating)}`;
     stageRows.querySelectorAll(".stagerow").forEach((r) => { r.style.borderLeftColor = editing.accent; });
     shareCode.value = encodeLevel(editing);
   }
@@ -2053,8 +2954,25 @@
   }
 
   // ---- Bullet spawners ----
+  // Every bullet in the game goes through here, which is what makes an armatura
+  // cheap: hooking `spawn` gives a curved blade or a second sword to all fourteen
+  // attack patterns at once, without touching any of them.
+  let spawning = false;     // guard so a twinned shot doesn't twin itself
   function spawn(x, y, angle, speed, r) {
-    bullets.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, r: r || 7 });
+    const b = { x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, r: r || 7, age: 0 };
+    if (arm && arm.curve) {
+      // A sica or a scissor's crescent hooks — alternating sides, so a stream
+      // fans out instead of all bending into one useless arc.
+      b.curve = arm.curve * curveSign;
+      curveSign = -curveSign;
+    }
+    bullets.push(b);
+    if (arm && arm.twin && !spawning) {
+      // Two swords, so every attack arrives twice, a hair apart.
+      spawning = true;
+      spawn(x, y, angle + arm.twin, speed, r);
+      spawning = false;
+    }
   }
   function angleToPlayer() {
     return Math.atan2(player.y - boss.y, player.x - boss.x);
@@ -2230,7 +3148,12 @@
   // the clock. Act I themes are warm and keep a pulse; Act II detunes and loses it.
   // Easier forms share their act's tier theme; the ones with a real identity get
   // their own.
-  const SCALE = { minor: [0, 2, 3, 5, 7, 8, 10], phryg: [0, 1, 3, 5, 7, 8, 10], whole: [0, 2, 4, 6, 8, 10] };
+  const SCALE = {
+    minor: [0, 2, 3, 5, 7, 8, 10], phryg: [0, 1, 3, 5, 7, 8, 10], whole: [0, 2, 4, 6, 8, 10],
+    // Two more for the armatura themes. Harmonic minor's raised seventh is the
+    // sound most people hear as "ancient"; the pentatonic leaves gaps to breathe.
+    harm: [0, 2, 3, 5, 7, 8, 11], penta: [0, 3, 5, 7, 10], dorian: [0, 2, 3, 5, 7, 9, 10],
+  };
 
   const THEMES = {
     // --- Act I: the furnace. Rooted, driving, warm sawtooth. ---
@@ -2288,6 +3211,125 @@
       bassType: "square", arpType: "square", arpGain: 0.05, pad: true,
     },
   };
+
+  // ---- One theme per armatura ----
+  // A ladder bout is a named person with a known way of fighting, so it gets its
+  // own music rather than the pattern's. Each is written off what the fighter
+  // physically is: a horseman gallops, a shield man plods, an archer keeps time,
+  // and the blind man's theme has no pulse to keep time by at all.
+  Object.assign(THEMES, {
+    // Eques — the gallop. Triplet-feel kick, light and quick, opens the games.
+    eques: {
+      bpm: 152, root: 52, scale: SCALE.dorian, gain: 0.5,
+      bass: [0, null, 0, 0, null, 0, 4, null, 5, null, 5, 4, null, 2, 0, null],
+      arp:  [12, 14, 16, 14, 12, 16, 19, 16, 14, 16, 19, 21, 19, 16, 14, 12],
+      kick: [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0],
+      hat:  [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1],
+      bassType: "triangle", arpType: "square", arpGain: 0.05, warm: true,
+    },
+    // Thraex — the curved sica. Everything bends; the arp never sits still.
+    thraex: {
+      bpm: 118, root: 50, scale: SCALE.phryg, gain: 0.52,
+      bass: [0, null, null, 1, null, 0, null, null, -2, null, null, -1, null, -2, null, null],
+      arp:  [12, 13, 15, 13, 12, 10, 8, 10, 12, 15, 17, 15, 13, 12, 10, 8],
+      kick: [1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+      hat:  [0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1],
+      bassType: "sawtooth", arpType: "triangle", arpGain: 0.055, detune: 9, warm: true,
+    },
+    // Murmillo — a stone and a half of shield. Slow, low, immovable, and heavy on
+    // the downbeat because that is the only place he can be.
+    murmillo: {
+      bpm: 88, root: 38, scale: SCALE.minor, gain: 0.6,
+      bass: [0, null, null, null, 0, null, null, null, -4, null, null, null, -4, null, 0, null],
+      arp:  [7, null, null, 7, null, null, 10, null, 7, null, null, 5, null, null, 7, null],
+      kick: [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+      hat:  [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      bassType: "sawtooth", arpType: "square", arpGain: 0.045, warm: true,
+    },
+    // Hoplomachus — the spear. Patient, held at range, nothing wasted.
+    hoplomachus: {
+      bpm: 104, root: 45, scale: SCALE.penta, gain: 0.5,
+      bass: [0, null, null, null, null, null, 3, null, 0, null, null, null, null, null, 2, null],
+      arp:  [10, null, null, 12, null, null, 10, null, 7, null, null, 10, null, null, 12, null],
+      kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+      hat:  [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+      bassType: "sine", arpType: "triangle", arpGain: 0.06, pad: true,
+    },
+    // Secutor — the chaser. He does not stop, so neither does the hat.
+    secutor: {
+      bpm: 160, root: 43, scale: SCALE.harm, gain: 0.58,
+      bass: [0, 0, null, 0, 0, null, 0, 0, 4, null, 4, null, 3, null, 1, 0],
+      arp:  [12, 15, 19, 15, 12, 15, 20, 15, 12, 15, 19, 23, 20, 19, 15, 12],
+      kick: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1],
+      hat:  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      bassType: "sawtooth", arpType: "sawtooth", arpGain: 0.05, warm: true, lead: true,
+    },
+    // Retiarius — the net. Whole-tone drift, nothing to grab onto, then it closes.
+    retiarius: {
+      bpm: 100, root: 41, scale: SCALE.whole, gain: 0.54,
+      bass: [0, null, null, null, 2, null, null, null, 0, null, null, null, -2, null, null, null],
+      arp:  [12, null, 14, 16, null, 14, 12, null, 10, null, 12, 14, null, 12, 10, null],
+      kick: [1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0],
+      hat:  [0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1],
+      bassType: "sine", arpType: "sine", arpGain: 0.065, detune: 18, pad: true,
+    },
+    // Dimachaerus — two swords. The arp answers itself; canon does the rest.
+    dimachaerus: {
+      bpm: 126, root: 47, scale: SCALE.phryg, gain: 0.54,
+      bass: [0, null, 0, null, -5, null, -5, null, -3, null, -3, null, 0, null, 0, null],
+      arp:  [12, 14, 16, 17, 19, 17, 16, 14, 12, 14, 16, 17, 19, 17, 16, 14],
+      kick: [1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+      hat:  [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+      bassType: "triangle", arpType: "square", arpGain: 0.05, canon: true, detune: 7,
+    },
+    // Provocator — the breastplate. The slowest thing on the board.
+    provocator: {
+      bpm: 76, root: 36, scale: SCALE.minor, gain: 0.62,
+      bass: [0, null, null, null, null, null, null, null, -5, null, null, null, null, null, null, null],
+      arp:  [7, null, null, null, 10, null, null, null, 7, null, null, null, 3, null, null, null],
+      kick: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+      hat:  [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+      bassType: "sawtooth", arpType: "sine", arpGain: 0.055, pad: true, warm: true,
+    },
+    // Scissor — the crescent welded to his arm. Tritones and hooks.
+    scissor: {
+      bpm: 132, root: 44, scale: SCALE.whole, gain: 0.56,
+      bass: [0, null, 3, null, 0, null, 3, null, 1, null, 4, null, 1, null, 4, null],
+      arp:  [12, 15, 18, 15, 12, 9, 12, 18, 21, 18, 15, 12, 9, 12, 15, 18],
+      kick: [1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0],
+      hat:  [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1],
+      bassType: "square", arpType: "sawtooth", arpGain: 0.048, tritone: true,
+    },
+    // Sagittarius — the archer. A metronome you can set your watch by, because
+    // every shaft is aimed and nothing is improvised.
+    sagittarius: {
+      bpm: 140, root: 48, scale: SCALE.penta, gain: 0.52,
+      bass: [0, null, null, null, 0, null, null, null, 0, null, null, null, 0, null, null, null],
+      arp:  [12, null, 12, null, 15, null, 15, null, 17, null, 17, null, 15, null, 12, null],
+      kick: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+      hat:  [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+      bassType: "square", arpType: "square", arpGain: 0.05,
+    },
+    // Bestiarius — he brings the beasts. Low, irregular, growling underneath.
+    bestiarius: {
+      bpm: 122, root: 34, scale: SCALE.phryg, gain: 0.6,
+      bass: [0, 0, null, 1, null, null, 0, 0, null, -1, null, 0, 0, null, 1, null],
+      arp:  [7, null, 8, null, 7, null, 5, null, 7, null, 10, null, 8, null, 7, null],
+      kick: [1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1],
+      hat:  [0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1],
+      bassType: "sawtooth", arpType: "triangle", arpGain: 0.05, detune: 12, warm: true,
+    },
+    // Andabata — fought blind in a closed helm. No kick at all: there is no beat
+    // to orient yourself by, which is the whole point of him.
+    andabata: {
+      bpm: 68, root: 37, scale: SCALE.whole, gain: 0.66,
+      bass: [0, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null],
+      arp:  [12, null, null, 13, null, null, null, 11, null, null, 12, null, null, null, 10, null],
+      kick: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      hat:  [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+      bassType: "sine", arpType: "sine", arpGain: 0.075, detune: 30, pad: true, tritone: true,
+    },
+  });
 
   // Which theme each of the 14 forms plays. The plain forms reuse their act's tier.
   const THEME_BY_KEY = {
@@ -2374,9 +3416,11 @@
 
   // Start the theme for a pattern key. Re-calling with the same theme is a no-op,
   // so chaining two stages that share a tier doesn't restart the loop.
-  function startMusic(key) {
+  // A named ladder fighter brings their own theme; anything else plays the tier
+  // its attack pattern belongs to.
+  function startMusic(key, armKey) {
     if (!musicOn) return;
-    const name = THEME_BY_KEY[key] || "ember";
+    const name = (armKey && THEMES[armKey] ? armKey : null) || THEME_BY_KEY[key] || "ember";
     if (music.name === name && music.timer) { setMusicIntensity(1); return; }
     if (!resumeAudio()) return;
     stopMusic(true);
@@ -2518,14 +3562,16 @@
     minions.push({ x, y, r: 15, t: 0, phase: "in", inT: 0.7, activeT: 3.2, outT: 0.55 });
   }
 
-  function updateMinions(dt, m) {
+  // `beasts` only shortens the gap between arrivals — a bestiarius brings more of
+  // them, not faster ones, so it deliberately doesn't touch their drift speed.
+  function updateMinions(dt, m, beasts) {
     const swarm = STAGES[stageIdx].key === "swarm";
     // How deep into a boss run this form sits. A single-form battle is stage 0
     // but still fights at its real depth.
     const depth = STAGES[stageIdx].depth != null ? STAGES[stageIdx].depth : stageIdx;
     minionTimer -= dt;
     if (minionTimer <= 0) {
-      minionTimer = Math.max(0.9, 2.2 - depth * 0.15) / (0.7 + 0.3 * m);
+      minionTimer = Math.max(0.9, 2.2 - depth * 0.15) / (0.7 + 0.3 * m) / (beasts || 1);
       if (swarm) minionTimer *= 0.45;
       spawnMinion();
       if (depth >= 5) spawnMinion(); // later stages send them in pairs
@@ -2599,7 +3645,7 @@
       }
     }
     // Tick down the timed effects.
-    for (const k of ["slow", "double", "invuln"]) {
+    for (const k of ["slow", "double", "invuln", "snare"]) {
       if (fx[k] > 0) fx[k] = Math.max(0, fx[k] - dt);
     }
     for (let i = shockwaves.length - 1; i >= 0; i--) {
@@ -2640,6 +3686,58 @@
     return false;
   }
 
+  // ---- Armatura behaviour ----
+  // The retiarius throws a weighted net. It is not a weapon that kills you — it
+  // takes your legs, which in a bullet-hell is worse. A net costs no hit; it
+  // snares, and being snared is what gets you hit by everything else.
+  function updateNets(dt) {
+    if (arm && arm.net) {
+      boss.netT -= dt;
+      if (boss.netT <= 0) {
+        boss.netT = arm.net;
+        const a = angleToPlayer();
+        nets.push({ x: boss.x, y: boss.y, vx: Math.cos(a) * 235, vy: Math.sin(a) * 235, r: 19, spin: 0 });
+        sfx("phase");
+      }
+    }
+    for (let i = nets.length - 1; i >= 0; i--) {
+      const n = nets[i];
+      n.x += n.vx * dt; n.y += n.vy * dt;
+      n.spin += dt * 5;
+      if (n.x < -60 || n.x > W + 60 || n.y < -60 || n.y > H + 60) { nets.splice(i, 1); continue; }
+      if (hit(player, n)) {
+        nets.splice(i, 1);
+        fx.snare = 1.25;
+        pickupFlash = { label: "NETTED!", color: "#4f9bd8", t: 0 };
+        burst(player.x, player.y, 16, "#4f9bd8", 190, { life: 0.5 });
+        shake = 7;
+      }
+    }
+  }
+
+  // A big shield is a piece of ground you cannot score on. The murmillo's scutum
+  // and the hoplomachus's small round shield face you, drifting a little behind
+  // your movement — so you have to work around to his open side to do damage.
+  function updateShield(dt) {
+    if (!arm || !arm.shield) return;
+    const want = Math.atan2(player.y - boss.y, player.x - boss.x);
+    let d = want - boss.shieldAng;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    // Deliberately very laggy. A scutum was plywood, leather and iron and weighed
+    // most of a stone — it does not track you, you outrun it. Beating a shield
+    // fighter is about circling faster than he can turn.
+    boss.shieldAng += d * Math.min(1, dt * 0.55);
+  }
+  // True when the shield is between you and him — no drain from this side.
+  function shieldBlocks() {
+    if (!arm || !arm.shield) return false;
+    let d = Math.atan2(player.y - boss.y, player.x - boss.x) - boss.shieldAng;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return Math.abs(d) <= arm.shield;
+  }
+
   // ---- Boss movement helpers ----
   function moveToward(tx, ty, speed, dt) {
     const dx = tx - boss.x, dy = ty - boss.y, d = Math.hypot(dx, dy) || 1;
@@ -2652,6 +3750,9 @@
     // stageRate shortens or lengthens every cooldown at once, so a builder can
     // make a pattern fire denser without touching each case below.
     boss.fire -= dt * stageRate;
+    updateShield(dt);
+    // Watched so an armatura can add its own weapon to whatever the pattern threw.
+    const fired = bullets.length;
     switch (key) {
       case "pursuer": {
         // Stalks you, alternating quick aimed jabs with a small spreading fan.
@@ -2876,6 +3977,16 @@
         break;
       }
     }
+    // Whatever the pattern just did, the armatura adds its own arm to it. Hooking
+    // the moment the pattern fires means all fourteen get this for nothing.
+    if (arm && bullets.length > fired) {
+      // The archer's shafts: aimed, on top of a pattern that may not aim at all.
+      if (arm.volley) {
+        for (let i = 0; i < arm.volley; i++) aimed(205 * m + i * 40, 6);
+      }
+      // The trident: three prongs, held close together.
+      if (arm.trident) spread(3, Math.PI * 0.1, 250 * m, 6);
+    }
   }
 
   // ---- Update ----
@@ -2898,9 +4009,12 @@
     if (keys.ArrowUp) dy -= 1;
     if (keys.ArrowDown) dy += 1;
     if (dx || dy) {
+      // A net doesn't wound you, it takes your legs — which is what the retiarius
+      // was for. Everything else on the sand gets easier to hit you with.
+      const sp = player.speed * (fx.snare > 0 ? 0.34 : 1);
       const inv = 1 / Math.hypot(dx, dy);
-      player.x += dx * inv * player.speed * dt;
-      player.y += dy * inv * player.speed * dt;
+      player.x += dx * inv * sp * dt;
+      player.y += dy * inv * sp * dt;
     }
     player.x = Math.max(player.r, Math.min(W - player.r, player.x));
     player.y = Math.max(player.r, Math.min(H - player.r, player.y));
@@ -2908,7 +4022,11 @@
     // Damage zone: stand in the blue circle to drain the boss's health.
     zone.pulse += dt;
     zone.moveT -= dt;
-    if (zone.moveT <= 0) placeZone();  // it relocates so you keep moving
+    if (zone.moveT <= 0) {
+      // It relocates so you keep moving — and if you didn't move, it charges you.
+      if (!zone.touched) zoneIgnored();
+      placeZone();
+    }
     // The hot zone rides a slow orbit around the boss, clamped into the arena.
     hotZone.ang += dt * 0.55;
     hotZone.x = Math.max(hotZone.r, Math.min(W - hotZone.r, boss.x + Math.cos(hotZone.ang) * HOT_ORBIT));
@@ -2916,7 +4034,14 @@
 
     const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
     const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
-    const mult = (inHot ? HOT_MULT : inZone ? 1 : 0) * (fx.double > 0 ? 2 : 1);
+    // Turning up counts, even if a shield stopped you scoring — otherwise a
+    // Murmillo would heal for holding his guard, which punishes the wrong thing.
+    if (inZone || inHot) zone.touched = true;
+
+    // A shield is ground you cannot score on: stand behind it and the eye counts
+    // nothing. You have to work around to his open side.
+    const blocked = shieldBlocks();
+    const mult = blocked ? 0 : (inHot ? HOT_MULT : inZone ? 1 : 0) * (fx.double > 0 ? 2 : 1);
     if (mult) {
       boss.hp -= ZONE_DRAIN * mult * dt;
       boss.hitFlash = 0.08;
@@ -2947,18 +4072,34 @@
     // Boss behaviour for this stage
     runStage(STAGES[stageIdx].key, edt, difficultyMul() * stageSpd);
 
-    // Minions appear from stage 3 onward — unless a custom stage says otherwise
-    const wantMinions = STAGES[stageIdx].minions !== undefined ? STAGES[stageIdx].minions : stageIdx >= 2;
-    if (wantMinions) updateMinions(edt, difficultyMul());
+    // Minions appear from stage 3 onward — unless a custom stage says otherwise.
+    // A bestiarius brings the beasts with him regardless, and brings more of them.
+    const beasts = arm && arm.beasts;
+    const wantMinions = beasts ? true
+      : (STAGES[stageIdx].minions !== undefined ? STAGES[stageIdx].minions : stageIdx >= 2);
+    if (wantMinions) updateMinions(edt, difficultyMul(), beasts);
 
     updatePending(edt);
 
-    // Move enemy bullets, cull off-screen
+    // Move enemy bullets, cull off-screen or expired. The lifetime matters most
+    // for curved shots: a bent trajectory can circle inside the arena forever and
+    // never cross an edge, so without it a Thraex or Scissor bout slowly silts up.
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
+      b.age += edt;
+      if (b.age >= BULLET_LIFE) { bullets.splice(i, 1); continue; }
+      // A curved blade's throw keeps turning the whole way in.
+      if (b.curve) {
+        const c = Math.cos(b.curve * edt), s = Math.sin(b.curve * edt);
+        const vx = b.vx * c - b.vy * s;
+        b.vy = b.vx * s + b.vy * c;
+        b.vx = vx;
+      }
       b.x += b.vx * edt; b.y += b.vy * edt;
       if (b.x < -50 || b.x > W + 50 || b.y < -50 || b.y > H + 50) bullets.splice(i, 1);
     }
+
+    updateNets(edt);
 
     // Collisions — every red thing costs exactly one of your three hits
     if (hit(player, boss) && playerHit()) return;
@@ -2969,7 +4110,7 @@
 
     // Stage clear when the boss's HP is depleted
     if (boss.hp <= 0) {
-      if ((mode === "boss" || mode === "level") && stageIdx >= STAGES.length - 1) return winGame();
+      if (stageIdx >= STAGES.length - 1) return winGame();
       nextStage();
     }
   }
@@ -3142,6 +4283,97 @@
     circle(boss.x, boss.y, boss.r, COLORS.dangerSoft, glow, 3);
     ctx.shadowBlur = 0;
     circle(boss.x, boss.y, boss.r * 0.42, boss.hitFlash > 0 ? "#ffffff" : glow, null);
+
+    // The crest. The body stays red — red always means lethal — but the crest
+    // is the armatura's colour, so you can see what you're fighting at a glance.
+    if (arm && arm.color) {
+      ctx.save();
+      ctx.strokeStyle = arm.color;
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.85;
+      ctx.shadowColor = arm.color;
+      ctx.shadowBlur = 12;
+      circle(boss.x, boss.y, boss.r + 5, null, arm.color, 2);
+      ctx.restore();
+    }
+
+    // The shield: a solid bronze band across his guarded side. Whatever it covers
+    // is dead ground for you, so it has to be unmistakable.
+    if (arm && arm.shield) {
+      const lit = shieldBlocks();
+      const rr = boss.r + 11;
+      ctx.save();
+      ctx.lineCap = "butt";
+      // A faint wedge showing the whole dead arc, then the shield face itself.
+      ctx.fillStyle = lit ? "rgba(201,162,39,0.16)" : "rgba(201,162,39,0.07)";
+      ctx.beginPath();
+      ctx.moveTo(boss.x, boss.y);
+      ctx.arc(boss.x, boss.y, 172, boss.shieldAng - arm.shield, boss.shieldAng + arm.shield);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = lit ? "#f0d489" : "#c9a227";
+      ctx.lineWidth = 7;
+      ctx.shadowColor = "#c9a227";
+      ctx.shadowBlur = lit ? 16 : 6;
+      ctx.beginPath();
+      ctx.arc(boss.x, boss.y, rr, boss.shieldAng - arm.shield, boss.shieldAng + arm.shield);
+      ctx.stroke();
+      // The umbo — the boss at the centre of the shield.
+      ctx.shadowBlur = 0;
+      circle(boss.x + Math.cos(boss.shieldAng) * rr, boss.y + Math.sin(boss.shieldAng) * rr,
+             4.5, lit ? "#f0d489" : "#8f6f2c", null);
+      ctx.restore();
+    }
+  }
+
+  // The nets. Drawn as an actual mesh, and never in red — it costs no hit, and
+  // red in this game always means "this wounds you."
+  function drawNets() {
+    if (!nets.length) return;
+    ctx.save();
+    for (const n of nets) {
+      ctx.translate(n.x, n.y);
+      ctx.rotate(n.spin);
+      ctx.strokeStyle = "rgba(120,180,235,0.85)";
+      ctx.lineWidth = 1.6;
+      ctx.shadowColor = "#4f9bd8";
+      ctx.shadowBlur = 10;
+      circle(0, 0, n.r, "rgba(79,155,216,0.14)", "rgba(140,200,245,0.9)", 2);
+      // A cross-hatch inside the hoop reads as mesh at this size.
+      for (let i = -2; i <= 2; i++) {
+        const o = (i / 2.4) * n.r;
+        const h = Math.sqrt(Math.max(0, n.r * n.r - o * o));
+        ctx.beginPath(); ctx.moveTo(o, -h); ctx.lineTo(o, h); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-h, o); ctx.lineTo(h, o); ctx.stroke();
+      }
+      // The lead weights sewn round the rim.
+      ctx.fillStyle = "#cfe4f6";
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * n.r, Math.sin(a) * n.r, 2.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.rotate(-n.spin);
+      ctx.translate(-n.x, -n.y);
+    }
+    ctx.restore();
+  }
+
+  // The andabata fought in a helmet with no eyeholes. The crowd's half of that
+  // joke is that they could see and he couldn't — so we take the arena away from
+  // you and leave a torch-lit circle you carry with you.
+  function drawBlind() {
+    if (!arm || !arm.blind) return;
+    const R = arm.blind;
+    const g = ctx.createRadialGradient(player.x, player.y, R * 0.42, player.x, player.y, R);
+    g.addColorStop(0, "rgba(8,6,3,0)");
+    g.addColorStop(0.72, "rgba(8,6,3,0.82)");
+    g.addColorStop(1, "rgba(6,4,2,0.97)");
+    ctx.save();
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
   }
 
   // Small icon inside each drop so the colors are readable, not just pretty.
@@ -3332,11 +4564,12 @@
     const x0 = W / 2 - ((maxHits - 1) * gap) / 2;
     ctx.save();
     if (practice) {
+      // The Ludus: wooden swords. There are no markers to lose.
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "#3ddc84";
       ctx.font = `700 15px ${FONT}`;
-      ctx.fillText("∞  PRACTICE", W / 2, y);
+      ctx.fillText("∞  LUDUS — wooden swords", W / 2, y);
       ctx.restore();
       return;
     }
@@ -3432,6 +4665,33 @@
       ctx.beginPath(); ctx.arc(zone.x, zone.y, zone.r - 2 + p * 2, 0, Math.PI * 2); ctx.stroke();
       ctx.shadowBlur = 0;
 
+      // If you've ignored this eye and it's about to move on, say so in yellow —
+      // the heal has to be something you saw coming and chose, not an ambush.
+      if (!zone.touched && zone.moveT < 1.5 && shown === GS.PLAYING) {
+        const urg = 1 - zone.moveT / 1.5;
+        const fl = 0.5 + 0.5 * Math.sin(zone.pulse * (10 + urg * 16));
+        ctx.save();
+        ctx.setLineDash([7, 7]);
+        ctx.lineDashOffset = -totalTime * 26;
+        ctx.strokeStyle = `rgba(240,180,41,${0.4 + 0.55 * fl})`;
+        ctx.lineWidth = 2 + urg * 2;
+        ctx.shadowColor = COLORS.warn;
+        ctx.shadowBlur = 10 + urg * 14;
+        ctx.beginPath();
+        ctx.arc(zone.x, zone.y, zone.r + 8 + urg * 5, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        // A countdown arc draining round the ring.
+        ctx.save();
+        ctx.strokeStyle = `rgba(240,180,41,${0.65 + 0.3 * fl})`;
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(zone.x, zone.y, zone.r + 15, -Math.PI / 2,
+                -Math.PI / 2 + (zone.moveT / 1.5) * Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       // Hot zone — dark blue, tethered to the boss, three times the drain.
       const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
       ctx.save();
@@ -3502,6 +4762,7 @@
         circle(b.x, b.y, b.r, COLORS.danger, null);
       }
       ctx.shadowBlur = 0;
+      drawNets();
 
       drawBoss();
 
@@ -3517,6 +4778,24 @@
         circle(player.x, player.y, player.r + 9 + p * 2, null, POWERUPS.shield.color, 2.5);
         ctx.shadowBlur = 0;
       }
+      // A net around your legs, drawn last so it sits over you.
+      if (fx.snare > 0) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(140,200,245,${Math.min(0.9, fx.snare)})`;
+        ctx.lineWidth = 1.6;
+        for (let i = 0; i < 4; i++) {
+          const o = (i - 1.5) * (player.r * 0.6);
+          ctx.beginPath();
+          ctx.moveTo(player.x + o, player.y - player.r);
+          ctx.lineTo(player.x + o, player.y + player.r);
+          ctx.stroke();
+        }
+        circle(player.x, player.y, player.r + 4, null, `rgba(140,200,245,${Math.min(0.9, fx.snare)})`, 2);
+        ctx.restore();
+      }
+
+      // Everything above this is what the andabata's helmet takes away.
+      if (state === GS.PLAYING) drawBlind();
 
       drawShockwaves();
       drawParticles();
@@ -3567,21 +4846,26 @@
   }
   function updateHudStage() {
     const s = STAGES[stageIdx];
-    hudStageNum.textContent = `${stageIdx + 1}/${STAGES.length}`;
-    hudStageName.textContent = s.name;
+    hudStageNum.textContent = `${roman(stageIdx + 1)}/${roman(STAGES.length)}`;
+    hudStageName.textContent = s.arm ? `${s.name} · ${armOf(s.arm).name}` : s.name;
     hudStageName.style.color = mode === "level" ? activeCamp.accent : "";
     const here = stageIdx;
     pips.forEach((p, i) => {
       p.className = i < here ? "done" : (i === here ? "active" : "");
     });
-    hudTimerLabel.textContent = "Zone";
+    hudTimerLabel.textContent = "Eye";
   }
   function updateHud() {
     const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
     const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
-    if (inHot) { hudTimer.textContent = "×3 DRAINING"; hudTimer.style.color = "#7f9dff"; }
-    else if (inZone) { hudTimer.textContent = "DRAINING"; hudTimer.style.color = COLORS.safe; }
-    else { hudTimer.textContent = "find blue"; hudTimer.style.color = "#a08f76"; }
+    // A shield between you and him means you're standing in the right place and
+    // still scoring nothing — say so, or it reads as a bug.
+    if ((inHot || inZone) && shieldBlocks()) {
+      hudTimer.textContent = "SHIELDED";
+      hudTimer.style.color = "#c9a227";
+    } else if (inHot) { hudTimer.textContent = "×3 DAMAGE"; hudTimer.style.color = "#7f9dff"; }
+    else if (inZone) { hudTimer.textContent = "DAMAGING"; hudTimer.style.color = COLORS.safe; }
+    else { hudTimer.textContent = "find the eye"; hudTimer.style.color = "#a08f76"; }
   }
 
   // ---- Loop ----
@@ -3609,7 +4893,23 @@
     renderLibrary();
     renderPrizes();
     renderShop();
+    renderLadder();
+    renderNecropolis();
   }
+
+  // The armatura list in How to Play, built from the table so it can't drift.
+  (() => {
+    const host = document.getElementById("helpArms");
+    for (const a of Object.values(ARMATURAE)) {
+      const d = document.createElement("div");
+      const b = document.createElement("b");
+      b.textContent = a.name;
+      b.style.color = a.color;
+      d.appendChild(b);
+      d.appendChild(document.createTextNode(` — ${a.desc}`));
+      host.appendChild(d);
+    }
+  })();
 
   renderCampaign();
 
