@@ -272,12 +272,33 @@
   .oddsbox .odds { text-align: right; flex: none; }
   .oddsbox .ov { font-family: var(--serif); font-size: 24px; font-weight: 700; color: var(--gold); }
   .oddsbox .ol { display: block; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  /* The card: three bouts, both men priced, and a clock running on all of it */
+  .boardhead { display: flex; justify-content: space-between; align-items: baseline;
+               font-size: 10px; letter-spacing: 2px; color: var(--muted); }
+  #cardClock { font-family: var(--serif); font-size: 13px; color: var(--gold); letter-spacing: 1px; }
+  #cardClock.late { color: var(--danger); }
+  .bout { border: 1px solid #2e2418; background: rgba(20,15,9,0.5); padding: 8px;
+          display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .bout .vs { text-align: center; font-size: 9px; letter-spacing: 3px; color: var(--muted); }
+  .bout .corners { display: flex; gap: 6px; }
+  .corner { flex: 1 1 0; min-width: 0; text-align: left; padding: 7px 8px;
+            display: flex; flex-direction: column; gap: 2px; }
+  .corner.on { border-color: var(--gold); background: rgba(201,162,39,0.09); }
+  .corner .cn { font-family: var(--serif); font-weight: 700; font-size: 13px; letter-spacing: 1px; }
+  .corner .cb { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
+  .corner .cp { font-family: var(--serif); font-size: 19px; font-weight: 700; color: var(--gold); }
+  /* Which way the crowd's money has moved it since it was posted. */
+  .corner .cd { font-size: 10px; letter-spacing: 1px; }
+  .corner .cd.in { color: var(--danger); }    /* shortening — they like him */
+  .corner .cd.out { color: var(--safe); }     /* drifting — they have left him */
+  .slipbox { border: 1px solid var(--gold); padding: 8px; font-size: 12px; line-height: 1.6; }
+  .slipbox b { color: var(--gold); font-family: var(--serif); letter-spacing: 1px; }
   #wagerMsg { font-size: 13px; min-height: 1.4em; font-weight: 600; }
   #wagerMsg.good { color: var(--gold); }
   #wagerMsg.bad { color: var(--danger); }
   /* The spectator's slip, shown over the sand during a wager bout */
   #slip {
-    position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
     display: flex; gap: 16px; align-items: baseline; z-index: 6; pointer-events: none;
     font-family: var(--serif); letter-spacing: 1.6px; font-size: 12.5px;
     border: 1px solid var(--bronze); border-radius: 4px; padding: 6px 14px;
@@ -285,6 +306,33 @@
   }
   #slip b { color: var(--gold); font-weight: 700; }
   #slip.hidden { display: none; }
+  /* The editor's panel: down the right-hand side, out of the sand's way. */
+  #editorPanel {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    width: 210px; z-index: 6; pointer-events: none;
+    border: 1px solid var(--bronze); border-radius: 4px; padding: 10px 12px;
+    background: rgba(20,15,9,.86); color: var(--muted);
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  #editorPanel.hidden { display: none; }
+  #editorPanel h4 {
+    margin: 0; font-family: var(--serif); font-size: 12px; letter-spacing: 3px; color: var(--gold);
+  }
+  #editorPanel .ep-sub, #editorPanel .ep-foot {
+    margin: 0; font-size: 10.5px; line-height: 1.45; font-style: italic;
+  }
+  #editorPanel .ep-foot { border-top: 1px solid #2e2418; padding-top: 8px; }
+  .ep-buy { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 6px; align-items: baseline; }
+  .ep-key {
+    grid-row: span 1; font-family: var(--serif); font-weight: 700; font-size: 11px;
+    color: var(--bg); background: var(--gold); border-radius: 3px; padding: 0 5px; text-align: center;
+  }
+  .ep-name { font-family: var(--serif); font-size: 12px; letter-spacing: 1px; color: var(--text); }
+  .ep-cost { font-family: var(--serif); font-size: 12px; color: var(--gold); }
+  .ep-what { grid-column: 2 / span 2; font-size: 10.5px; line-height: 1.4; }
+  .ep-cut { grid-column: 2 / span 2; font-size: 10px; letter-spacing: 1px; color: var(--danger); }
+  .ep-buy.spent .ep-key { background: var(--bronze); color: var(--muted); }
+  .ep-buy.poor { opacity: 0.42; }
   .divider {
     width: 100%; max-width: 460px; height: 1px; margin: 4px 0;
     background: linear-gradient(90deg, rgba(107,79,42,0) 0%, var(--bronze) 50%, rgba(107,79,42,0) 100%);
@@ -480,6 +528,28 @@
       <span>PAYS <b id="slipPays">0</b></span>
     </div>
 
+    <!-- The editor's price list. Up only while a duel is on the sand, because it
+         is the only time any of it can be bought. -->
+    <div id="editorPanel" class="hidden">
+      <h4>THE EDITOR</h4>
+      <p class="ep-sub">He puts on the games. He can be reached.</p>
+      <div class="ep-buy" id="epSlow">
+        <span class="ep-key">1</span>
+        <span class="ep-name">A Word In His Ear</span>
+        <span class="ep-cost">✦ 40</span>
+        <span class="ep-what">Your man's opponent is slowed — his throws and everything already in the air crawl for three seconds.</span>
+        <span class="ep-cut">Your price × 0.88</span>
+      </div>
+      <div class="ep-buy" id="epGates">
+        <span class="ep-key">2</span>
+        <span class="ep-name">The Gates</span>
+        <span class="ep-cost">✦ 90</span>
+        <span class="ep-what">Beasts, on him, for the rest of the bout. They do not go back in.</span>
+        <span class="ep-cut">Your price × 0.76</span>
+      </div>
+      <p class="ep-foot">Both land on the man you bet against. You are no longer betting on what happens — you are paying for it, and the desk prices that in.</p>
+    </div>
+
     <!-- Menu -->
     <div id="menu" class="screen scroll">
       <h1>ENTER THE<br><span class="accent">COLOSSEUM</span></h1>
@@ -570,16 +640,19 @@
         <p id="shopMsg"></p>
 
         <div class="divider"></div>
-        <p class="sub"><b style="color:var(--text)">Sponsio</b> — the wager. Put money on a fight you are not in. You do not hold the sword: you buy the man his arms, and then you stand in the stands like everyone else and watch what he does with them.</p>
+        <p class="sub"><b style="color:var(--text)">Sponsio</b> — the wager. Three bouts are posted on the board, and you are in none of them. You hold no sword here: you back a man, and then you stand in the stands like everyone else and watch whether you were right.</p>
         <div class="sponsio">
+          <div class="boardhead">
+            <span>THE CARD</span>
+            <span id="cardClock">OFF IN —</span>
+          </div>
+          <div id="cardList"></div>
           <p class="hint">The stake. Lose and it stays in the sand.</p>
           <div class="stakerow" id="stakeRow"></div>
-          <p class="hint">His armatura — what you are paying to put in his hands. This is the whole of your say in it.</p>
-          <div class="armgrid" id="armGrid"></div>
-          <div class="oddsbox" id="oddsBox"></div>
+          <div id="slipBox" class="slipbox hidden"></div>
           <div class="btnrow">
             <button class="primary" id="wagerBtn">Lay the Wager</button>
-            <button id="drawFoeBtn">Another Opponent</button>
+            <button id="newCardBtn">A New Card</button>
           </div>
           <p id="wagerMsg"></p>
         </div>
@@ -721,12 +794,15 @@
     stone: "#1a140d",           // the wall ringing the sand
     bronze: "#6b4f2a",
     gold: "#d9a441",
-    // The green of a man fighting for you in a wager. Deliberately a deeper
-    // emerald than the Scutum's mint (#3ddc84): the shield aura is drawn as a
-    // ring around the same body, and if the two greens matched you could no
-    // longer see whether he was carrying a shield.
-    mine: "#22c55e",
-    mineSoft: "rgba(34,197,94,0.22)",
+    // The two sides of a duel. Which man is which is decided by your money and
+    // nothing else: the one you backed takes the blue, whoever he is fighting
+    // takes the orange, and every shot on the sand is the colour of the man who
+    // threw it. With two fighters both throwing, telling whose fire is whose is
+    // the whole of watching — so it is carried by hue and not by shape.
+    mine: "#3d8bff",
+    mineSoft: "rgba(61,139,255,0.22)",
+    theirs: "#ff8a3d",
+    theirsSoft: "rgba(255,138,61,0.22)",
   };
   // Serif everywhere on the canvas too, to match the chrome.
   const FONT = 'Optima, "Palatino Linotype", Palatino, Georgia, serif';
@@ -901,179 +977,13 @@
   const DEF_ARM = { name: "Gregarius", color: "#a08f76", desc: "no formal training" };
   function armOf(key) { return ARMATURAE[key] || DEF_ARM; }
 
-  // Who was matched against whom. The pairings were never arbitrary — a net-man
-  // was set against a chaser, a big shield against a small one. Used to keep the
-  // ladder's matchups legitimate rather than random.
-  const MATCHUPS = {
-    murmillo: ["thraex", "hoplomachus"],
-    thraex: ["murmillo"],
-    hoplomachus: ["murmillo", "thraex"],
-    retiarius: ["secutor"],
-    secutor: ["retiarius"],
-    provocator: ["provocator"],
-    dimachaerus: ["dimachaerus", "secutor"],
-    scissor: ["retiarius"],
-    sagittarius: ["sagittarius"],
-    eques: ["eques"],
-    bestiarius: [],
-    andabata: ["andabata"],
-  };
-
-  // ---- Arms for a man you are not ----
-  // The twelve armaturae again, read from the other side. ARMATURAE describes what
-  // a trained fighter does TO you; this describes what the same training does FOR
-  // the man you have bought it for. He is a dodger, so it lands on the four things
-  // a dodger has: how fast he moves, how many wounds he can take, how hard he
-  // scores under the eye, and how well he reads the sand.
-  //   spd     — movement
-  //   hits    — wounds he can take, on top of the three a booked bout gives
-  //   drain   — how fast he takes the opponent down while under the eye
-  //   skill   — reaction; positive is quicker on the plan, negative is slower
-  //   netproof— a net finds nothing to catch on
-  // Every one of them is a trade. None is simply better, which is the only reason
-  // the choice is worth money.
-  // Each also carries the actual arms he was trained to, not just a set of
-  // multipliers — the shield really stops shots, the net really goes out and
-  // catches, the bow really looses. Twelve fighters who differ only in how fast
-  // they move are not twelve fighters, they are one fighter and eleven prices.
-  //   guard   — half-width, in radians, of a shield arc held toward the opponent
-  //   block   — how many shots that shield can take before it is beaten aside
-  //   regen   — shots of that capacity recovered per second
-  //   sway    — how fast, in radians a second, he can bring the shield round
-  //   rete    — seconds between nets thrown at the opponent, which foul him
-  //   arrows  — seconds between shafts loosed at the opponent, for direct blood
-  //   sweep   — a blade long enough to cut at this range without the eye at all
-  //   lorica  — seconds for a breastplate to be worth one more hit
-  //   tame    — the beasts know him and leave him alone
-  //   hotx    — extra bite under the sub umbone circle
-  //   around  — a curved blade reaches past a shield that would stop a straight one
-  //   surge   — the longer he holds the eye, the harder he works, up to this much
-  //   impetus — a horse's burst: this much speed, in bouts, on a cycle
-  //   dark    — fights in a closed helm, and the crowd puts the lights out to watch
-  const PLAYER_ARMS = {
-    eques:       { spd: 1.30, hits: -1, skill: 0.05, impetus: 1.7,
-                   note: "fast and light — but he rides without armour",
-                   special: "rides down the sand in bursts" },
-    secutor:     { spd: 1.18, skill: 0.10, surge: 2.0,
-                   note: "the chaser: quick, and he reads the eye before it opens",
-                   special: "the longer he holds the eye, the harder he cuts" },
-    murmillo:    { spd: 0.84, hits: 1, guard: 0.85, sway: 3.2, block: 5, regen: 0.85,
-                   note: "behind the tower shield he is very hard to put down, and very slow",
-                   special: "a tower shield that stops shots dead" },
-    provocator:  { hits: 1, drain: 0.90, lorica: 11,
-                   note: "the breastplate keeps him alive; it does not help him score",
-                   special: "a breastplate that eats a hit and is beaten out again" },
-    hoplomachus: { spd: 0.95, drain: 1.15, skill: 0.05, guard: 0.55, sway: 4.6, block: 3, regen: 0.7,
-                   note: "the spear reaches — steady, precise, unhurried",
-                   special: "a small round shield, and reach" },
-    retiarius:   { spd: 1.12, drain: 1.05, netproof: true, rete: 3.6,
-                   note: "nothing on him for a net to catch",
-                   special: "throws his net — a fouled opponent fights slowly" },
-    dimachaerus: { drain: 1.35, hits: -1, hotx: 1.6,
-                   note: "two swords and no shield — he ends it early or not at all",
-                   special: "both swords work under the sub umbone circle" },
-    scissor:     { spd: 0.92, drain: 1.22, sweep: 96,
-                   note: "the crescent hooks hard, and it is heavy to carry",
-                   special: "cuts at close range with no eye at all" },
-    sagittarius: { spd: 1.05, drain: 1.28, hits: -1, arrows: 1.5,
-                   note: "everything he throws lands; almost nothing he wears stops anything",
-                   special: "looses shafts at the opponent from anywhere" },
-    bestiarius:  { spd: 1.05, hits: 1, drain: 0.85, tame: true,
-                   note: "he has been in worse company than this and lived",
-                   special: "the beasts know him and will not touch him" },
-    thraex:      { spd: 1.08, drain: 1.12, hits: -1, around: true,
-                   note: "the curved sica: quick and sharp, lightly armoured",
-                   special: "the sica hooks around a shield that stops everyone else" },
-    andabata:    { drain: 1.50, hits: 1, skill: -0.28, dark: true,
-                   note: "fought blind. He cannot see the eye. When he finds it, it is over fast",
-                   special: "fights blind — and the crowd puts the lights out for you too" },
-  };
-
-  function playerArm(key) { return PLAYER_ARMS[key] || {}; }
-
-  // ---- What every pairing is actually worth ----
-  // The probability that a given armatura beats a given man, measured, one number
-  // per matchup. Nothing here is derived.
-  //
-  // Three models came before this one and all three lied. Deriving a fighter's
-  // worth from his multipliers made the swiftest arms look strongest while they
-  // were losing nine bouts in ten. Folding that into a single strength per
-  // armatura could not tell Faustus from Achillia, who carry the same arms at the
-  // same health and are nothing like each other to fight — one runs the lattice
-  // and one runs the charger, and the pattern mattered more than either. Splitting
-  // it into strength times difficulty still could not see that a tower shield is
-  // worth almost everything against sparse fire and almost nothing against a wall
-  // of darts. Armaturae do not sit on a ladder; they beat and lose to each other,
-  // and the only honest description of that is the grid itself.
-  //
-  // So: twelve armaturae against twenty-four men, sixty bouts each — seventeen
-  // thousand fights — and these are the results. They describe this engine at this
-  // tuning. Change BOT, PLAYER_ARMS, WAGER_HITS, the fighter's size or any attack
-  // pattern and every number below is void and must be measured again, or the desk
-  // starts quoting prices the sand does not honour. The harness that produces them
-  // is a headless build of this same file, so it is always the real fighting being
-  // counted and never a model of it.
-  const WAGER_ARMS = ["eques", "secutor", "murmillo", "provocator", "hoplomachus", "retiarius",
-                      "dimachaerus", "scissor", "sagittarius", "bestiarius", "thraex", "andabata"];
-  const WIN_P = {
-    rapidus:       [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00],
-    glauco:        [0.43, 0.62, 0.92, 0.27, 0.87, 0.15, 0.77, 0.83, 0.77, 0.13, 0.23, 0.57],
-    danaos:        [0.97, 1.00, 1.00, 1.00, 1.00, 0.98, 0.97, 0.98, 0.98, 0.98, 1.00, 1.00],
-    bato:          [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00],
-    urbicus:       [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00],
-    nikephoros:    [0.73, 1.00, 1.00, 0.97, 1.00, 0.97, 1.00, 1.00, 1.00, 0.78, 0.83, 0.95],
-    callimorphus:  [0.02, 0.10, 0.50, 0.07, 0.35, 0.08, 0.18, 0.27, 0.27, 0.03, 0.05, 0.20],
-    aptus:         [0.68, 0.97, 0.93, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 0.95, 0.87, 0.88],
-    severus:       [0.32, 0.52, 1.00, 0.97, 0.92, 0.87, 0.65, 1.00, 1.00, 0.29, 0.44, 0.68],
-    cerinthus:     [0.95, 0.97, 0.93, 0.98, 0.98, 0.92, 1.00, 1.00, 1.00, 1.00, 0.98, 0.97],
-    faustus:       [0.08, 0.15, 0.97, 0.05, 0.93, 0.60, 0.20, 0.25, 0.98, 0.00, 0.92, 0.32],
-    pardus:        [0.33, 0.43, 0.48, 0.35, 0.42, 0.48, 0.67, 0.57, 0.62, 0.13, 0.20, 0.33],
-    amazonia:      [0.60, 0.98, 1.00, 0.90, 0.95, 0.92, 1.00, 1.00, 1.00, 0.73, 0.70, 0.88],
-    achillia:      [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00],
-    diodorus:      [0.13, 0.18, 0.83, 0.52, 0.82, 0.47, 0.85, 0.80, 0.30, 0.03, 0.25, 0.38],
-    triumphus:     [0.00, 0.02, 0.02, 0.00, 0.00, 0.00, 0.00, 0.00, 0.02, 0.00, 0.00, 0.00],
-    hermes:        [0.42, 0.63, 0.93, 0.60, 0.92, 0.55, 0.83, 1.00, 0.83, 0.33, 0.30, 0.65],
-    crescens:      [1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00],
-    pugnax:        [0.07, 0.32, 0.27, 0.23, 0.15, 0.25, 0.52, 0.52, 0.55, 0.07, 0.13, 0.17],
-    carpophorus:   [0.90, 0.97, 0.82, 0.90, 0.93, 0.87, 1.00, 1.00, 1.00, 1.00, 0.95, 0.85],
-    tetraites:     [0.03, 0.10, 0.33, 0.03, 0.15, 0.03, 0.10, 0.20, 0.12, 0.00, 0.02, 0.05],
-    verus:         [0.07, 0.35, 0.77, 0.33, 0.80, 0.65, 0.67, 0.67, 0.58, 0.15, 0.67, 0.35],
-    priscus:       [0.13, 0.22, 0.28, 0.17, 0.30, 0.38, 0.57, 0.58, 0.42, 0.10, 0.53, 0.22],
-    flamma:        [0.17, 0.42, 0.77, 0.25, 0.67, 0.90, 0.77, 0.72, 0.75, 0.12, 0.20, 0.33],
-  };
-  function winChance(myArm, f) {
-    const row = WIN_P[f.id];
-    const i = WAGER_ARMS.indexOf(myArm);
-    return row && i >= 0 ? row[i] : 0.5;
-  }
-
-  // A pairing the lanista would actually have booked. It buys no odds of its own —
-  // whatever it is worth is already inside the grid, which was measured with it in
-  // force — but the crowd still knows a proper matchup when it sees one.
-  function legitPairing(myArm, foeArm) {
-    return (MATCHUPS[foeArm] || []).includes(myArm);
-  }
-
-  function wagerOdds(myArm, f) {
-    const p = Math.max(0.02, Math.min(1, winChance(myArm, f)));
-    // The house keeps a twentieth. The floor of evens is what stops a certainty
-    // from being free money: send a man who cannot lose and you get your stake
-    // back and nothing on top, which is the correct price of a sure thing.
-    const odds = Math.max(1.00, Math.min(8, 0.95 / p));
-    return { p: p, odds: Math.round(odds * 20) / 20 };
-  }
-
-  // One man on that board cannot be beaten by anyone you could send: a retiarius
-  // running the serpent throws his trident into a stream that never stops, better
-  // than thirty aimed shafts a second, and every armatura loses to him every time.
-  // Long odds on a bout that cannot be won is not a gamble, it is taking the
-  // customer's money — so the desk does not book it. A lanista who matches his man
-  // against certain death does not stay a lanista for long.
-  function foeBookable(f) {
-    let best = 0;
-    for (const k of WAGER_ARMS) best = Math.max(best, winChance(k, f));
-    return best >= 0.20;
-  }
+  // Prices are no longer measured here. They were, once — a grid of twelve
+  // armaturae against twenty-four men over seventeen thousand real fights — but
+  // that grid priced a different product: a man you armed yourself, against an
+  // opponent, with nobody else on the sand. What the desk sells now is a duel
+  // between two ladder men, and the honest thing to do with a number nobody has
+  // counted is to stop pretending it was counted. The Sponsio desk says plainly
+  // what a price is now, and what it is worth.
 
   // ---- The Ladder ----
   // Twenty-four fighters hold the board, rank XXIV at the bottom up to rank I.
@@ -1393,15 +1303,22 @@
   const ZONE_MOVE = 4.5;     // seconds before the zone relocates
   const HOT_MULT = 3;        // the hot zone hurts three times as fast
   const HOT_ORBIT = 96;      // how far the hot zone rides from the boss
-  const BULLET_LIFE = 20;    // seconds before a shot gives up, however it's moving
+  // Seconds before a shot gives up, however it is moving. Short, and short on
+  // purpose: a bullet that outlives the exchange that threw it is scenery the
+  // fighter still has to solve, and with two men throwing at once the sand silted
+  // up into something nobody could read. Curved blades were the worst of it — a
+  // bent trajectory can circle inside the arena indefinitely without ever
+  // crossing an edge to be culled.
+  const BULLET_LIFE = 3;
   const ZONE_HEAL = 1 / 8;   // health returned if you ignore an eye for its whole stay
 
   // The arms bought for a wager fighter. Empty for every bout you fight yourself,
   // which is why nothing outside the Sponsio has to know this exists.
-  let playerBuff = {};
 
   function resetGame() {
-    player = { x: W / 2, y: H * 0.75, r: 13, speed: 640 * (playerBuff.spd || 1), hits: maxHits };
+    duel = null;          // a duel is set up after the engine is reset, never before
+    duelSide = null;
+    player = { x: W / 2, y: H * 0.75, r: 13, speed: 640, hits: maxHits };
     hurtFlash = 0;
     boss = {
       x: W / 2, y: H * 0.22, r: 34,
@@ -1434,7 +1351,6 @@
     boss.netT = 0;
     boss.fouled = 0;
     boss.shieldAng = -Math.PI / 2;
-    resetArms();
     fx = { shield: false, slow: 0, swift: 0, invuln: 0, snare: 0 };
   }
 
@@ -1459,9 +1375,10 @@
   function toMenu() {
     state = GS.MENU;
     stopMusic();
-    // Walking away from a bout you bet on is a forfeit — and never leaves the
-    // wager fighter's arms bolted onto the next man who takes the sand.
-    if (wager) endWager(false);
+    duel = null;
+    duelSide = null;
+    // Walking away from a bout you have money on is a forfeit.
+    forfeitSlip();
     renderCampaign();
     menuEl.classList.remove("hidden");
     endEl.classList.add("hidden");
@@ -1540,98 +1457,201 @@
     startGame("ladder", 0);
   }
 
-  // ---- Sponsio: a bout you paid for and do not fight ----
-  // Same machinery as a ladder challenge — synthesise a one-stage campaign and
-  // hand it to the engine — with two differences: the arrow keys are driven by
-  // autopilot(), and the stake is already gone before the first shot.
-  // What a wager fighter is booked for before his armatura adjusts it. Eight, not
-  // the three a bout with you in it gives, because he is a full-sized gladiator
-  // and takes hits at a rate a smaller body never would: at three he won under a
-  // fifth of his bouts, at eight he wins a little over half, and the fight lasts
-  // ten seconds or so instead of four — long enough to be worth watching.
-  const WAGER_HITS = 8;
-  let wager = null;          // the bet currently riding on the sand
-  // Which arms the green man is wearing. Kept separate from `wager` because the
-  // bet is settled the instant the bout ends and the sand is still on screen
-  // behind the result — he has to keep his crest while you read it.
-  let wagerArm = null;
+  // ---- Sponsio: the bouts you paid to watch ----
+  // A slip is laid, and then it is fought. Each leg is a duel between two men off
+  // the ladder — neither of them you, neither of them driven by anything but the
+  // same autopilot on both sides. The stake is gone before the first shot, and a
+  // parlay is fought leg by leg until one of them falls the wrong way.
+  let slip = null;
   const slipEl = document.getElementById("slip");
   const slipArm = document.getElementById("slipArm");
   const slipStake = document.getElementById("slipStake");
   const slipPays = document.getElementById("slipPays");
 
-  function fightWager(stake, armKey, f) {
-    const pa = playerArm(armKey);
-    wagerArm = armKey;
-    const { odds } = wagerOdds(armKey, f);
-    wager = { stake: stake, arm: armKey, foe: f, odds: odds, pays: Math.round(stake * odds) };
+  function layWager() {
+    slip = {
+      stake: betStake,
+      odds: parlayOdds(),
+      legs: picks.map((pk) => ({ a: pk.bout.a, b: pk.bout.b, side: pk.side, taken: pk.taken })),
+      idx: 0,
+      // What the bribes have cost the price so far. A man you have interfered
+      // with is not the man you were quoted, and the desk adjusts accordingly.
+      cut: 1,
+      spent: 0,
+    };
+    card.settled = true;
+    localStorage.setItem(DEN_KEY, String(Math.max(0, denarii() - slip.stake)));
+    runLeg();
+  }
 
-    // The stake leaves your hands when the bet is laid, not when it is settled.
-    localStorage.setItem(DEN_KEY, String(Math.max(0, denarii() - stake)));
-
-    playerBuff = pa;
-    botSkill = pa.skill || 0;
-    // A man set against the arms he was trained to face has seen this fight before.
-    // The odds already charged you for it, so it has to be real on the sand: he
-    // reads quicker and scores harder against a proper opponent.
-    if (legitPairing(armKey, f.arm)) {
-      playerBuff = Object.assign({}, pa, { drain: (pa.drain || 1) * 1.10 });
-      botSkill += 0.10;
-    }
-    botT = 0;
-    // A wager is a booked bout on its own terms — three wounds, blood drawn —
-    // whatever contract you happen to have selected. Otherwise the Ludus, where
-    // nobody can lose, would print money.
-    practice = false;
-    // He fights at full size, which means he is hit far more often than a man
-    // half his width would be — at three wounds he died in almost every bout. The
-    // count is what pays for the size, so the two have to be set together.
-    maxHits = Math.max(1, WAGER_HITS + (pa.hits || 0));
-
+  function runLeg() {
+    const leg = slip.legs[slip.idx];
+    const backed = leg.side === 0 ? leg.a : leg.b;
     activeLadderFoe = null;
     activeLevel = null;
     campaign = "inferno";
     activeCamp = {
-      name: f.name,
-      accent: armOf(f.arm).color,
-      stages: [{
-        name: f.name, key: f.key, hp: f.hp, arm: f.arm,
-        depth: 3, minions: false, final: true,
-      }],
+      name: `${leg.a.name} v ${leg.b.name}`,
+      accent: armOf(backed.arm).color,
+      stages: [{ name: leg.a.name, key: leg.a.key, hp: leg.a.hp, arm: leg.a.arm, minions: false, final: true }],
     };
     STAGES = activeCamp.stages;
-
-    slipArm.textContent = armOf(armKey).name.toUpperCase();
-    slipStake.textContent = String(stake);
-    slipPays.textContent = String(wager.pays);
+    slipArm.textContent = backed.name.toUpperCase();
+    slipStake.textContent = String(slip.stake);
+    slipPays.textContent = String(Math.round(slip.stake * slip.odds * slip.cut));
     slipEl.classList.remove("hidden");
-
     menuEl.classList.add("hidden");
+    endEl.classList.add("hidden");
     buildPips(1);
-    startGame("wager", 0);
-    // A wager is two gladiators, not a gladiator and a spark: he takes the sand
-    // at the same size as the man across from it. This is his real body and not a
-    // costume — the shots hit exactly the shape you can see, which is the whole
-    // reason it is set here and not in the drawing.
-    player.r = boss.r;
+    startGame("duel", 0);
+    // Stage number, your wound pips, your clock — every line of the HUD is about
+    // a man holding a sword, and here you are holding a betting slip.
+    hudEl.classList.add("hidden");
+    startDuel(leg.a, leg.b, leg.side);
+    // After the duel exists, not before: the panel asks whether there is anyone
+    // on the sand to bribe, and until startDuel there is not.
+    renderBribeHint();
   }
 
-  // Settle up and put everything back the way a normal bout expects to find it.
-  function endWager(won) {
-    const w = wager;
-    wager = null;
-    playerBuff = {};
-    botSkill = 0;
-    slipEl.classList.add("hidden");
-    setDifficulty(difficulty);   // restores practice and maxHits
-    if (!w) return "";
-    if (won) {
-      addDenarii(w.pays);
-      const net = w.pays - w.stake;
-      return `Paid at ×${w.odds.toFixed(2)} — ${w.pays} denarii, ${net >= 0 ? "+" : ""}${net} on the stake. Purse ${denarii()}.`;
-    }
-    return `The stake stays in the sand. ${w.stake} denarii gone. Purse ${denarii()}.`;
+  // The bout on the sand has ended. Either the next leg goes up, or the slip is
+  // settled and you find out what your reading was worth.
+  function settleDuel() {
+    const leg = slip.legs[slip.idx];
+    const backed = leg.side === 0 ? duel.a : duel.b;
+    const won = duel.over === backed;
+    const push = duel.over === null;
+    duelSide = null;
+    // `duel` is deliberately left standing. The end screen is a panel over a live
+    // canvas, and the sand behind it has to keep being the sand this bout was
+    // fought on — drop it here and the renderer falls back to the ordinary
+    // one-fighter scene, drawn from globals still pointing at two dead duellists.
+    duel.finished = true;
+    if (push) return finishSlip("push", leg);
+    if (!won) return finishSlip("lost", leg);
+    slip.idx += 1;
+    if (slip.idx >= slip.legs.length) return finishSlip("won", leg);
+    // A leg stood. Show it, then send the next pair out.
+    state = GS.OVER;
+    stopMusic();
+    hudEl.classList.add("hidden");
+    editorPanel.classList.add("hidden");
+    endEl.classList.remove("hidden");
+    endTitle.textContent = "The leg stands";
+    endTitle.style.color = COLORS.gold;
+    endStat.textContent = `${(leg.side === 0 ? leg.a : leg.b).name} put ${(leg.side === 0 ? leg.b : leg.a).name} down in ${totalTime.toFixed(1)}s.`;
+    endBest.textContent = `${slip.legs.length - slip.idx} to come. Nothing is paid until every one of them stands.`;
+    againBtn.textContent = "Send them out";
+    endHint.textContent = "Space for the next leg";
   }
+
+  function finishSlip(how, leg) {
+    const s = slip;
+    slip = null;
+    slipEl.classList.add("hidden");
+    editorPanel.classList.add("hidden");
+    state = GS.OVER;
+    stopMusic();
+    hudEl.classList.add("hidden");
+    endEl.classList.remove("hidden");
+    againBtn.textContent = "Back to the Horreum";
+    endHint.textContent = "Space to return to the Horreum";
+    const mine = leg.side === 0 ? leg.a : leg.b;
+    const his = leg.side === 0 ? leg.b : leg.a;
+    if (how === "push") {
+      addDenarii(s.stake);
+      endTitle.textContent = "Both down";
+      endTitle.style.color = COLORS.warn;
+      endStat.textContent = `${leg.a.name} and ${leg.b.name} went down together. Nobody stands, so nobody is paid.`;
+      endBest.textContent = `The stake comes back — ${s.stake} denarii. Purse ${denarii()}.`;
+      return;
+    }
+    if (how === "lost") {
+      endTitle.textContent = "Your man is down";
+      endTitle.style.color = COLORS.danger;
+      endStat.textContent = `${his.name} put ${mine.name} down after ${totalTime.toFixed(1)}s. You watched it happen.`;
+      const bribed = s.spent ? ` The ${s.spent} you passed the editor went with it.` : "";
+      endBest.textContent = `The stake stays in the sand. ${s.stake} denarii gone.${bribed} Purse ${denarii()}.`;
+      return;
+    }
+    const odds = Math.round(s.odds * s.cut * 20) / 20;
+    const pays = Math.round(s.stake * odds);
+    addDenarii(pays);
+    const net = pays - s.stake - s.spent;
+    endTitle.textContent = s.legs.length > 1 ? "The parlay stands" : "Your man stands";
+    endTitle.style.color = COLORS.gold;
+    endStat.textContent = `${mine.name} put ${his.name} down in ${totalTime.toFixed(1)}s.`;
+    const shaved = s.cut < 1
+      ? ` The desk shaved it to ×${odds.toFixed(2)} for what you paid the editor.`
+      : "";
+    endBest.textContent = `Paid at ×${odds.toFixed(2)} — ${pays} denarii, ${net >= 0 ? "+" : ""}${net} on the day.${shaved} Purse ${denarii()}.`;
+  }
+
+  // Walking out on a bout you have money on is a forfeit, same as it ever was.
+  function forfeitSlip() {
+    if (!slip) return;
+    slip = null;
+    duelSide = null;
+    slipEl.classList.add("hidden");
+  }
+
+  // ---- Bribing the editor ----
+  // The man who puts on the games can be reached, and a Roman crowd would have
+  // assumed as much. Two things are for sale: a word to slow a man down, and the
+  // gates, which is not a word at all. Both are open on any bout, including the
+  // one you have money on — and that is exactly why each one shaves your price.
+  // You are no longer betting on what happens; you are paying for it.
+  const BRIBES = {
+    slow: { cost: 40, cut: 0.88, label: "a word in the editor's ear" },
+    gates: { cost: 90, cut: 0.76, label: "the gates" },
+  };
+
+  const editorPanel = document.getElementById("editorPanel");
+  const epRows = { slow: document.getElementById("epSlow"), gates: document.getElementById("epGates") };
+  function renderBribeHint() {
+    if (!duel || !slip) { editorPanel.classList.add("hidden"); return; }
+    editorPanel.classList.remove("hidden");
+    const purse = denarii();
+    for (const k of ["slow", "gates"]) {
+      const B = BRIBES[k], row = epRows[k];
+      row.querySelector(".ep-cost").textContent = `✦ ${B.cost}`;
+      row.querySelector(".ep-cut").textContent = `Your price × ${B.cut.toFixed(2)}`;
+      // The gates only open once. Saying so on the panel beats letting someone
+      // spend ninety twice to find out.
+      const spent = k === "gates" && slip.gatesOpen;
+      row.classList.toggle("spent", !!spent);
+      row.classList.toggle("poor", purse < B.cost && !spent);
+    }
+  }
+
+  function bribe(kind, side) {
+    if (!duel || !slip) return false;
+    const B = BRIBES[kind];
+    if (!B || denarii() < B.cost) return false;
+    if (kind === "gates" && slip.gatesOpen) return false;
+    const target = side === 0 ? duel.a : duel.b;
+    localStorage.setItem(DEN_KEY, String(Math.max(0, denarii() - B.cost)));
+    slip.spent += B.cost;
+    // It only costs you a price if it helped the man you backed. Slowing your own
+    // fighter is its own punishment and the desk does not need to add to it.
+    const leg = slip.legs[slip.idx];
+    const backed = leg.side === 0 ? duel.a : duel.b;
+    if (target !== backed) slip.cut *= B.cut;
+    slipPays.textContent = String(Math.round(slip.stake * slip.odds * slip.cut));
+    if (kind === "slow") {
+      target.fx.slow = 3.2;
+      pickupFlash = { label: "A WORD WITH THE EDITOR", color: "#b06bff", t: 0 };
+    } else {
+      // The gates: beasts, on him, and they do not care whose money is on what.
+      slip.gatesOpen = true;
+      target.arm = Object.assign({}, target.arm, { beasts: (target.arm.beasts || 0) + 1.6 });
+      target.minionTimer = 0.4;
+      pickupFlash = { label: "THE GATES OPEN", color: COLORS.warn, t: 0 };
+      shake = 12;
+    }
+    sfx("phase");
+    return true;
+  }
+
 
   // Win and you take their rung and they take yours. Lose and you slip one.
   // Nothing is staked in the Ludus — wooden swords settle nothing.
@@ -1818,19 +1838,6 @@
     endTitle.style.color = COLORS.safe;
     if (mode === "boss") markFormBeaten(campaign, stageIdx);   // the crown counts too
 
-    // A wager pays the slip and nothing else — you did not fight, so there is no
-    // purse to collect and nothing here is recorded against your name.
-    if (mode === "wager") {
-      const w = wager;
-      endTitle.textContent = "Your man stands";
-      endTitle.style.color = COLORS.gold;
-      endStat.textContent = `${w.foe.name} is down in ${totalTime.toFixed(1)}s. The ${armOf(w.arm).name} did his work.`;
-      endBest.textContent = endWager(true);
-      againBtn.textContent = "Back to the Horreum";
-      endHint.textContent = "Space to return to the Horreum";
-      return;
-    }
-
     // The purse: a clear pays out its peril, scaled by the contract you fought
     // under. The Ludus pays nothing.
     const mult = PAY_MULT[difficulty] != null ? PAY_MULT[difficulty] : 1;
@@ -1886,16 +1893,6 @@
     const stageName = STAGES[stageIdx].name;
     againBtn.textContent = STAGES.length === 1 ? "Fight Again" : "Play Again";
 
-    if (mode === "wager") {
-      const w = wager;
-      endTitle.textContent = "Your man is down";
-      endStat.textContent = `${stageName} put him down after ${totalTime.toFixed(1)}s. You watched it happen.`;
-      endBest.textContent = endWager(false);
-      againBtn.textContent = "Back to the Horreum";
-      endHint.textContent = "Space to return to the Horreum";
-      return;
-    }
-
     // Losing a ladder bout costs you a rung — the Roman part of the ladder is
     // that standing can go down as well as up.
     if (mode === "ladder") {
@@ -1925,6 +1922,17 @@
   // ---- Input ----
   const MOVE_KEYS = { ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1 };
   window.addEventListener("keydown", (e) => {
+    // The editor is reachable during a duel, and only during a duel. Both bribes
+    // land on the man you did not back, because that is the only direction anyone
+    // has ever wanted to bribe in.
+    if (duel && slip && (e.key === "1" || e.key === "2")) {
+      e.preventDefault();
+      const leg = slip.legs[slip.idx];
+      const other = leg.side === 0 ? 1 : 0;
+      if (!bribe(e.key === "1" ? "slow" : "gates", other)) sfx("tick");
+      renderBribeHint();
+      return;
+    }
     if (e.key in MOVE_KEYS) { keys[e.key] = true; e.preventDefault(); return; }
     if (e.code === "Space" || e.key === " ") {
       // Only the Play tab reacts to Space, and never while the editor is open.
@@ -1942,9 +1950,9 @@
     // A ladder bout has already been settled by the time you get here, so there's
     // nothing to replay — the board has moved and the next challenge is a new one.
     if (mode === "ladder") return openLadder();
-    // A wager is settled the moment it ends — there is nothing to re-fight, only
-    // another bet to lay.
-    if (mode === "wager") return openHorreum();
+    // A duel is settled the moment it ends — there is nothing to re-fight. Either
+    // the next leg of the slip goes out, or you are back at the desk.
+    if (mode === "duel") return slip ? runLeg() : openHorreum();
     if (mode === "level" && activeLevel) {
       // Battles and Library levels both re-enter through their own definition.
       const b = BATTLES.find((x) => x.id === activeLevel.id);
@@ -2139,46 +2147,201 @@
     });
   }
 
-  // ---- Sponsio (the wager desk) ----
+  // ---- Sponsio: the card ----
+  //
+  // What a price here is, and is not. The old desk quoted from seventeen thousand
+  // measured fights, because it was selling one thing — a man you had armed
+  // yourself against a known opponent — and that could be counted. A duel between
+  // two ladder men is a different animal, and nobody has fought seventeen thousand
+  // of those. So these prices are read rather than counted: a weight for what each
+  // man brings, and then a jitter for everything the desk cannot see — how he
+  // slept, what the sand is like this afternoon, whether the crowd is with him.
+  // The number is close enough to argue with and wrong often enough to be worth
+  // betting against, which is the only honest thing a bookmaker has ever sold.
+  const TAKEOUT = 0.08;        // the house's cut, and the reason the desk stays open
+  const CARD_SIZE = 3;         // bouts posted at once
+  // How long the board stands before the first is called. Short enough that the
+  // drift is pressure rather than scenery: you read three bouts, six prices and a
+  // moving market, and you do not get to think it over twice.
+  const OFF_SECONDS = 15;
   const stakeRow = document.getElementById("stakeRow");
-  const armGrid = document.getElementById("armGrid");
-  const oddsBox = document.getElementById("oddsBox");
+  const cardList = document.getElementById("cardList");
+  const cardClock = document.getElementById("cardClock");
+  const slipBox = document.getElementById("slipBox");
   const wagerMsg = document.getElementById("wagerMsg");
   const wagerBtn = document.getElementById("wagerBtn");
   const STAKES = [10, 25, 50, 100, 250];
   let betStake = 25;
-  let betArm = "secutor";
-  let betFoe = null;
+  let card = null;             // the three bouts on the board
+  let picks = [];              // [{ bout, side }] — one is a single, more is a parlay
+  let cardTimer = null;
+
+  // Roughly what a man is worth on the sand. His standing on the ladder carries
+  // most of it — the board is sorted by who has beaten whom — and his armatura
+  // moves it from there: a breastplate keeps him up, two swords double his output,
+  // a bow reaches, a helm he cannot see out of does not.
+  function fighterWeight(f) {
+    const rank = LADDER.findIndex((l) => l.id === f.id);
+    let w = 0.55 + (rank / Math.max(1, LADDER.length - 1)) * 1.15;
+    const A = armOf(f.arm);
+    w *= (A.hp || 1) * 0.75 + 0.25;
+    w *= (A.spd || 1) * 0.35 + 0.65;
+    if (A.volley) w *= 1 + A.volley * 0.10;
+    if (A.twin) w *= 1.12;
+    if (A.curve) w *= 1.06;
+    if (A.shield) w *= 1 + A.shield * 0.13;
+    if (A.net) w *= 1.10;
+    if (A.beasts) w *= 1.14;
+    if (A.blind) w *= 0.88;
+    w *= (f.hp || 40) / 42;
+    return w;
+  }
+
+  // The unseen half. Drawn once when the bout is posted and held for as long as
+  // it stands, so a price does not shiver every time the board redraws — the
+  // crowd's money moves it after that, and only that.
+  function pricePair(a, b) {
+    const wa = fighterWeight(a) * (0.78 + Math.random() * 0.44);
+    const wb = fighterWeight(b) * (0.78 + Math.random() * 0.44);
+    let p = wa / (wa + wb);
+    p = Math.max(0.10, Math.min(0.90, p));
+    return p;
+  }
+
+  function priceToOdds(p) {
+    const o = (1 - TAKEOUT) / Math.max(0.02, p);
+    return Math.max(1.05, Math.min(9, Math.round(o * 20) / 20));
+  }
+
+  function makeBout(a, b) {
+    const p = pricePair(a, b);
+    return {
+      a: a, b: b, p: p,
+      open: [priceToOdds(p), priceToOdds(1 - p)],   // where it was posted
+      odds: [priceToOdds(p), priceToOdds(1 - p)],   // where it stands now
+      steam: (Math.random() - 0.5) * 0.5,           // which way the money is leaning
+      done: false, won: null,
+    };
+  }
+
+  function dealCard() {
+    const pool = LADDER.slice();
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = pool[i]; pool[i] = pool[j]; pool[j] = t;
+    }
+    const bouts = [];
+    for (let i = 0; i < CARD_SIZE * 2 && bouts.length < CARD_SIZE; i += 2) {
+      bouts.push(makeBout(pool[i], pool[i + 1]));
+    }
+    card = { bouts: bouts, off: OFF_SECONDS, settled: false };
+    picks = [];
+  }
+
+  // The crowd bets too, and the board moves under you. A man being backed shortens;
+  // the money has to come off somebody, so his opponent drifts. Laying early is
+  // worth something and hesitating costs — which is the whole point of a clock.
+  function driftCard() {
+    if (!card || card.settled) return;
+    card.off -= 1;
+    for (const bt of card.bouts) {
+      bt.steam += (Math.random() - 0.5) * 0.35;
+      bt.steam = Math.max(-1, Math.min(1, bt.steam));
+      const move = bt.steam * 0.035;
+      bt.odds[0] = Math.max(1.05, Math.min(9, Math.round((bt.odds[0] - move) * 20) / 20));
+      bt.odds[1] = Math.max(1.05, Math.min(9, Math.round((bt.odds[1] + move) * 20) / 20));
+    }
+    if (card.off <= 0) {
+      // The board has stood too long. Nobody's money is on it, so it is torn down
+      // and a new one goes up — a card you did not back is a card you did not lose.
+      dealCard();
+      wagerMsg.textContent = "The card was called and you had nothing on it. A new one goes up.";
+      wagerMsg.className = "";
+    }
+    renderSponsio();
+  }
 
   function openHorreum() {
     state = GS.MENU;
     stopMusic();
+    duel = null;              // the sand is behind you; stop drawing it
+    duelSide = null;
     editorEl.classList.add("hidden");
     endEl.classList.add("hidden");
     hudEl.classList.add("hidden");
     menuEl.classList.remove("hidden");
     setTab("horreum");
     renderShop();
+    // A card that has been fought is finished business. Coming back to the desk
+    // means a new board, not the wreckage of the last one.
+    if (!card || card.settled) dealCard();
     renderSponsio();
   }
 
-  // Who is standing across the sand. Drawn from the same twenty-four who hold the
-  // ladder — a wager is a real bout between real names, not a generated one.
-  const BOOKABLE = LADDER.filter(foeBookable);
-  function drawFoe() {
-    const pool = BOOKABLE.length ? BOOKABLE : LADDER;
-    let f = pool[Math.floor(Math.random() * pool.length)];
-    if (betFoe && pool.length > 1) {
-      // Never offer the same man twice running; the point of the desk is a new read.
-      let guard = 8;
-      while (f.id === betFoe.id && guard-- > 0) f = pool[Math.floor(Math.random() * pool.length)];
+  // Your price is the one you took, not the one on the board when he falls.
+  function pickOdds(pk) { return pk.taken; }
+
+  function parlayOdds() {
+    let o = 1;
+    for (const pk of picks) o *= pickOdds(pk);
+    return Math.round(o * 20) / 20;
+  }
+
+  function togglePick(bt, side, taken) {
+    const at = picks.findIndex((pk) => pk.bout === bt);
+    if (at >= 0) {
+      const was = picks[at];
+      picks.splice(at, 1);
+      if (was.side === side) return;      // clicking the man you already had takes him off
     }
-    betFoe = f;
+    picks.push({ bout: bt, side: side, taken: taken });
   }
 
   function renderSponsio() {
-    if (!betFoe) drawFoe();
+    if (!card) dealCard();
     const purse = denarii();
+
+    cardClock.textContent = `OFF IN ${Math.max(0, card.off)}s`;
+    cardClock.className = card.off <= 10 ? "late" : "";
+
+    cardList.innerHTML = "";
+    card.bouts.forEach((bt) => {
+      const row = document.createElement("div");
+      row.className = "bout";
+      const corners = document.createElement("div");
+      corners.className = "corners";
+      [bt.a, bt.b].forEach((f, side) => {
+        const A = armOf(f.arm);
+        const held = picks.find((pk) => pk.bout === bt && pk.side === side);
+        const c = document.createElement("button");
+        c.className = "corner" + (held ? " on" : "");
+        c.innerHTML = `<span class="cn"></span><span class="cb"></span><span class="cp"></span><span class="cd"></span>`;
+        c.querySelector(".cn").textContent = f.name;
+        c.querySelector(".cn").style.color = A.color;
+        c.querySelector(".cb").textContent = `${A.name} · ${PATTERN_BY_KEY[f.key].name}`;
+        c.querySelector(".cp").textContent = `×${bt.odds[side].toFixed(2)}`;
+        const move = bt.odds[side] - bt.open[side];
+        const cd = c.querySelector(".cd");
+        if (Math.abs(move) >= 0.05) {
+          cd.textContent = move < 0 ? `▼ from ×${bt.open[side].toFixed(2)}` : `▲ from ×${bt.open[side].toFixed(2)}`;
+          cd.className = "cd " + (move < 0 ? "in" : "out");
+        } else {
+          cd.textContent = "unmoved";
+          cd.className = "cd";
+        }
+        c.addEventListener("click", () => {
+          togglePick(bt, side, bt.odds[side]);
+          renderSponsio();
+        });
+        corners.appendChild(c);
+      });
+      const vs = document.createElement("div");
+      vs.className = "vs";
+      vs.textContent = "AGAINST";
+      row.appendChild(corners);
+      row.appendChild(vs);
+      cardList.appendChild(row);
+    });
 
     stakeRow.innerHTML = "";
     STAKES.forEach((s) => {
@@ -2191,84 +2354,48 @@
       stakeRow.appendChild(b);
     });
 
-    armGrid.innerHTML = "";
-    Object.keys(PLAYER_ARMS).forEach((key) => {
-      const A = armOf(key), pa = PLAYER_ARMS[key];
-      const b = document.createElement("button");
-      b.className = "armpick" + (key === betArm ? " on" : "");
-      if (key === betArm) b.style.color = A.color;
-      const bits = [];
-      if (pa.spd) bits.push(`${pa.spd > 1 ? "+" : ""}${Math.round((pa.spd - 1) * 100)}% speed`);
-      if (pa.drain) bits.push(`${pa.drain > 1 ? "+" : ""}${Math.round((pa.drain - 1) * 100)}% damage`);
-      if (pa.hits) bits.push(`${pa.hits > 0 ? "+" : ""}${pa.hits} wound${Math.abs(pa.hits) > 1 ? "s" : ""}`);
-      if (pa.skill) bits.push(pa.skill > 0 ? "sharp eye" : "blind");
-      if (pa.netproof) bits.push("net-proof");
-      b.innerHTML = `<span class="an"></span><span class="aw"></span><span class="ax"></span>`;
-      b.querySelector(".an").textContent = A.name;
-      b.querySelector(".aw").textContent = bits.join(" · ");
-      // What he actually carries matters more than his multipliers, so it gets
-      // its own line rather than being buried in a tooltip.
-      b.querySelector(".ax").textContent = pa.special || "";
-      b.title = pa.note || "";
-      b.addEventListener("click", () => { betArm = key; renderSponsio(); });
-      armGrid.appendChild(b);
-    });
-
-    const { odds } = wagerOdds(betArm, betFoe);
-    const legit = legitPairing(betArm, betFoe.arm);
-    const foeArm = armOf(betFoe.arm);
-    oddsBox.style.borderLeftColor = foeArm.color;
-    oddsBox.innerHTML = "";
-    const who = document.createElement("div");
-    who.className = "who";
-    const wn = document.createElement("div");
-    wn.className = "wn";
-    wn.textContent = betFoe.name;
-    wn.style.color = foeArm.color;
-    const wb = document.createElement("div");
-    wb.className = "wb";
-    wb.textContent = `${foeArm.name} · ${PATTERN_BY_KEY[betFoe.key].name} · ${betFoe.blurb}`;
-    who.appendChild(wn);
-    who.appendChild(wb);
-    if (legit) {
-      const lg = document.createElement("div");
-      lg.className = "wb";
-      lg.style.color = COLORS.gold;
-      lg.textContent = "A proper pairing — the crowd will approve, and he fights better for it.";
-      who.appendChild(lg);
+    if (picks.length === 0) {
+      slipBox.classList.add("hidden");
+    } else {
+      slipBox.classList.remove("hidden");
+      const o = parlayOdds();
+      const lines = picks
+        .map((pk) => `${pk.bout[pk.side === 0 ? "a" : "b"].name} at ×${pk.taken.toFixed(2)}`)
+        .join("<br>");
+      slipBox.innerHTML = picks.length === 1
+        ? `${lines}<br>Pays <b>✦ ${Math.round(betStake * o)}</b>`
+        : `<b>PARLAY · ${picks.length} BOUTS</b><br>${lines}<br>` +
+          `All must stand. Pays <b>✦ ${Math.round(betStake * o)}</b> at ×${o.toFixed(2)} — one falls and the slip is waste.`;
     }
-    oddsBox.appendChild(who);
-    const od = document.createElement("div");
-    od.className = "odds";
-    const ov = document.createElement("div");
-    ov.className = "ov";
-    ov.textContent = `×${odds.toFixed(2)}`;
-    const ol = document.createElement("span");
-    ol.className = "ol";
-    ol.textContent = `pays ✦ ${Math.round(betStake * odds)}`;
-    od.appendChild(ov);
-    od.appendChild(ol);
-    oddsBox.appendChild(od);
 
-    const canBet = purse >= betStake;
+    const canBet = purse >= betStake && picks.length > 0;
     wagerBtn.disabled = !canBet;
     wagerBtn.className = canBet ? "primary" : "lockbtn";
-    wagerBtn.textContent = canBet ? "Lay the Wager" : "Not enough denarii";
+    wagerBtn.textContent = picks.length === 0 ? "Back a man first"
+      : purse < betStake ? "Not enough denarii"
+      : picks.length > 1 ? `Lay the Parlay · ✦ ${betStake}` : `Lay the Wager · ✦ ${betStake}`;
   }
 
-  document.getElementById("drawFoeBtn").addEventListener("click", () => {
-    drawFoe();
+  // The board only moves while you are standing in front of it. A card drifting
+  // in an empty Horreum would mean coming back to prices that had wandered off
+  // for reasons nobody was there to see.
+  setInterval(() => {
+    if (state !== GS.MENU || menuEl.classList.contains("hidden")) return;
+    const panel = document.querySelector('.tabpanel[data-panel="horreum"]');
+    if (!panel || panel.classList.contains("hidden")) return;
+    driftCard();
+  }, 1000);
+
+  document.getElementById("newCardBtn").addEventListener("click", () => {
+    dealCard();
     wagerMsg.textContent = "";
     renderSponsio();
   });
+
   wagerBtn.addEventListener("click", () => {
-    if (denarii() < betStake) {
-      wagerMsg.textContent = "You cannot stake what you do not have.";
-      wagerMsg.className = "bad";
-      return;
-    }
+    if (picks.length === 0 || denarii() < betStake) return;
     wagerMsg.textContent = "";
-    fightWager(betStake, betArm, betFoe);
+    layWager();
   });
 
   function doRedeem() {
@@ -4556,143 +4683,10 @@
     if (pickupFlash) { pickupFlash.t += dt; if (pickupFlash.t > 1.2) pickupFlash = null; }
   }
 
-  // ---- The arms a wager fighter actually carries ----
-  // Everything below is inert outside a Sponsio, because `playerBuff` is empty
-  // for every bout you fight yourself.
-  let myNets = [], myArrows = [], myGuardAng = -Math.PI / 2;
-  let myReteT = 0, myArrowT = 0, myLoricaT = 0, myLorica = false, myHold = 0, myImpetusT = 0;
-  let myBlocks = 0;      // shots his shield can still take
-
-  function resetArms() {
-    myNets = []; myArrows = [];
-    myGuardAng = -Math.PI / 2;
-    myReteT = playerBuff.rete || 0;
-    myArrowT = playerBuff.arrows || 0;
-    myLorica = !!playerBuff.lorica;      // he takes the sand already wearing it
-    myLoricaT = 0;
-    myHold = 0;
-    myImpetusT = 0;
-    myBlocks = playerBuff.block || 0;
-  }
-
-  // The shield is held toward the man trying to kill him, and swings there at a
-  // human rate rather than snapping — which is what leaves his flank open when the
-  // opponent crosses him quickly, and is the whole cost of carrying one.
-  function updateMyArms(dt) {
-    const pb = playerBuff;
-    if (pb.guard) {
-      const want = Math.atan2(boss.y - player.y, boss.x - player.x);
-      let d = want - myGuardAng;
-      while (d > Math.PI) d -= Math.PI * 2;
-      while (d < -Math.PI) d += Math.PI * 2;
-      // A shield is heavy and a man turns at a human rate. This is the whole cost
-      // of carrying one: an opponent who crosses him faster than he can come
-      // round gets a clean shot at his open side. Held at 0.95 rad and snapping
-      // instantly it was simply immunity — the murmillo beat every man on the
-      // board including the one nobody else can beat at all.
-      const sw = pb.sway || 3.5;
-      myGuardAng += Math.max(-sw * dt, Math.min(sw * dt, d));
-    }
-    if (pb.lorica) {
-      if (!myLorica) {
-        myLoricaT += dt;
-        if (myLoricaT >= pb.lorica) { myLorica = true; myLoricaT = 0; }
-      }
-    }
-    if (pb.impetus) myImpetusT += dt;
-    // The arm behind the shield recovers between volleys.
-    if (pb.block) myBlocks = Math.min(pb.block, myBlocks + (pb.regen || 0.8) * dt);
-
-    // The net: thrown at the opponent, and a fouled man fights slowly.
-    if (pb.rete) {
-      myReteT -= dt;
-      if (myReteT <= 0) {
-        myReteT = pb.rete;
-        const a = Math.atan2(boss.y - player.y, boss.x - player.x);
-        myNets.push({ x: player.x, y: player.y, vx: Math.cos(a) * 300, vy: Math.sin(a) * 300, r: 17, spin: 0 });
-        sfx("phase");
-      }
-    }
-    for (let i = myNets.length - 1; i >= 0; i--) {
-      const n = myNets[i];
-      n.x += n.vx * dt; n.y += n.vy * dt; n.spin += dt * 5;
-      if (n.x < -60 || n.x > W + 60 || n.y < -60 || n.y > H + 60) { myNets.splice(i, 1); continue; }
-      if (Math.hypot(n.x - boss.x, n.y - boss.y) <= n.r + boss.r) {
-        myNets.splice(i, 1);
-        boss.fouled = 2.2;
-        pickupFlash = { label: "NETTED HIM!", color: "#4f9bd8", t: 0 };
-        burst(boss.x, boss.y, 16, "#4f9bd8", 200, { life: 0.5 });
-        crowdSurge(0.5);
-      }
-    }
-
-    // The bow: shafts that draw blood without the emperor's eye involved at all.
-    if (pb.arrows) {
-      myArrowT -= dt;
-      if (myArrowT <= 0) {
-        myArrowT = pb.arrows;
-        const a = Math.atan2(boss.y - player.y, boss.x - player.x);
-        myArrows.push({ x: player.x, y: player.y, vx: Math.cos(a) * 620, vy: Math.sin(a) * 620, r: 5 });
-        sfx("shoot");
-      }
-    }
-    for (let i = myArrows.length - 1; i >= 0; i--) {
-      const s = myArrows[i];
-      s.x += s.vx * dt; s.y += s.vy * dt;
-      if (s.x < -40 || s.x > W + 40 || s.y < -40 || s.y > H + 40) { myArrows.splice(i, 1); continue; }
-      if (Math.hypot(s.x - boss.x, s.y - boss.y) <= s.r + boss.r) {
-        myArrows.splice(i, 1);
-        boss.hp -= 4.5;
-        boss.hitFlash = 0.08;
-        burst(s.x, s.y, 5, "#f0b429", 180, { life: 0.35, r: 2 });
-      }
-    }
-    if (boss.fouled > 0) boss.fouled -= dt;
-  }
-
-  // A horseman does not run flat out; he gathers and charges. Roughly a second of
-  // burst in every three, so he crosses the arena in bounds — and the bot, which
-  // re-reads the sand by distance covered rather than time, keeps up with it.
-  function impetusMul() {
-    if (!playerBuff.impetus) return 1;
-    const cycle = myImpetusT % 3.0;
-    return cycle < 1.05 ? playerBuff.impetus : 0.86;
-  }
-
-  // Does his shield stand between him and this shot — and has it anything left?
-  //
-  // The angle alone was never enough. Almost every shot on the sand comes from the
-  // one man throwing them, and the shield is held toward that man, so a shot that
-  // reaches him is nearly always inside the arc however narrow the arc is made:
-  // at 0.95 radians and again at 0.62 the murmillo won every bout either way,
-  // including against the retiarius nobody else beats at all. What a shield really
-  // runs out of is not width but the arm behind it. So it takes a counted number
-  // of shots and is then beaten aside, recovering slowly — superb against a slow
-  // pattern, worth very little against a wall of darts.
-  function guardStops(x, y) {
-    const g = playerBuff.guard;
-    if (!g || myBlocks < 1) return false;
-    let d = Math.atan2(y - player.y, x - player.x) - myGuardAng;
-    while (d > Math.PI) d -= Math.PI * 2;
-    while (d < -Math.PI) d += Math.PI * 2;
-    return Math.abs(d) <= g;
-  }
-
   // Something red touched you. Returns true only if that killed you.
   function playerHit() {
     if (fx.invuln > 0) return false;
     if (practice) { fx.invuln = 0.5; hurtFlash = 0.2; return false; }
-    if (myLorica) {
-      // The breastplate takes it. It can be beaten back into shape mid-bout.
-      myLorica = false;
-      myLoricaT = 0;
-      fx.invuln = 1.0;
-      pickupFlash = { label: "LORICA HELD", color: "#9c9a92", t: 0 };
-      burst(player.x, player.y, 20, "#c9c6bd", 260, { life: 0.45 });
-      shake = 8;
-      freeze = 0.05;
-      return false;
-    }
     if (fx.shield) {
       // The shield eats one hit whole and buys a longer moment of mercy.
       fx.shield = false;
@@ -4743,7 +4737,6 @@
       if (n.x < -60 || n.x > W + 60 || n.y < -60 || n.y > H + 60) { nets.splice(i, 1); continue; }
       if (hit(player, n)) {
         nets.splice(i, 1);
-        if (playerBuff.netproof) continue;   // a retiarius has nothing for a net to catch
         fx.snare = 1.25;
         pickupFlash = { label: "NETTED!", color: "#4f9bd8", t: 0 };
         burst(player.x, player.y, 16, "#4f9bd8", 190, { life: 0.5 });
@@ -4777,6 +4770,20 @@
 
   // ---- Boss movement helpers ----
   function moveToward(tx, ty, speed, dt) {
+    // In a duel the pattern does not get to move the man. He has his own legs and
+    // his own reasons to use them — he is dodging a second man's fire, which no
+    // pattern was written to expect. So what a pattern asks for here becomes a
+    // want rather than a translation: where he would like to be standing, handed
+    // to the bot as a goal, to be weighed against everything trying to hit him.
+    // A pursuer still wants to close and a keeper still wants his ground; both
+    // now have to earn it. `speed` is the pattern's own urgency and survives as
+    // the weight, so a pattern that lunges pulls harder than one that drifts.
+    if (duelSide) {
+      duelSide.goalX = tx;
+      duelSide.goalY = ty;
+      duelSide.goalW = Math.max(0.25, Math.min(2.2, speed / 130));
+      return;
+    }
     const dx = tx - boss.x, dy = ty - boss.y, d = Math.hypot(dx, dy) || 1;
     boss.x += (dx / d) * speed * dt;
     boss.y += (dy / d) * speed * dt;
@@ -5068,7 +5075,20 @@
     goal: 150,       // reward per pixel of progress made toward the eye
     wall: 1.5,       // cost of backing himself onto the stone
     pickup: 7,       // pull of a gift lying in the sand
-    wobble: 2200,    // how unsteady the untrained are
+    // How unsteady the untrained are. It used to be far higher, which read as a
+    // man twitching rather than a man who is not sure — the jitter is applied to
+    // a heading he then has to turn onto, so it costs him real ground.
+    wobble: 900,
+    // Sticking with a heading is worth something. Two directions can score within
+    // a hair of each other for a whole second, and without this he alternates
+    // between them every time he looks up, which is the shivering nobody wants to
+    // watch. It is a bonus for the heading he is already on, not a penalty for
+    // changing: a real threat still outweighs it instantly.
+    stay: 5200,
+    // How fast he can swing onto a new heading, in units of heading per second.
+    // A man has momentum. Snapping instantly between opposite headings is what
+    // made the old bot look like it was being drawn rather than moving.
+    turn: 11,
     react: 0.115,    // seconds committed to a heading before he looks again
     // ...but never more than this far committed. Same trap as the planning step:
     // a fixed reaction time means a swift fighter covers more ground locked into
@@ -5076,12 +5096,20 @@
     commit: 74,
   };
 
-  let botT = 0, botDx = 0, botDy = 0, botSkill = 0;
+  // botDx/botDy: the heading he has decided on. botVx/botVy: the heading he is
+  // actually travelling on, which turns onto the decision rather than jumping to
+  // it. Everything that moves him reads the second pair.
+  let botT = 0, botDx = 0, botDy = 0, botVx = 0, botVy = 0, botSkill = 0;
 
   // Where he wants to be standing. The small hot circle drains three times as
   // fast, so it is worth crossing the arena for — unless it sits behind a shield,
   // where scoring is nil and the trip is free damage to no one.
   function botGoal() {
+    // A duellist has no blue eye to stand in — he wins by landing shots, so what
+    // he wants is the ground his own pattern asked for, and failing that a decent
+    // stand-off from the other man. Closing all the way is not the same as
+    // winning: at contact both are throwing point-blank and both are hit.
+    if (duelSide) return duelGoal(duelSide);
     const A = arm;
     let tx = zone.x, ty = zone.y, weight = 1;
     const hotBlocked = A && A.shield && (() => {
@@ -5129,10 +5157,9 @@
     // A shot his shield already covers is not a threat, and a man who dodges it
     // anyway is a man who paid for a shield and then refused to stand behind it.
     for (const b of bullets) {
-      if (guardStops(b.x, b.y)) continue;
       judge(b.x, b.y, b.vx * slow, b.vy * slow, player.r + b.r + 4, 1);
     }
-    if (!playerBuff.tame) {
+    {
       for (const mn of minions) {
         if (mn.phase !== "active") continue;      // one still arriving cannot wound him
         const dx = player.x - mn.x, dy = player.y - mn.y, d = Math.hypot(dx, dy) || 1;
@@ -5142,7 +5169,7 @@
     // A net costs him his legs rather than his blood, which made it look cheap —
     // but a man snared in the open is a man who cannot leave, and the retiarius
     // was beating every armatura on the board until this was priced properly.
-    if (!playerBuff.netproof) {
+    {
       for (const n of nets) judge(n.x, n.y, n.vx, n.vy, player.r + (n.r || 16) + 4, BOT.net);
     }
     return pen;
@@ -5176,6 +5203,8 @@
       }
       // Nobody is perfectly steady. Poor arms wobble more.
       score += (Math.random() - 0.5) * BOT.wobble * Math.max(0.10, 0.42 - botSkill);
+      // What he is already doing gets the benefit of the doubt.
+      if (ux === botDx && uy === botDy) score += BOT.stay;
       if (score > bestScore) { bestScore = score; best = [ux, uy]; }
     }
     botDx = best[0]; botDy = best[1];
@@ -5192,17 +5221,24 @@
       botT = Math.max(0.03, Math.min(BOT.react, BOT.commit / sp) * (1 - botSkill * 1.9));
       botChoose();
     }
-    const dz = 0.32;   // an arrow key is on or off, so round the chosen heading onto it
-    keys.ArrowLeft  = botDx < -dz;
-    keys.ArrowRight = botDx > dz;
-    keys.ArrowUp    = botDy < -dz;
-    keys.ArrowDown  = botDy > dz;
+    // He turns onto the decision. Nothing downstream rounds this onto an arrow
+    // key any more — the keys existed because a bot was once driving a player,
+    // and quantising a heading onto eight directions was the last and worst of
+    // the three things that made him shiver.
+    const k = Math.min(1, dt * BOT.turn);
+    botVx += (botDx - botVx) * k;
+    botVy += (botDy - botVy) * k;
   }
 
   function updatePlaying(dt) {
     stageTime += dt;
     totalTime += dt;
-    if (mode === "wager") autopilot(dt);
+    // A duel runs on its own loop — two men, neither of them the player, and none
+    // of what follows (your zone, your wounds, your powerups) applies to either.
+    if (duel) {
+      if (updateDuel(dt)) settleDuel();
+      return;
+    }
 
     if (boss.hitFlash > 0) boss.hitFlash -= dt;
     if (hurtFlash > 0) hurtFlash -= dt;
@@ -5222,7 +5258,7 @@
       // A net doesn't wound you, it takes your legs — which is what the retiarius
       // was for. Everything else on the sand gets easier to hit you with.
       const sp = player.speed * (fx.snare > 0 ? 0.34 : 1) * (fx.swift > 0 ? SWIFT_MULT : 1)
-               * impetusMul();
+               ;
       const inv = 1 / Math.hypot(dx, dy);
       player.x += dx * inv * sp * dt;
       player.y += dy * inv * sp * dt;
@@ -5251,24 +5287,10 @@
 
     // A shield is ground you cannot score on: stand behind it and the eye counts
     // nothing. You have to work around to his open side.
-    // A curved blade hooks past a guard that stops a straight one, so the sica
-    // scores on ground where every other armatura scores nothing.
-    const blocked = shieldBlocks() && !playerBuff.around;
-    let mult = blocked ? 0 : (inHot ? HOT_MULT * (playerBuff.hotx || 1) : inZone ? 1 : 0);
-    // A blade long enough to reach him needs no emperor's eye at all — standing
-    // this close is its own kind of scoring, and its own kind of danger.
-    if (playerBuff.sweep && !blocked &&
-        Math.hypot(player.x - boss.x, player.y - boss.y) <= boss.r + playerBuff.sweep) {
-      mult = Math.max(mult, 0.85);
-    }
-    // The chaser works himself up: hold the eye without stepping out and he cuts
-    // harder the longer he stays, and loses it the moment he leaves.
-    if (playerBuff.surge) {
-      myHold = mult ? myHold + dt : 0;
-      mult *= 1 + Math.min(1, myHold / 3.5) * (playerBuff.surge - 1);
-    }
+    const blocked = shieldBlocks();
+    const mult = blocked ? 0 : (inHot ? HOT_MULT : inZone ? 1 : 0);
     if (mult) {
-      boss.hp -= ZONE_DRAIN * mult * (playerBuff.drain || 1) * dt;
+      boss.hp -= ZONE_DRAIN * mult * dt;
       boss.hitFlash = 0.08;
       // Embers stream off the boss while you're draining it — the feedback for
       // "this is working" that a shrinking bar alone doesn't give.
@@ -5324,7 +5346,6 @@
     stageRate *= foul;
     runStage(STAGES[stageIdx].key, edt, difficultyMul() * stageSpd * foul);
     stageRate = rateWas;
-    if (mode === "wager") updateMyArms(edt);
 
     // Minions appear from stage 3 onward — unless a custom stage says otherwise.
     // A bestiarius brings the beasts with him regardless, and brings more of them.
@@ -5361,16 +5382,9 @@
       const b = bullets[i];
       if (!hit(player, b)) continue;
       // A shield is not mercy, it is a wall: what crosses it stops there.
-      if (guardStops(b.x, b.y)) {
-        bullets.splice(i, 1);
-        myBlocks -= 1;
-        burst(b.x, b.y, 3, myBlocks < 1 ? "#e0a03f" : "#f0d489", 140, { life: 0.25, r: 1.8 });
-        continue;
-      }
       if (playerHit()) return;
     }
     for (const mn of minions) {
-      if (playerBuff.tame) break;      // the beasts know him
       if (mn.phase === "active" && hit(player, { x: mn.x, y: mn.y, r: mn.r }) && playerHit()) return;
     }
 
@@ -5379,6 +5393,449 @@
       if (stageIdx >= STAGES.length - 1) return winGame();
       nextStage();
     }
+  }
+
+  // ---- Duellum: two men on the sand, and neither of them is you ----
+  //
+  // The pattern system is written against three module globals — `boss` is
+  // whoever is throwing, `player` is whoever is being thrown at, `bullets` is
+  // where the shots go. So a duel is not a second bullet engine. It is this one,
+  // run twice a frame with those three swapped over, which is the only reason
+  // fourteen attack patterns and twelve armaturae can be made to meet each other
+  // at all: neither side ever learns it is fighting a man rather than a spark.
+  //
+  // Each man is run in two passes, and they are not the same swap. When he
+  // throws he is the boss and his opponent is the player. When he moves he is
+  // the player and the shots he is reading are his opponent's. Bind it once for
+  // both and he spends the bout dodging his own fire.
+  const DUEL_HP = 100;         // what each man takes onto the sand, before his armatura
+  const DUEL_DMG = 3.4;        // health one shot takes off the man it lands on
+  const DUEL_TOUCH = 26;       // ...and what standing inside him costs, per second
+  const DUEL_RANGE = 300;      // the ground a man keeps between them when his pattern is quiet
+  let duel = null;             // the bout on the sand, or null
+  let duelSide = null;         // whichever man the globals are currently bound to
+
+  function makeDuellist(f, x, y) {
+    const A = armOf(f.arm);
+    const hp = Math.round(DUEL_HP * (A.hp || 1));
+    return {
+      f: f, name: f.name, key: f.key, armKey: f.arm, arm: A,
+      color: COLORS.mine,        // set properly by startDuel, once there is money on it
+      crest: A.color,            // what he is trained to, worn on the body
+      body: {
+        x: x, y: y, r: 34, speed: 620 * (A.spd || 1), hits: 99,
+        fire: 0.6, fire2: 1.4, spin: 0, hitFlash: 0, hp: hp, maxhp: hp,
+        dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
+        netT: A.net ? A.net * 0.6 : 0, fouled: 0, shieldAng: -Math.PI / 2,
+      },
+      // His own fire, his own nets, his own beasts. Kept apart from the other
+      // man's for one reason above all others: a shot has to know who threw it,
+      // or both men walk into their own trident.
+      bullets: [], nets: [], pending: [], minions: [], minionTimer: 2.0,
+      fx: { shield: false, slow: 0, swift: 0, invuln: 0, snare: 0 },
+      spd: (A.spd || 1), rate: (A.rate || 1), phase2: false,
+      botT: 0, botDx: 0, botDy: 0, botVx: 0, botVy: 0, skill: 0,
+      goalX: x, goalY: y, goalW: 0,
+      hurt: 0,                 // how recently he was touched, for the flash
+    };
+  }
+
+  // Where he would like to be standing. His pattern gets first say; with nothing
+  // asked for, he holds a stand-off ring around the other man rather than drifting.
+  function duelGoal(s) {
+    const o = s.foe.body;
+    if (s.goalW > 0) return { x: s.goalX, y: s.goalY, w: s.goalW };
+    const dx = s.body.x - o.x, dy = s.body.y - o.y;
+    const d = Math.hypot(dx, dy) || 1;
+    return { x: o.x + (dx / d) * DUEL_RANGE, y: o.y + (dy / d) * DUEL_RANGE, w: 0.55 };
+  }
+
+  // He is throwing: he is the boss, the other man is the target.
+  function bindThrower(s) {
+    duelSide = s;
+    boss = s.body; player = s.foe.body;
+    bullets = s.bullets; nets = s.nets; pending = s.pending;
+    minions = s.minions; minionTimer = s.minionTimer;
+    arm = s.arm; stageSpd = s.spd; stageRate = s.rate; phase2 = s.phase2;
+    // Anything a throw does to the man it lands on belongs to the man it lands
+    // on: `player` is the foe here, so his effects have to be bound too, or a
+    // retiarius nets himself with his own throw.
+    fx = s.foe.fx;
+  }
+  // He is moving: he is the dodger, and what he is reading is the other man's.
+  function bindDodger(s) {
+    duelSide = s;
+    player = s.body; boss = s.foe.body;
+    bullets = s.foe.bullets; nets = s.foe.nets; minions = s.foe.minions;
+    fx = s.fx; botSkill = s.skill;
+    botT = s.botT; botDx = s.botDx; botDy = s.botDy;
+    botVx = s.botVx; botVy = s.botVy;
+  }
+
+  function startDuel(a, b, backed) {
+    const A = makeDuellist(a, W * 0.26, H * 0.5);
+    const B = makeDuellist(b, W * 0.74, H * 0.5);
+    A.foe = B; B.foe = A;
+    A.color = backed === 1 ? COLORS.theirs : COLORS.mine;
+    B.color = backed === 1 ? COLORS.mine : COLORS.theirs;
+    duel = { a: A, b: B, t: 0, over: null };
+    return duel;
+  }
+
+  // A shield is a wall on one side of a man, and in a duel it finally means what
+  // it looks like: what crosses it stops there. Against the zone it only ever
+  // refused damage; here it refuses the shot itself.
+  function duelGuarded(s, x, y) {
+    const g = s.arm.shield;
+    if (!g) return false;
+    let d = Math.atan2(y - s.body.y, x - s.body.x) - s.body.shieldAng;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return Math.abs(d) <= g;
+  }
+
+  function duelWound(s, amount, shot) {
+    // A Scutum off the sand eats one shot whole. Only a shot: standing inside the
+    // other man is not something a shield was ever going to help with.
+    if (shot && s.fx.shield) {
+      s.fx.shield = false;
+      shockwaves.push({ x: s.body.x, y: s.body.y, t: 0, dur: 0.4 });
+      burst(s.body.x, s.body.y, 26, POWERUPS.shield.color, 300, { life: 0.5 });
+      crowdSurge(0.35);
+      sfx("hit");
+      return;
+    }
+    s.body.hp -= amount;
+    s.body.hitFlash = 0.12;
+    s.hurt = 0.18;
+    if (shot) { crowdSurge(0.10); sfx("hit"); }
+  }
+
+  // One man's shots against the other man's body. Nets do not wound — they take
+  // his legs, same as they always did, only now there is somebody on the other
+  // end of the throw who benefits.
+  function duelCollide(s, dt) {
+    const o = s.foe, ob = o.body;
+    for (let i = s.bullets.length - 1; i >= 0; i--) {
+      const b = s.bullets[i];
+      const rr = ob.r + b.r;
+      if ((ob.x - b.x) ** 2 + (ob.y - b.y) ** 2 > rr * rr) continue;
+      s.bullets.splice(i, 1);
+      if (duelGuarded(o, b.x, b.y)) {
+        burst(b.x, b.y, 3, "#f0d489", 140, { life: 0.25, r: 1.8 });
+        continue;
+      }
+      duelWound(o, DUEL_DMG, true);
+      burst(b.x, b.y, 4, s.color, 180, { life: 0.3, r: 2 });
+    }
+    for (const mn of s.minions) {
+      if (mn.phase !== "active") continue;
+      const rr = ob.r + mn.r;
+      if ((ob.x - mn.x) ** 2 + (ob.y - mn.y) ** 2 > rr * rr) continue;
+      duelWound(o, DUEL_DMG * 1.6 * dt * 8);
+    }
+  }
+
+  // The sand does not care who is fighting on it. The same three gifts drop in a
+  // duel as in any other bout, and both men will go for them — which is most of
+  // what makes one worth watching, because a man crossing the arena for a Scutum
+  // is a man not watching what is being thrown at him.
+  function updateDuelPowerups(dt) {
+    puTimer -= dt;
+    if (puTimer <= 0) {
+      puTimer = PU_SPAWN;
+      if (powerups.length < 3) {
+        const A = duel.a.body, B = duel.b.body;
+        let x = 0, y = 0;
+        for (let tries = 0; tries < 15; tries++) {
+          x = 60 + Math.random() * (W - 120);
+          y = 60 + Math.random() * (H - 120);
+          if (Math.hypot(x - A.x, y - A.y) > 120 && Math.hypot(x - B.x, y - B.y) > 120) break;
+        }
+        const type = PU_KEYS[Math.floor(Math.random() * PU_KEYS.length)];
+        powerups.push({ x: x, y: y, r: 28, type: type, t: 0, life: PU_LIFE });
+      }
+    }
+    for (let i = powerups.length - 1; i >= 0; i--) {
+      const pu = powerups[i];
+      pu.t += dt;
+      let taken = null;
+      for (const s of [duel.a, duel.b]) {
+        if (Math.hypot(s.body.x - pu.x, s.body.y - pu.y) <= s.body.r + pu.r) { taken = s; break; }
+      }
+      if (taken) {
+        const def = POWERUPS[pu.type];
+        // The Filum Parcarum is the one gift that lands on the other man: it is
+        // the thread of the Fates slowing what is coming at you, and in a duel
+        // what is coming at you is a person.
+        if (pu.type === "slow") taken.foe.fx.slow = def.dur;
+        else if (pu.type === "shield") taken.fx.shield = true;
+        else if (pu.type === "swift") taken.fx.swift = def.dur;
+        pickupFlash = { label: `${taken.name.toUpperCase()} — ${def.label}`, color: taken.color, t: 0 };
+        burst(pu.x, pu.y, 24, def.color, 260, { life: 0.65 });
+        shockwaves.push({ x: pu.x, y: pu.y, t: 0, dur: 0.3 });
+        crowdSurge(0.25);
+        sfx("pickup");
+        powerups.splice(i, 1);
+      } else if (pu.t >= pu.life) {
+        powerups.splice(i, 1);
+      }
+    }
+    for (const s of [duel.a, duel.b]) {
+      for (const k of ["slow", "swift", "invuln", "snare"]) {
+        if (s.fx[k] > 0) s.fx[k] = Math.max(0, s.fx[k] - dt);
+      }
+    }
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+      shockwaves[i].t += dt;
+      if (shockwaves[i].t >= shockwaves[i].dur) shockwaves.splice(i, 1);
+    }
+    if (pickupFlash) { pickupFlash.t += dt; if (pickupFlash.t > 1.2) pickupFlash = null; }
+  }
+
+  function updateDuel(dt) {
+    duel.t += dt;
+    const sides = [duel.a, duel.b];
+    updateDuelPowerups(dt);
+
+    // What the crowd is doing. They came to see it close and they came to see it
+    // end: a bout where both men are still whole is worth less noise than one
+    // where the pair of them are nearly out, and a one-sided beating is worth
+    // less than either. The hush at the start is the same hush as always.
+    const fa = Math.max(0, duel.a.body.hp / duel.a.body.maxhp);
+    const fb = Math.max(0, duel.b.body.hp / duel.b.body.maxhp);
+    let want = 0.18 + (1 - (fa + fb) / 2) * 0.55 + (1 - Math.abs(fa - fb)) * 0.22;
+    if (duel.t < 3) want *= 0.35 + (duel.t / 3) * 0.65;
+    setCrowd(want);
+    setMusicIntensity(1 + (1 - Math.min(fa, fb)) * 0.30);
+
+    // Pass one: both men throw. The whole pattern library runs here, unmodified.
+    for (const s of sides) {
+      bindThrower(s);
+      s.goalW = 0;                       // what his pattern wants, asked fresh each frame
+      const edt = s.fx.slow > 0 ? dt * SLOW_FACTOR : dt;
+      if (s.body.fouled > 0) s.body.fouled -= edt;
+      const foul = s.body.fouled > 0 ? 0.55 : 1;
+      const rateWas = stageRate;
+      stageRate *= foul;
+      runStage(s.key, edt, difficultyMul() * s.spd * foul);
+      stageRate = rateWas;
+      if (s.arm.beasts) updateMinions(edt, difficultyMul(), s.arm.beasts);
+      updatePending(edt);
+      updateNets(edt);
+      s.minionTimer = minionTimer;
+      s.phase2 = phase2;
+    }
+
+    // Pass two: both men move, each reading the other's fire.
+    for (const s of sides) {
+      bindDodger(s);
+      autopilot(dt);
+      s.botT = botT; s.botDx = botDx; s.botDy = botDy;
+      s.botVx = botVx; s.botVy = botVy;
+      // A heading shorter than one is a man mid-turn, and he travels slower for
+      // it — which is what turning is supposed to cost.
+      const mag = Math.hypot(botVx, botVy);
+      if (mag > 0.02) {
+        const sp = s.body.speed * (s.fx.snare > 0 ? 0.34 : 1) * (s.fx.swift > 0 ? SWIFT_MULT : 1);
+        const step = Math.min(1, mag) / mag;
+        s.body.x += botVx * step * sp * dt;
+        s.body.y += botVy * step * sp * dt;
+      }
+      s.body.x = Math.max(s.body.r, Math.min(W - s.body.r, s.body.x));
+      s.body.y = Math.max(s.body.r, Math.min(H - s.body.r, s.body.y));
+      if (s.body.hitFlash > 0) s.body.hitFlash -= dt;
+      if (s.hurt > 0) s.hurt -= dt;
+    }
+
+    // Two men cannot occupy the same sand. They shove rather than pass through,
+    // and standing inside a man costs them both — which is what stops the whole
+    // duel collapsing into a single point where nobody can miss.
+    const A = duel.a.body, B = duel.b.body;
+    const dx = B.x - A.x, dy = B.y - A.y;
+    const d = Math.hypot(dx, dy) || 1;
+    const overlap = A.r + B.r - d;
+    if (overlap > 0) {
+      const ux = dx / d, uy = dy / d, push = overlap / 2;
+      A.x -= ux * push; A.y -= uy * push;
+      B.x += ux * push; B.y += uy * push;
+      duelWound(duel.a, DUEL_TOUCH * dt);
+      duelWound(duel.b, DUEL_TOUCH * dt);
+    }
+
+    // Move every shot on the sand, both men's, then see what it landed on.
+    for (const s of sides) {
+      const edt = s.fx.slow > 0 ? dt * SLOW_FACTOR : dt;
+      for (let i = s.bullets.length - 1; i >= 0; i--) {
+        const b = s.bullets[i];
+        b.age += edt;
+        if (b.age >= BULLET_LIFE) { s.bullets.splice(i, 1); continue; }
+        if (b.curve) {
+          const c = Math.cos(b.curve * edt), sn = Math.sin(b.curve * edt);
+          const vx = b.vx * c - b.vy * sn;
+          b.vy = b.vx * sn + b.vy * c;
+          b.vx = vx;
+        }
+        b.x += b.vx * edt; b.y += b.vy * edt;
+        if (b.x < -50 || b.x > W + 50 || b.y < -50 || b.y > H + 50) s.bullets.splice(i, 1);
+      }
+      duelCollide(s, dt);
+    }
+
+    duelSide = null;
+    if (duel.a.body.hp <= 0 || duel.b.body.hp <= 0) {
+      for (const s of sides) {
+        if (s.body.hp > 0) continue;
+        burst(s.body.x, s.body.y, 60, s.color, 420, { life: 1.1 });
+        burst(s.body.x, s.body.y, 30, COLORS.danger, 380, { life: 0.6 });
+      }
+      shake = 26;
+      freeze = 0.22;
+      sfx("death");
+      crowdSurge(1.1);
+      // Both down in the same frame is a draw on the sand and a push at the desk.
+      const aDown = duel.a.body.hp <= 0, bDown = duel.b.body.hp <= 0;
+      duel.over = aDown && bDown ? null : (aDown ? duel.b : duel.a);
+      return true;
+    }
+    return false;
+  }
+
+  // Both men, both sets of shots, and a bar over each head. Nobody is green:
+  // neither of them is you, so neither gets the colour that means "you".
+  function drawDuel() {
+    const sides = [duel.a, duel.b];
+    for (const s of sides) {
+      for (const mn of s.minions) {
+        if (mn.phase !== "active") continue;
+        circle(mn.x, mn.y, minionRadius(mn), s.color, null);
+        circle(mn.x, mn.y, minionRadius(mn) + 2, null, "rgba(16,12,7,0.55)", 1.5);
+      }
+      ctx.shadowColor = s.color; ctx.shadowBlur = 10;
+      for (const b of s.bullets) circle(b.x, b.y, b.r, s.color, null);
+      ctx.shadowBlur = 0;
+      ctx.save();
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = 2;
+      for (const n of s.nets) {
+        ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    for (const s of sides) {
+      const b = s.body;
+      const flash = s.hurt > 0 && Math.floor(totalTime * 20) % 2 === 0;
+      const col = flash ? "#ffffff" : s.color;
+      drawFighter(b.x, b.y, b.r, col, `rgba(${hexToRgb(s.color)},0.20)`, col, s.crest);
+      // A shield is a wall on one side of him, and in a duel you have to be able
+      // to see which side, because it is the whole read on where to stand.
+      if (s.arm.shield) {
+        ctx.save();
+        ctx.strokeStyle = s.color;
+        ctx.globalAlpha = 0.75;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r + 11, b.shieldAng - s.arm.shield, b.shieldAng + s.arm.shield);
+        ctx.stroke();
+        ctx.restore();
+      }
+      if (s.fx.snare > 0) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(140,200,245,${Math.min(0.9, s.fx.snare)})`;
+        ctx.lineWidth = 1.6;
+        for (let i = 0; i < 4; i++) {
+          const o = (i - 1.5) * (b.r * 0.6);
+          ctx.beginPath();
+          ctx.moveTo(b.x + o, b.y - b.r);
+          ctx.lineTo(b.x + o, b.y + b.r);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      // His health, over his head rather than at the top of the screen — with two
+      // men on the sand a bar in the corner tells you nothing about which one.
+      const w = 84, h = 7, bx = b.x - w / 2, by = b.y - b.r - 26;
+      ctx.fillStyle = "rgba(16,12,7,0.7)";
+      ctx.fillRect(bx - 1, by - 1, w + 2, h + 2);
+      ctx.fillStyle = s.color;
+      ctx.fillRect(bx, by, w * Math.max(0, b.hp / b.maxhp), h);
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.fillStyle = s.color;
+      ctx.font = `700 11px ${FONT}`;
+      ctx.fillText(s.name.toUpperCase(), b.x, by - 6);
+      ctx.restore();
+    }
+  }
+
+  // Both men's health, read across the top of the sand: each bar empties toward
+  // the middle, so the pair of them close on the centre as the bout goes on and
+  // you can see who is winning without reading a number. The small bars over
+  // their heads say which man is which; this one says how it is going.
+  function drawDuelHealth() {
+    const pad = 22, top = 18, h = 15, mid = W / 2, gap = 86;
+    const span = mid - gap / 2 - pad;
+    const leg = slip && slip.legs[slip.idx];
+    ctx.save();
+    ctx.textBaseline = "alphabetic";
+    [duel.a, duel.b].forEach((s, i) => {
+      const left = i === 0;
+      const frac = Math.max(0, s.body.hp / s.body.maxhp);
+      const x0 = left ? pad : mid + gap / 2;
+      const inner = left ? x0 : x0 + span;      // the end nearest the middle
+      const outer = left ? x0 + span : x0;      // ...and the end nearest the wall
+
+      // The bar. It drains toward the wall, so the two of them pull apart as the
+      // bout goes on and the gap in the middle is the story.
+      ctx.fillStyle = "rgba(16,12,7,0.78)";
+      ctx.fillRect(x0 - 2, top - 2, span + 4, h + 4);
+      ctx.fillStyle = "rgba(255,255,255,0.07)";
+      ctx.fillRect(x0, top, span, h);
+      const w = span * frac;
+      ctx.fillStyle = s.color;
+      ctx.shadowColor = s.color;
+      ctx.shadowBlur = s.hurt > 0 ? 18 : 6;
+      ctx.fillRect(left ? inner : inner - w, top, w, h);
+      ctx.shadowBlur = 0;
+      if (frac > 0 && frac < 0.25) {
+        ctx.globalAlpha = 0.3 + 0.3 * Math.sin(totalTime * 9);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(left ? inner : inner - w, top, w, h);
+        ctx.globalAlpha = 1;
+      }
+
+      // One line under it, reading outward from the middle: name, then what he is
+      // trained to, then what he has left. Nothing is centred and nothing shares
+      // a column with the other man, so neither line can ever collide with his.
+      const ty = top + h + 15;
+      ctx.textAlign = left ? "left" : "right";
+      ctx.font = `700 15px ${FONT}`;
+      ctx.fillStyle = s.color;
+      ctx.fillText(s.name.toUpperCase(), left ? x0 : x0 + span, ty);
+      const nameW = ctx.measureText(s.name.toUpperCase()).width;
+      ctx.font = `600 11px ${FONT}`;
+      ctx.fillStyle = "#a08f76";
+      ctx.fillText(s.arm.name.toUpperCase(),
+                   left ? x0 + nameW + 10 : x0 + span - nameW - 10, ty);
+      ctx.textAlign = left ? "right" : "left";
+      ctx.font = `700 13px ${FONT}`;
+      ctx.fillStyle = s.color;
+      ctx.fillText(String(Math.max(0, Math.ceil(s.body.hp))), left ? x0 + span : x0, ty);
+    });
+
+    // Between them, the only thing a spectator actually needs: which of the two
+    // is carrying your money, and what it pays.
+    if (leg) {
+      const backedLeft = leg.side === 0;
+      ctx.textAlign = "center";
+      ctx.font = `700 10px ${FONT}`;
+      ctx.fillStyle = COLORS.gold;
+      ctx.fillText(backedLeft ? "◄ YOURS" : "YOURS ►", mid, top + h - 3);
+      ctx.font = `600 10px ${FONT}`;
+      ctx.fillStyle = "#a08f76";
+      ctx.fillText(`✦${Math.round(slip.stake * slip.odds * slip.cut)}`, mid, top + h + 12);
+    }
+    ctx.restore();
   }
 
   function updateTransition(dt) {
@@ -5603,74 +6060,6 @@
   // What the man you bought is carrying: his shield held toward the opponent, the
   // nets he throws, the shafts he looses, the breastplate still on him. Green
   // everywhere, because none of it can hurt anyone but the man across the sand.
-  function drawMyArms() {
-    if (mode !== "wager") return;
-    const pb = playerBuff;
-    if (pb.guard) {
-      const rr = player.r + 11;
-      ctx.save();
-      ctx.lineCap = "butt";
-      const spent = myBlocks < 1;
-      ctx.strokeStyle = spent ? "rgba(143,230,173,0.28)" : "#8fe6ad";
-      ctx.lineWidth = spent ? 3 : 7;
-      ctx.shadowColor = COLORS.mine;
-      ctx.shadowBlur = spent ? 0 : 12;
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, rr, myGuardAng - pb.guard, myGuardAng + pb.guard);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-      // The umbo, so you can see which way he is actually facing.
-      circle(player.x + Math.cos(myGuardAng) * rr, player.y + Math.sin(myGuardAng) * rr,
-             4.5, "#d8ffe8", null);
-      ctx.restore();
-    }
-    if (pb.lorica && myLorica) {
-      ctx.save();
-      ctx.strokeStyle = "rgba(200,198,189,0.9)";
-      ctx.shadowColor = "#c9c6bd";
-      ctx.shadowBlur = 10;
-      circle(player.x, player.y, player.r + 6, null, "rgba(200,198,189,0.9)", 2.5);
-      ctx.restore();
-    }
-    if (pb.sweep) {
-      // The reach of the crescent, so the range he scores at is visible.
-      ctx.save();
-      ctx.globalAlpha = 0.5;
-      ctx.setLineDash([7, 9]);
-      circle(player.x, player.y, player.r + pb.sweep * 0.5, null, "rgba(255,102,196,0.5)", 2);
-      ctx.restore();
-    }
-    for (const n of myNets) {
-      ctx.save();
-      ctx.translate(n.x, n.y);
-      ctx.rotate(n.spin);
-      circle(0, 0, n.r, "rgba(53,224,122,0.14)", "rgba(150,245,190,0.9)", 2);
-      ctx.strokeStyle = "rgba(150,245,190,0.75)";
-      ctx.lineWidth = 1.5;
-      for (let i = -2; i <= 2; i++) {
-        const o = (i / 2.4) * n.r;
-        ctx.beginPath();
-        ctx.moveTo(o, -n.r * 0.85); ctx.lineTo(o, n.r * 0.85);
-        ctx.moveTo(-n.r * 0.85, o); ctx.lineTo(n.r * 0.85, o);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-    for (const s of myArrows) {
-      const a = Math.atan2(s.vy, s.vx);
-      ctx.save();
-      ctx.strokeStyle = "#f0d489";
-      ctx.lineWidth = 2.5;
-      ctx.shadowColor = "#f0b429";
-      ctx.shadowBlur = 8;
-      ctx.beginPath();
-      ctx.moveTo(s.x - Math.cos(a) * 11, s.y - Math.sin(a) * 11);
-      ctx.lineTo(s.x + Math.cos(a) * 6, s.y + Math.sin(a) * 6);
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-
   // A fouled opponent: the net that landed on him, still on him.
   function drawFouled() {
     if (!(boss.fouled > 0)) return;
@@ -5728,7 +6117,7 @@
   // you and leave a torch-lit circle you carry with you.
   function drawBlind() {
     // Either the opponent fights in a closed helm, or the man you bought does.
-    const R = (arm && arm.blind) || (playerBuff.dark ? 235 : 0);
+    const R = (arm && arm.blind) || 0;
     if (!R) return;
     const g = ctx.createRadialGradient(player.x, player.y, R * 0.42, player.x, player.y, R);
     g.addColorStop(0, "rgba(8,6,3,0)");
@@ -5870,7 +6259,7 @@
     for (let i = 0; i < trail.length; i++) {
       const k = i / trail.length;
       ctx.globalAlpha = k * 0.34;
-      ctx.fillStyle = mode === "wager" ? COLORS.mine : COLORS.safe;   // his wake, not yours
+      ctx.fillStyle = COLORS.safe;
       ctx.beginPath();
       ctx.arc(trail[i].x, trail[i].y, player.r * (0.28 + k * 0.55), 0, Math.PI * 2);
       ctx.fill();
@@ -5899,7 +6288,6 @@
     if (fx.slow > 0) active.push([POWERUPS.slow.color, "SLOW", fx.slow]);
     if (fx.swift > 0) active.push([POWERUPS.swift.color, "SWIFT", fx.swift]);
     if (fx.snare > 0) active.push(["#4f9bd8", "NETTED", fx.snare]);
-    if (mode === "wager" && playerBuff.lorica && myLorica) active.push(["#c9c6bd", "LORICA", null]);
     if (fx.invuln > 0) active.push(["#ffffff", "MERCY", fx.invuln]);
     if (!active.length) return;
 
@@ -5960,9 +6348,8 @@
     }
     const last = player.hits === 1;
     const pulse = 0.5 + 0.5 * Math.sin(totalTime * 7);
-    // In a wager these are his wounds, not yours, so they are counted in his colour.
-    const pipCol = mode === "wager" ? COLORS.mine : COLORS.safe;
-    const pipRim = mode === "wager" ? "#c8f7d8" : "#eafcff";
+    const pipCol = COLORS.safe;
+    const pipRim = "#eafcff";
     for (let i = 0; i < maxHits; i++) {
       const x = x0 + i * gap;
       if (i < player.hits) {
@@ -6017,6 +6404,19 @@
       ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
     }
     drawArena();
+
+    // A duel is a different scene entirely — no eye, no blue ground, nobody in
+    // green, and two of everything else. It draws itself and leaves.
+    if (duel) {
+      drawPowerups();
+      drawDuel();
+      drawShockwaves();
+      drawParticles();
+      drawDuelHealth();
+      drawEffects();
+      ctx.restore();
+      return;
+    }
 
     // Slow-mo: a violet wash over the whole arena.
     if (shown === GS.PLAYING && fx.slow > 0) {
@@ -6158,29 +6558,15 @@
       drawTrail();
       // Player — flashes white during post-shield mercy invulnerability.
       const body = fx.invuln > 0 && Math.floor(totalTime * 12) % 2 === 0 ? "#ffffff" : COLORS.safe;
-      if (mode === "wager") {
-        // Not you. A man you paid for: the same build and the same size as the man
-        // he is fighting, coloured green instead of red, wearing the crest of the
-        // arms you bought him. A clone of his opponent in every respect but which
-        // side he is on.
-        const hurt = fx.invuln > 0 && Math.floor(totalTime * 12) % 2 === 0;
-        drawFighter(player.x, player.y, player.r,
-                    hurt ? "#ffffff" : COLORS.mine,
-                    COLORS.mineSoft,
-                    hurt ? "#ffffff" : COLORS.mine,
-                    wagerArm && armOf(wagerArm).color);
-      } else {
-        ctx.shadowColor = body; ctx.shadowBlur = 14;
-        circle(player.x, player.y, player.r, body, "#eafcff", 2);
-        ctx.shadowBlur = 0;
-      }
+      ctx.shadowColor = body; ctx.shadowBlur = 14;
+      circle(player.x, player.y, player.r, body, "#eafcff", 2);
+      ctx.shadowBlur = 0;
       if (fx.shield) {
         const p = 0.5 + 0.5 * Math.sin(totalTime * 5);
         ctx.shadowColor = POWERUPS.shield.color; ctx.shadowBlur = 16;
         circle(player.x, player.y, player.r + 9 + p * 2, null, POWERUPS.shield.color, 2.5);
         ctx.shadowBlur = 0;
       }
-      drawMyArms();
       // A net around your legs, drawn last so it sits over you.
       if (fx.snare > 0) {
         ctx.save();
