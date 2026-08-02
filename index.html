@@ -554,14 +554,14 @@
         <span class="ep-key">1</span>
         <span class="ep-name">A Word In His Ear</span>
         <span class="ep-cost">✦ —</span>
-        <span class="ep-what">Your man's opponent is slowed — his throws and everything already in the air crawl for three seconds. A seventh of your stake.</span>
+        <span class="ep-what">Your man's opponent is slowed — his throws and everything already in the air crawl for three seconds. Under a tenth of your stake.</span>
         <span class="ep-cut">—</span>
       </div>
       <div class="ep-buy" id="epGates">
         <span class="ep-key">2</span>
         <span class="ep-name">The Gates</span>
         <span class="ep-cost">✦ —</span>
-        <span class="ep-what">Beasts, on him, for the rest of the bout. They do not go back in. A third of your stake.</span>
+        <span class="ep-what">Beasts, on him, for the rest of the bout. They do not go back in. About a fifth of your stake.</span>
         <span class="ep-cut">—</span>
       </div>
       <p class="ep-foot">Both land on the man you bet against, and both are priced off your stake — so the sum is the same question whether you laid ten or two hundred and fifty. You are no longer betting on what happens; you are paying for it, and the desk prices that in.</p>
@@ -697,7 +697,7 @@
       <!-- How to play -->
       <div class="tabpanel hidden" data-panel="help">
         <p class="sub"><b style="color:var(--text)">Arrow keys</b> to move. Stand inside the <b style="color:var(--safe)">oculus imperatoris</b> — the emperor's eye, the patch of sand he is watching — to drain your opponent. Only what happens under his eye counts, and the eye keeps moving.</p>
-        <p class="sub">There are <b style="color:var(--safe)">two</b> such places. The wide <b style="color:var(--safe)">eye</b> drains normally and relocates. The small <b style="color:#5b78ff">sub umbone ×III</b> circle sits under your opponent's shield-boss and orbits with them, draining three times as fast — safe ground and fast damage are never in the same place. The crowd knows the difference.</p>
+        <p class="sub">There are <b style="color:var(--safe)">two</b> such places. The wide <b style="color:var(--safe)">eye</b> drains normally and relocates. The small <b style="color:#5b78ff">sub umbone ×III</b> circle sits under your opponent's shield-boss and orbits with them, draining three times as fast — safe ground and fast damage are never in the same place. But it only burns in bursts: it goes <b>cold</b>, and standing on a cold one scores nothing. Watch the ring race just before it lights, and be on it when it does. The crowd knows the difference.</p>
         <p class="sub">Every red thing costs one hit: <b style="color:var(--safe)">Ludus</b> none, <b style="color:var(--safe)">Munus Legitimum</b> three, <b style="color:var(--safe)">Sine Missione</b> one. The markers at the bottom are what's left, and clearing a bout gives one back. Big attacks flash <b style="color:var(--warn)">yellow</b> before they land — the shape you see is the shape that arrives.</p>
         <p class="sub"><b style="color:var(--warn)">Go to the eye.</b> If an eye opens and you never set foot in it before it moves on, your opponent gets <b>an eighth of their health back</b> — the ring turns yellow and counts down first, so you'll see it coming. Waiting in a safe corner for the damage to come to you is not a plan.</p>
         <div class="stages">
@@ -902,6 +902,15 @@
   const ZONE_MOVE = 4.5;     // seconds before the zone relocates
   const HOT_MULT = 3;        // the hot zone hurts three times as fast
   const HOT_ORBIT = 96;      // how far the hot zone rides from the boss
+  // The hot zone burns in bursts rather than continuously. Lit the whole bout it
+  // was simply the better eye — you walked to it, stood on it, and the wide blue
+  // one may as well not have been there. Made intermittent it becomes a window
+  // instead of a place: worth crossing the sand for while it burns, worth nothing
+  // the rest of the time, and the choice of whether the trip is worth making is
+  // the decision that circle should have been asking for all along.
+  const HOT_ON = 5.0;        // seconds it burns
+  const HOT_OFF = 6.5;       // seconds it is cold
+  const HOT_WARN = 1.3;      // how long it glows before it lights, so the trip can be started early
   // Seconds before a shot gives up, however it is moving. Short, and short on
   // purpose: a bullet that outlives the exchange that threw it is scenery the
   // fighter still has to solve, and with two men throwing at once the sand silted
@@ -928,7 +937,9 @@
     zone = { x: W / 2, y: H / 2, r: 46, moveT: ZONE_MOVE, pulse: 0, touched: false };
     // The hot zone: small, three times the drain, and it orbits the boss — safe
     // ground and fast damage are never in the same place.
-    hotZone = { x: W / 2, y: H * 0.22, r: 27, ang: Math.random() * Math.PI * 2 };
+    // Opens cold, and lights a couple of seconds in — so the bout starts on the
+    // ordinary eye and the first burn arrives as something that happened.
+    hotZone = { x: W / 2, y: H * 0.22, r: 27, ang: Math.random() * Math.PI * 2, on: false, t: 2.2 };
     minions = [];
     minionTimer = 2.0;
     stageIdx = 0;
@@ -1225,9 +1236,14 @@
   // stake × odds × (better chance × cut − chance), what you pay is stake × frac,
   // and the stake divides straight out. So the question is only ever whether the
   // beasts are worth what they cost you — which is the question it should be.
+  // The fractions were set to land the top of the stake ladder exactly where the
+  // flat prices had it, which kept the one case that already worked and fixed the
+  // rest. That turned out to be the wrong anchor: it preserved a price nobody was
+  // paying. Both are down to three fifths of that, so the editor is worth reaching
+  // for on an ordinary bout and not only on a longshot at the maximum stake.
   const BRIBES = {
-    slow: { frac: 0.15, cut: 0.88, label: "a word in the editor's ear" },
-    gates: { frac: 0.35, cut: 0.76, label: "the gates" },
+    slow: { frac: 0.09, cut: 0.88, label: "a word in the editor's ear" },
+    gates: { frac: 0.21, cut: 0.76, label: "the gates" },
   };
   // Rounded to coin, because the editor does not deal in fractions of a denarius.
   function bribeCost(kind) {
@@ -1924,7 +1940,17 @@
   // reads as a market. The step per tick is unchanged, so prices also travel
   // further over the life of a card than they used to.
   const DRIFT_MS = 400;
+  // A fresh board is not free. It was, and that was the hole in the whole desk:
+  // a card you did not like cost nothing to tear up, so the right play was to
+  // keep dealing until the prices came up fat and only then lay a wager. Nothing
+  // else in the Sponsio could be honest while that was true. A fifth of your
+  // purse makes shopping for a card a decision instead of a reflex, and it scales
+  // with what you have, so it stays a real price whether you are carrying forty
+  // denarii or four thousand.
+  const NEW_CARD_FRAC = 0.2;
+  function newCardCost() { return Math.ceil(denarii() * NEW_CARD_FRAC); }
   const stakeRow = document.getElementById("stakeRow");
+  const newCardBtn = document.getElementById("newCardBtn");
   const cardList = document.getElementById("cardList");
   const cardClock = document.getElementById("cardClock");
   const slipBox = document.getElementById("slipBox");
@@ -2160,6 +2186,12 @@
           `All must stand. Pays <b>✦ ${Math.round(betStake * o)}</b> at ×${o.toFixed(2)} — one falls and the slip is waste.`;
     }
 
+    // The price of a fresh board, said out loud before it is taken. A button that
+    // quietly costs a fifth of everything is a pickpocket.
+    const nc = newCardCost();
+    newCardBtn.textContent = nc > 0 ? `A New Card · ✦ ${nc}` : "A New Card";
+    newCardBtn.title = nc > 0 ? "A fifth of your purse. The board you have is free to keep reading." : "";
+
     const canBet = purse >= betStake && picks.length > 0;
     wagerBtn.disabled = !canBet;
     wagerBtn.className = canBet ? "primary" : "lockbtn";
@@ -2178,9 +2210,16 @@
     driftCard();
   }, DRIFT_MS);
 
-  document.getElementById("newCardBtn").addEventListener("click", () => {
+  newCardBtn.addEventListener("click", () => {
+    const cost = newCardCost();
+    if (cost > 0) {
+      localStorage.setItem(DEN_KEY, String(Math.max(0, denarii() - cost)));
+      wagerMsg.textContent = `The desk tears down the board and posts another. That is ${cost} denarii.`;
+      wagerMsg.className = "";
+    } else {
+      wagerMsg.textContent = "";
+    }
     dealCard();
-    wagerMsg.textContent = "";
     renderSponsio();
   });
 
@@ -5009,7 +5048,10 @@
       while (d < -Math.PI) d += Math.PI * 2;
       return Math.abs(d) <= A.shield;
     })();
-    if (!hotBlocked) {
+    // A cold circle is worth nothing, but one about to light is worth setting off
+    // for now — the walk is most of the cost, and arriving as it burns is the
+    // whole trick. Once it is cold again there is no reason to be standing there.
+    if (!hotBlocked && (hotZone.on || hotZone.t <= HOT_WARN)) {
       // Take the hot zone if it isn't much further away than the wide eye.
       const dh = Math.hypot(player.x - hotZone.x, player.y - hotZone.y);
       const dz = Math.hypot(player.x - zone.x, player.y - zone.y);
@@ -5186,9 +5228,18 @@
     hotZone.ang += dt * 0.55;
     hotZone.x = Math.max(hotZone.r, Math.min(W - hotZone.r, boss.x + Math.cos(hotZone.ang) * HOT_ORBIT));
     hotZone.y = Math.max(hotZone.r, Math.min(H - hotZone.r, boss.y + Math.sin(hotZone.ang) * HOT_ORBIT));
+    // It keeps orbiting either way — a circle that vanished and reappeared
+    // somewhere else would be a new circle every time, and you could never learn
+    // where the next one is coming.
+    hotZone.t -= dt;
+    if (hotZone.t <= 0) {
+      hotZone.on = !hotZone.on;
+      hotZone.t = hotZone.on ? HOT_ON : HOT_OFF;
+      if (hotZone.on) { sfx("phase"); shake = Math.max(shake, 5); }
+    }
 
     const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
-    const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+    const inHot = hotZone.on && Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
     // Turning up counts, even if a shield stopped you scoring — otherwise a
     // Murmillo would heal for holding his guard, which punishes the wrong thing.
     if (inZone || inHot) zone.touched = true;
@@ -6635,12 +6686,20 @@
         ctx.restore();
       }
 
-      // Hot zone — dark blue, tethered to the boss, three times the drain.
-      const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+      // Hot zone — dark blue, tethered to the boss, three times the drain, and
+      // only some of the time. Cold it is a grey ring the boss is still towing
+      // around; warming it beats faster the closer it gets to lighting.
+      const hotLive = hotZone.on;
+      const hotWarm = !hotLive && hotZone.t <= HOT_WARN;
+      const inHot = hotLive && Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+      // 0 while cold, rising to 1 as it lights — drives every colour below, so
+      // the circle brightens into the burn instead of snapping on.
+      const heat = hotLive ? 1 : hotWarm ? 1 - hotZone.t / HOT_WARN : 0;
       ctx.save();
+      ctx.globalAlpha = hotLive ? 1 : 0.45 + heat * 0.55;
 
       // Tether, so it reads as something the boss is dragging around.
-      ctx.strokeStyle = "rgba(43,74,214,0.55)";
+      ctx.strokeStyle = hotLive ? "rgba(43,74,214,0.55)" : "rgba(90,100,130,0.35)";
       ctx.lineWidth = 2;
       ctx.setLineDash([4, 7]);
       ctx.lineDashOffset = -totalTime * 18;
@@ -6651,28 +6710,54 @@
       ctx.setLineDash([]);
 
       const hg = ctx.createRadialGradient(hotZone.x, hotZone.y, 2, hotZone.x, hotZone.y, hotZone.r);
-      hg.addColorStop(0, inHot ? "rgba(48,86,255,0.85)" : "rgba(34,62,200,0.62)");
+      hg.addColorStop(0, !hotLive ? `rgba(70,84,130,${0.30 + heat * 0.40})`
+                                  : inHot ? "rgba(48,86,255,0.85)" : "rgba(34,62,200,0.62)");
       hg.addColorStop(1, "rgba(24,40,150,0.06)");
       ctx.fillStyle = hg;
       ctx.beginPath(); ctx.arc(hotZone.x, hotZone.y, hotZone.r, 0, Math.PI * 2); ctx.fill();
 
-      ctx.shadowColor = "#2b4ad6"; ctx.shadowBlur = inHot ? 24 : 14;
-      ctx.strokeStyle = inHot ? "#7f9dff" : "#3b5cff";
+      ctx.shadowColor = "#2b4ad6"; ctx.shadowBlur = hotLive ? (inHot ? 24 : 14) : heat * 12;
+      ctx.strokeStyle = hotLive ? (inHot ? "#7f9dff" : "#3b5cff") : "#5d6a90";
       ctx.lineWidth = inHot ? 4 : 3;
+      // Cold it turns slowly; as it warms the dashes race, which is the tell that
+      // the burn is coming without putting a number on the sand.
       ctx.setLineDash([7, 6]);
-      ctx.lineDashOffset = -totalTime * 26;   // turns, so it never reads as scenery
+      ctx.lineDashOffset = -totalTime * (hotLive ? 26 : 8 + heat * 90);
       ctx.beginPath(); ctx.arc(hotZone.x, hotZone.y, hotZone.r - 1 + p * 2, 0, Math.PI * 2); ctx.stroke();
+
+      // How much burn is left, as a ring of torchlight around the outside. It
+      // closes anticlockwise as the seconds go, so a circle still wearing most of
+      // its gold is worth the walk and one down to a stub is not — the question
+      // "can I get there in time" answered without a number on the sand. Gold,
+      // because every other colour out here already means something: blue is
+      // ground worth standing on, red is what kills you.
+      const left = Math.max(0, Math.min(1, hotZone.t / HOT_ON));
+      if (hotLive && left > 0) {
+        ctx.setLineDash([]);
+        // The last of it thins out rather than snapping off at zero.
+        ctx.globalAlpha = Math.min(1, left * 4);
+        ctx.shadowColor = COLORS.gold;
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = COLORS.warn;
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(hotZone.x, hotZone.y, hotZone.r + 7, -Math.PI / 2, -Math.PI / 2 + left * Math.PI * 2);
+        ctx.stroke();
+      }
       ctx.restore();
 
-      // Labelled, because a second blue circle needs to say what it is.
+      // Labelled, because a second blue circle needs to say what it is — and now
+      // also whether it is worth anything at the moment you are looking at it.
       ctx.save();
+      ctx.globalAlpha = hotLive ? 1 : 0.5 + heat * 0.5;
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = hotLive ? "#ffffff" : "#9aa4c0";
       ctx.font = `800 15px ${FONT}`;
       ctx.fillText("×3", hotZone.x, hotZone.y - 1);
-      ctx.fillStyle = inHot ? "#cfd9ff" : "rgba(150,175,255,0.9)";
+      ctx.fillStyle = hotLive ? (inHot ? "#cfd9ff" : "rgba(150,175,255,0.9)") : "#8b95b4";
       ctx.font = `700 9px ${FONT}`;
-      ctx.fillText("DAMAGE", hotZone.x, hotZone.y + 12);
+      ctx.fillText(hotLive ? "DAMAGE" : hotWarm ? "LIGHTING" : "COLD", hotZone.x, hotZone.y + 12);
       ctx.restore();
     }
 
@@ -6832,13 +6917,17 @@
   }
   function updateHud() {
     const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
-    const inHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+    const onHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+    const inHot = hotZone.on && onHot;
     // A shield between you and him means you're standing in the right place and
     // still scoring nothing — say so, or it reads as a bug.
     if ((inHot || inZone) && shieldBlocks()) {
       hudTimer.textContent = "SHIELDED";
       hudTimer.style.color = "#c9a227";
     } else if (inHot) { hudTimer.textContent = "×3 DAMAGE"; hudTimer.style.color = "#7f9dff"; }
+    // Standing on a cold circle scores nothing at all, and that needs saying too
+    // — otherwise it reads exactly like the shield case, which it is not.
+    else if (onHot && !inZone) { hudTimer.textContent = "COLD"; hudTimer.style.color = "#8b95b4"; }
     else if (inZone) { hudTimer.textContent = "DAMAGING"; hudTimer.style.color = COLORS.safe; }
     else { hudTimer.textContent = "find the eye"; hudTimer.style.color = "#a08f76"; }
   }
