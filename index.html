@@ -365,8 +365,9 @@
   }
   /* The one fighter you may call out, pulled out of the list entirely. It is the
      only action on this screen, so it should not be buried at row twelve. */
-  #ladderNext { width: 100%; max-width: 460px; }
-  #ladderNext:empty { display: none; }
+  #ladderNext, #ladderInvite { width: 100%; max-width: 460px; }
+  #ladderNext:empty, #ladderInvite:empty { display: none; }
+  .callcard.invite { border-left-style: dashed; }
   .callcard {
     display: flex; align-items: center; gap: 13px; text-align: left; padding: 13px 15px;
     background: linear-gradient(180deg, #33261a 0%, #201810 100%);
@@ -613,6 +614,7 @@
           <div id="ladderTilt"></div>
           <div id="ladderProgress"><i></i></div>
         </div>
+        <div id="ladderInvite"></div>
         <div id="ladderNext"></div>
         <p class="sub" id="ladderNote">Twenty-four fighters hold the board. You may only call out the one standing directly above you — beat them and you take their rung; lose and you slip one down. Lose to the <i>same</i> fighter three times running and you drop two. Take rank <b>I</b> and the <b>munerarius</b> — the magistrate paying for the games — grants you the <b>rudis</b>, the wooden sword that means discharge.</p>
         <div id="ladderList" class="liblist"></div>
@@ -1419,17 +1421,28 @@
   // a Battle is: synthesise a one-stage campaign and hand it to the engine. The
   // difference is what happens afterwards — see resolveLadder().
   let activeLadderFoe = null;
-  function fightLadder(f) {
+  let ladderFriendly = false;    // a prolusio: fought properly, settles nothing
+  function fightLadder(f, friendly) {
     const st = loadLadder();
     const foe = challengeable(st);
-    // You can only ever call out the man directly above you.
-    if (!foe || foe.id !== f.id) return;
+    // Upward, only the man directly above you. Downward, anybody — but only ever
+    // as a friendly, or the board could be climbed by beating people you have
+    // already beaten.
+    if (friendly) { if (!friendlyable(st, f) && (!st.invite || st.invite !== f.id)) return; }
+    else if (!foe || foe.id !== f.id) return;
     const rank = st.board[f.id];
+    ladderFriendly = !!friendly;
+    // An invitation is spent by being taken up, win or lose.
+    if (friendly && st.invite === f.id) { st.invite = null; saveLadder(st); }
     activeLadderFoe = f;
     activeLevel = null;
     campaign = "inferno";
     // What a win is worth: the higher the rung, the bigger the purse.
     activeRating = Math.max(1, Math.min(5, Math.ceil((LADDER.length - rank + 1) / 5)));
+    // Nothing is riding on a friendly, so the purse is a fraction of one. Enough
+    // that learning a man is worth the trip; never enough to farm a rung you have
+    // already climbed past.
+    if (friendly) activeRating = Math.max(1, Math.round(activeRating * 0.4));
     // On the Sine Missione board these are the same people fighting like they
     // expect to die: more health, and the pressure of a form several stages
     // deeper into a run than its rung would normally earn.
@@ -1547,6 +1560,9 @@
   function finishSlip(how, leg) {
     const s = slip;
     slip = null;
+    // The board you bet into is spent. Post the next one now, so the desk has a
+    // card standing by the time you walk back to it.
+    dealCard();
     slipEl.classList.add("hidden");
     editorPanel.classList.add("hidden");
     state = GS.OVER;
@@ -1637,6 +1653,7 @@
     const backed = leg.side === 0 ? duel.a : duel.b;
     if (target !== backed) slip.cut *= B.cut;
     slipPays.textContent = String(Math.round(slip.stake * slip.odds * slip.cut));
+    say(target, "bribed", true);
     if (kind === "slow") {
       target.fx.slow = 3.2;
       pickupFlash = { label: "A WORD WITH THE EDITOR", color: "#b06bff", t: 0 };
@@ -1657,8 +1674,20 @@
   // Nothing is staked in the Ludus — wooden swords settle nothing.
   function resolveLadder(won) {
     const f = activeLadderFoe;
+    const friendly = ladderFriendly;
     activeLadderFoe = null;
+    ladderFriendly = false;
     if (!f || practice) return null;
+    if (friendly) {
+      // No rung, no record, no tilt, and he is not struck off the board — you
+      // have not beaten him where it counts. What you have is his measure. The
+      // one thing it does move is the chance somebody else asks you for one.
+      const st = loadLadder();
+      saveLadder(rollInvite(st));
+      return won
+        ? `A friendly, and you took it. ${f.name} shakes your hand and keeps his rung.`
+        : `A friendly, and he had you. Nothing is lost but the afternoon.`;
+    }
 
     const st = loadLadder();
     const rec = loadRecord();
@@ -1677,6 +1706,7 @@
       // Struck off this board. Kills are tracked per board, so a win under one
       // contract never marks the other.
       if (!st.felled.includes(f.id)) st.felled.push(f.id);
+      rollInvite(st);
       note = `You take rank ${roman(theirRank)}. ${f.name} steps down to ${roman(mine)}.`;
       if (theirRank === 1 && !hasRudis()) {
         localStorage.setItem(rudisKey(), "yes");
@@ -1760,6 +1790,17 @@
     // Per-stage tuning from the level builder; the campaigns leave these at 1.
     stageSpd = (STAGES[idx].spd || 1) * ((arm && arm.spd) || 1);
     stageRate = (STAGES[idx].rate || 1) * ((arm && arm.rate) || 1);
+    // The man across the sand, as someone who can talk. A duel builds its own
+    // pair of these; an ordinary bout has exactly one, and you are not it —
+    // you are busy.
+    bossSpeaker = {
+      body: boss,
+      armKey: STAGES[idx].arm || null,
+      color: (arm && arm.color) || COLORS.danger,
+      sayT: 0, said: {}, quiet: 0,
+    };
+    speech = [];
+    say(bossSpeaker, "open", true);
     placeZone();
     updateHudStage();
     startMusic(STAGES[idx].key, STAGES[idx].arm);
@@ -2160,10 +2201,15 @@
   // betting against, which is the only honest thing a bookmaker has ever sold.
   const TAKEOUT = 0.08;        // the house's cut, and the reason the desk stays open
   const CARD_SIZE = 3;         // bouts posted at once
-  // How long the board stands before the first is called. Short enough that the
-  // drift is pressure rather than scenery: you read three bouts, six prices and a
-  // moving market, and you do not get to think it over twice.
-  const OFF_SECONDS = 15;
+  // How long the board stands before the first is called. Long enough to read
+  // three bouts and six prices, short enough that the drift is pressure rather
+  // than scenery — you do not get to think it over twice.
+  const OFF_SECONDS = 30;
+  // How often the crowd's money moves a price. The board used to tick once a
+  // second, which read as a list that occasionally corrected itself; at this it
+  // reads as a market. The step per tick is unchanged, so prices also travel
+  // further over the life of a card than they used to.
+  const DRIFT_MS = 400;
   const stakeRow = document.getElementById("stakeRow");
   const cardList = document.getElementById("cardList");
   const cardClock = document.getElementById("cardClock");
@@ -2175,6 +2221,34 @@
   let card = null;             // the three bouts on the board
   let picks = [];              // [{ bout, side }] — one is a single, more is a parlay
   let cardTimer = null;
+
+  // Roughly what each form is worth in a duel — because the board had no idea.
+  // Weight came from rank and armatura only, which priced a man throwing Nox's
+  // own imploding arena at exactly the same rate as a man jabbing at you, and
+  // then sold the difference at underdog odds. A serpent's unbroken stream and
+  // the void are plainly worth more than a pursuer's fans; anything left out
+  // here is worth its ordinary one.
+  const FORM_WEIGHT = {
+    pursuer: 0.85, nova: 0.95, charger: 0.92, spiral: 1.00, gatling: 1.15,
+    lattice: 1.20, hades: 1.28, weaver: 0.95, serpent: 1.32, cross: 1.05,
+    swarm: 1.10, mirror: 1.00, pulsar: 1.05, void: 1.30,
+  };
+
+  // Two men were free money, for opposite halves of the same reason: they were
+  // far stronger than the board thought, so they were quoted long and then won
+  // anyway. Pricing them properly (above) is most of the fix. This is the rest —
+  // a hand on the scale of the fight itself, because both were also simply
+  // beating everything put in front of them.
+  //
+  // Triumphus is a retiarius running the serpent: a net that takes your legs, and
+  // then an unbroken rope of bullets thrown at a man who cannot step over it. The
+  // old measured grid had him beating every armatura on the board every single
+  // time, and nothing about a duel changed that.
+  //
+  // Priscus carries Nox's own form. The arena implodes inward on a man who has
+  // nowhere in it to stand.
+  const DUEL_NERF = { triumphus: 0.80, priscus: 0.90 };
+  function duelNerf(f) { return DUEL_NERF[f.id] || 1; }
 
   // Roughly what a man is worth on the sand. His standing on the ladder carries
   // most of it — the board is sorted by who has beaten whom — and his armatura
@@ -2194,6 +2268,10 @@
     if (A.beasts) w *= 1.14;
     if (A.blind) w *= 0.88;
     w *= (f.hp || 40) / 42;
+    w *= FORM_WEIGHT[f.key] || 1;
+    // Whatever the sand takes off him, the price knows about too. A nerf the desk
+    // cannot see is just a slower way of selling the same certainty.
+    w *= duelNerf(f);
     return w;
   }
 
@@ -2243,7 +2321,7 @@
   // worth something and hesitating costs — which is the whole point of a clock.
   function driftCard() {
     if (!card || card.settled) return;
-    card.off -= 1;
+    card.off -= DRIFT_MS / 1000;
     for (const bt of card.bouts) {
       bt.steam += (Math.random() - 0.5) * 0.35;
       bt.steam = Math.max(-1, Math.min(1, bt.steam));
@@ -2301,7 +2379,7 @@
     if (!card) dealCard();
     const purse = denarii();
 
-    cardClock.textContent = `OFF IN ${Math.max(0, card.off)}s`;
+    cardClock.textContent = `OFF IN ${Math.max(0, Math.ceil(card.off))}s`;
     cardClock.className = card.off <= 10 ? "late" : "";
 
     cardList.innerHTML = "";
@@ -2384,7 +2462,7 @@
     const panel = document.querySelector('.tabpanel[data-panel="horreum"]');
     if (!panel || panel.classList.contains("hidden")) return;
     driftCard();
-  }, 1000);
+  }, DRIFT_MS);
 
   document.getElementById("newCardBtn").addEventListener("click", () => {
     dealCard();
@@ -2756,7 +2834,13 @@
     // sanctioned contract must not cross him off the Sine Missione board, or give
     // away how he fights there.
     let felled = [];
+    // A man above you who has asked for a friendly. Held on the board rather than
+    // in memory so the invitation is still there when you come back, and so it
+    // cannot be re-rolled by closing and reopening the ladder until a name you
+    // like comes up.
+    let invite = null;
     if (raw && typeof raw === "object") {
+      if (typeof raw.invite === "string" && LADDER_BY_ID[raw.invite]) invite = raw.invite;
       if (Number.isInteger(raw.rank) && raw.rank >= 1 && raw.rank <= UNRANKED) rank = raw.rank;
       if (typeof raw.tiltId === "string" && LADDER_BY_ID[raw.tiltId]) {
         tiltId = raw.tiltId;
@@ -2786,11 +2870,13 @@
         board = next;
       }
     }
-    return { rank, board, tiltId, tilt, felled };
+    if (invite && (board[invite] == null || board[invite] >= rank)) invite = null;
+    return { rank, board, tiltId, tilt, felled, invite };
   }
   function saveLadder(st) {
     localStorage.setItem(ladderKey(), JSON.stringify({
       rank: st.rank, board: st.board, tiltId: st.tiltId, tilt: st.tilt, felled: st.felled,
+      invite: st.invite || null,
     }));
   }
   // Sine Missione has no memory. Lose once and the whole climb is gone — which is
@@ -2829,9 +2915,39 @@
   function fighterAt(rank, st) {
     return LADDER.find((f) => st.board[f.id] === rank) || null;
   }
-  // The only fighter you may call out: the one directly above you.
+  // The only fighter you may call out for your rung: the one directly above you.
   function challengeable(st) {
     return st.rank <= 1 ? null : fighterAt(st.rank - 1, st);
+  }
+
+  // ---- Prolusio: the friendly ----
+  // Before the killing began, the crowd was warmed up with a prolusio — the same
+  // men, fighting properly, with nothing on it. It is the one bout on the ladder
+  // that cannot cost you anything, which is exactly why it cannot earn you a rung
+  // either: you may call out anybody standing below you, as often as you like,
+  // and the board will not move an inch for it. What it is good for is finding
+  // out how a man fights before the day it matters.
+  function friendlyable(st, f) {
+    const r = st.board[f.id];
+    return r != null && r > st.rank;
+  }
+
+  // ...and now and then somebody above you asks for one. A man on a higher rung
+  // has nothing to gain from you and knows it, so he is doing you a favour — and
+  // showing off to a crowd who came early. Rolled once per real bout, never while
+  // one is already standing, and only from the rungs near enough above you to
+  // have heard your name.
+  function rollInvite(st) {
+    if (st.invite || st.rank <= 1) return st;
+    if (Math.random() > 0.34) return st;
+    const near = [];
+    for (let r = Math.max(1, st.rank - 6); r < st.rank; r++) {
+      const f = fighterAt(r, st);
+      if (f) near.push(f);
+    }
+    if (!near.length) return st;
+    st.invite = near[Math.floor(Math.random() * near.length)].id;
+    return st;
   }
 
   // A pattern key is "known" once you've beaten that form in its boss's run —
@@ -2933,6 +3049,7 @@
   const ladderBoard = document.getElementById("ladderBoard");
   const ladderTilt = document.getElementById("ladderTilt");
   const ladderNext = document.getElementById("ladderNext");
+  const ladderInvite = document.getElementById("ladderInvite");
   const ladderProgress = document.getElementById("ladderProgress");
 
   function openLadder() {
@@ -2988,7 +3105,9 @@
     const bar = ladderProgress && ladderProgress.children[0];
     if (bar) bar.style.width = Math.round((climbed / (UNRANKED - 1)) * 100) + "%";
 
-    // The challenge card: the only action on this screen.
+    // The challenge card, and above it whoever has asked you for a friendly.
+    if (st.invite && st.board[st.invite] >= st.rank) { st.invite = null; saveLadder(st); }
+    renderInviteCard(st);
     renderCallCard(foe, st);
 
     ladderList.innerHTML = "";
@@ -3010,13 +3129,61 @@
       }
       const f = fighterAt(r, st);
       // Kills are per board, so this is what you've done on THIS one.
-      if (f) ladderList.appendChild(foeRung(f, r, foe, st.felled));
+      if (f) ladderList.appendChild(foeRung(f, r, foe, st.felled, st));
     }
 
     // Put your own rung on screen rather than making you hunt for it.
     if (scroll && selfRow && typeof selfRow.scrollIntoView === "function") {
       try { selfRow.scrollIntoView({ block: "center" }); } catch (e) { /* older engines */ }
     }
+  }
+
+  // Somebody further up the board has asked you for a prolusio. He has nothing to
+  // win from it, which is the point: it is a favour, and a chance to see how a man
+  // you cannot reach yet actually fights.
+  function renderInviteCard(st) {
+    ladderInvite.innerHTML = "";
+    const f = st.invite && LADDER_BY_ID[st.invite];
+    if (!f || practice) return;
+    const a = armOf(f.arm);
+    const card = document.createElement("div");
+    card.className = "callcard invite";
+    card.style.borderLeftColor = a.color;
+    const body = document.createElement("div");
+    body.className = "cbody";
+    const eb = document.createElement("div");
+    eb.className = "ceyebrow";
+    eb.textContent = `prolusio · rank ${roman(st.board[f.id])} asks for you`;
+    const nm = document.createElement("div");
+    nm.className = "cname";
+    nm.style.color = a.color;
+    nm.textContent = f.name;
+    const bl = document.createElement("div");
+    bl.className = "cblurb";
+    bl.textContent = `"Come and warm the crowd up with me." ${f.blurb}`;
+    const sub = document.createElement("div");
+    sub.className = "cblurb";
+    sub.style.color = "#a08f76";
+    sub.textContent = `${a.name} · ${a.desc} · nothing on it — the board will not move either way.`;
+    body.appendChild(eb); body.appendChild(nm); body.appendChild(bl); body.appendChild(sub);
+    card.appendChild(body);
+    const row = document.createElement("div");
+    row.className = "btnrow";
+    const yes = document.createElement("button");
+    yes.className = "primary";
+    yes.textContent = "Take him up on it";
+    yes.addEventListener("click", () => fightLadder(f, true));
+    const no = document.createElement("button");
+    no.textContent = "Decline";
+    no.addEventListener("click", () => {
+      const cur = loadLadder();
+      cur.invite = null;
+      saveLadder(cur);
+      renderLadder(false);
+    });
+    row.appendChild(yes); row.appendChild(no);
+    card.appendChild(row);
+    ladderInvite.appendChild(card);
   }
 
   // The fighter directly above you, lifted out of the list with everything you
@@ -3133,7 +3300,7 @@
 
   // `felled` is the list of ids beaten on the board being drawn, so a kill on one
   // contract never marks or unmasks a fighter on the other.
-  function foeRung(f, rank, foe, felled) {
+  function foeRung(f, rank, foe, felled, st) {
     const a = armOf(f.arm);
     const isNext = foe && foe.id === f.id;
     const beaten = felled.includes(f.id);
@@ -3170,7 +3337,7 @@
 
     // Only the fighter you can actually call out gives away how they fight.
     // Everyone else is a name and a reputation until you get up there.
-    if (isNext || beaten) {
+    if (isNext || beaten || (st && st.invite === f.id)) {
       const bl = document.createElement("div");
       bl.className = "rblurb";
       bl.textContent = f.blurb;
@@ -3194,6 +3361,14 @@
       btn.className = "primary";
       btn.textContent = "Call out";
       btn.addEventListener("click", () => fightLadder(f));
+      row.appendChild(btn);
+    } else if (st && friendlyable(st, f)) {
+      // Anybody below you will take a friendly. It settles nothing, so it needs
+      // no card and no warning — just the offer, on the rung itself.
+      const btn = document.createElement("button");
+      btn.textContent = "Friendly";
+      btn.title = `A prolusio against ${f.name} — fought properly, but the board does not move.`;
+      btn.addEventListener("click", () => fightLadder(f, true));
       row.appendChild(btn);
     }
     return row;
@@ -4702,6 +4877,7 @@
     player.hits--;
     fx.invuln = MERCY;
     hurtFlash = 0.5;
+    if (bossSpeaker) { bossSpeaker.quiet = 0; say(bossSpeaker, "drew"); }
     shockwaves.push({ x: player.x, y: player.y, t: 0, dur: 0.35 });
     // A death gets a bigger, slower spray than a survivable hit.
     const dead = player.hits <= 0;
@@ -4712,6 +4888,7 @@
     freeze = dead ? 0.22 : 0.09;
     sfx(dead ? "death" : "hit");
     crowdSurge(dead ? 1.1 : 0.45);        // blood is what they came for
+    if (dead && bossSpeaker) say(bossSpeaker, "kill", true);
     if (player.hits <= 0) { player.hits = 0; loseGame(); return true; }
     return false;
   }
@@ -5166,6 +5343,16 @@
         judge(mn.x, mn.y, (dx / d) * 60, (dy / d) * 60, player.r + mn.r + 4, 1);
       }
     }
+    // The green. They are not the other man's and they are not his, and a
+    // duellist who does not run from them dies to them — so they are judged as
+    // the hardest threat on the sand, which is what they are.
+    if (duel && duel.beasts.length) {
+      for (const bt of duel.beasts) {
+        const dx = player.x - bt.x, dy = player.y - bt.y, d = Math.hypot(dx, dy) || 1;
+        judge(bt.x, bt.y, (dx / d) * -SUDDEN_SPEED, (dy / d) * -SUDDEN_SPEED,
+              player.r + bt.r + 6, 1.5);
+      }
+    }
     // A net costs him his legs rather than his blood, which made it look cheap —
     // but a man snared in the open is a man who cannot leave, and the retiarius
     // was beating every armatura on the board until this was priced properly.
@@ -5291,6 +5478,13 @@
     const mult = blocked ? 0 : (inHot ? HOT_MULT : inZone ? 1 : 0);
     if (mult) {
       boss.hp -= ZONE_DRAIN * mult * dt;
+      if (bossSpeaker) {
+        const frac = boss.maxhp ? boss.hp / boss.maxhp : 1;
+        if (frac <= 0.25 && !bossSpeaker.said.low) { bossSpeaker.said.low = 1; say(bossSpeaker, "low", true); }
+        else if (frac <= 0.5 && !bossSpeaker.said.half) { bossSpeaker.said.half = 1; say(bossSpeaker, "half", true); }
+        else if (!bossSpeaker.said.first) { bossSpeaker.said.first = 1; say(bossSpeaker, "took"); }
+        bossSpeaker.quiet = 0;
+      }
       boss.hitFlash = 0.08;
       // Embers stream off the boss while you're draining it — the feedback for
       // "this is working" that a shrinking bar alone doesn't give.
@@ -5355,6 +5549,11 @@
     if (wantMinions) updateMinions(edt, difficultyMul(), beasts);
 
     updatePending(edt);
+    updateSpeech(dt);
+    if (bossSpeaker) {
+      bossSpeaker.quiet += dt;
+      if (bossSpeaker.quiet > 13 && stageTime > 5) { bossSpeaker.quiet = 0; say(bossSpeaker, "taunt"); }
+    }
 
     // Move enemy bullets, cull off-screen or expired. The lifetime matters most
     // for curved shots: a bent trajectory can circle inside the arena forever and
@@ -5395,6 +5594,231 @@
     }
   }
 
+  // ---- What they say ----
+  //
+  // A gladiator was not a silent professional. He worked a crowd of fifty thousand
+  // who had paid to be there, and the surviving graffiti is full of men being
+  // shouted at by name. So the man across the sand talks: at the gate, when he
+  // draws blood, when he is losing, and at the end.
+  //
+  // Lines are picked by what just happened and then narrowed by his armatura,
+  // because a retiarius taunting you about his net is worth more than a generic
+  // boast. Nobody says anything twice inside their own cooldown, which is what
+  // keeps two men in a duel from talking over each other for the whole bout.
+  const LINES = {
+    open: [
+      "Another one. Stand where I can reach you.",
+      "The sand drinks either way.",
+      "They paid to watch you die. Try to be worth it.",
+      "You will not leave through the Gate of Life.",
+      "Let us give them something to remember.",
+      "I have buried better.",
+    ],
+    // He has just wounded the other man.
+    drew: [
+      "First blood. The rest is easier.",
+      "There. Now they are watching.",
+      "You felt that one.",
+      "Bleed where they can see it.",
+      "Hold still. It is quicker.",
+    ],
+    // He has just been wounded.
+    took: [
+      "A scratch. My mother hits harder.",
+      "Good. Now I am awake.",
+      "Is that all you were given?",
+      "You will pay for that in a moment.",
+      "The crowd saw that. They will see the answer.",
+    ],
+    // Half his health is gone.
+    half: [
+      "This is not finished.",
+      "I have won from worse ground.",
+      "Come closer, then. Finish it.",
+      "You are slower than you were.",
+    ],
+    // He is nearly out.
+    low: [
+      "Not here. Not to you.",
+      "I will not raise the finger.",
+      "Missum! — no. No. I fight.",
+      "Let them see me standing.",
+      "Jupiter, one more.",
+    ],
+    // He has put the other man down.
+    kill: [
+      "Habet! He has had it.",
+      "That is what you paid for.",
+      "Take him out through the Gate of Death.",
+      "Next.",
+      "I told him where to stand.",
+    ],
+    // His shield has just been beaten aside.
+    guard: [
+      "My arm — the arm, not the shield —",
+      "It held. It held all afternoon.",
+      "Fine. Without it, then.",
+      "You cannot keep that up.",
+    ],
+    // A net has landed on him.
+    netted: [
+      "Get it off me —",
+      "Cheap. Fisherman's work.",
+      "A net is not a sword.",
+    ],
+    // Something useful landed on the sand and he took it.
+    gift: [
+      "The gods are watching after all.",
+      "Mine.",
+      "This was owed to me.",
+    ],
+    // The other man got to it first.
+    lost_gift: [
+      "Take it. It will not save you.",
+      "Cheat.",
+    ],
+    // Someone has paid the editor to make his afternoon harder.
+    bribed: [
+      "Who paid for this? WHO PAID FOR THIS?",
+      "The editor has been bought. Of course he has.",
+      "This is not the bout I was booked for!",
+      "Coward's money.",
+    ],
+    // A long stretch where nothing has touched him.
+    taunt: [
+      "Is this dancing, or fighting?",
+      "The crowd is getting bored. So am I.",
+      "Throw something. Anything.",
+      "They will start throwing cushions soon.",
+    ],
+  };
+
+  // What each armatura says instead, where the arms he carries give him something
+  // better to say than the general pool.
+  const ARM_LINES = {
+    retiarius: {
+      open: ["Net first. Trident after. That is the order."],
+      drew: ["The trident goes where the net has already been."],
+      netted: ["You threw MY weapon back at me?"],
+    },
+    secutor: {
+      open: ["I am the chaser. There is nowhere on this sand you can stand."],
+      taunt: ["Run. I am paid by the hour."],
+    },
+    murmillo: {
+      open: ["Come to the shield. Everyone does, eventually."],
+      took: ["Around the shield. Lucky. Try it twice."],
+      guard: ["Nobody beats the scutum aside. Nobody."],
+    },
+    sagittarius: {
+      open: ["Every shaft I have is already aimed at you."],
+      drew: ["I do not miss. I only wait."],
+    },
+    andabata: {
+      open: ["I cannot see you. I do not need to."],
+      took: ["Where — WHERE —"],
+      low: ["Blind, and still standing. What is your excuse?"],
+    },
+    bestiarius: {
+      open: ["The beasts know me. They will not know you."],
+      bribed: ["More of them? Fine. They are mine either way."],
+    },
+    dimachaerus: {
+      open: ["Two swords. No shield. Nothing to hide behind — for either of us."],
+    },
+    provocator: {
+      open: ["Breastplate. You will be here a while."],
+      half: ["Halfway through the bronze. Keep going."],
+    },
+    thraex: {
+      open: ["The sica bends. Your guard does not."],
+    },
+    eques: {
+      open: ["I open the games. You are the opening."],
+    },
+    hoplomachus: {
+      open: ["Spear's length. That is as close as you get."],
+    },
+    scissor: {
+      open: ["This blade is welded to my arm. I cannot drop it even if you ask."],
+    },
+  };
+
+  // Seconds a line hangs over a man's head. Long, because it is competing with
+  // two men, their bullets and a health bar for your attention — a line you have
+  // to catch on the first pass may as well not be there.
+  const SPEECH_DUR = 4.6;
+  const SPEECH_GAP = 5.4;      // ...and how long before he is allowed another
+  let speech = [];
+
+  // A speaker is anything with a body to hang the words over and an armatura to
+  // colour them. Duellists are speakers already; the lone opponent in an ordinary
+  // bout gets one built for him when the stage begins.
+  let bossSpeaker = null;
+
+  function say(sp, kind, urgent) {
+    if (!sp || !sp.body) return;
+    if (!urgent && (sp.sayT || 0) > 0) return;
+    const pool = (ARM_LINES[sp.armKey] && ARM_LINES[sp.armKey][kind]) || LINES[kind];
+    if (!pool || !pool.length) return;
+    sp.sayT = SPEECH_GAP;
+    // Anything urgent — a death, a bribe — pushes the current line aside rather
+    // than queueing behind it. Nobody finishes a boast while being eaten.
+    if (urgent) speech = speech.filter((s) => s.sp !== sp);
+    speech.push({
+      sp: sp,
+      text: pool[Math.floor(Math.random() * pool.length)],
+      t: 0,
+      dur: SPEECH_DUR,
+    });
+    sfx("talk");
+  }
+
+  function updateSpeech(dt) {
+    for (let i = speech.length - 1; i >= 0; i--) {
+      speech[i].t += dt;
+      if (speech[i].t >= speech[i].dur) speech.splice(i, 1);
+    }
+    if (bossSpeaker && bossSpeaker.sayT > 0) bossSpeaker.sayT -= dt;
+    if (duel) for (const s of [duel.a, duel.b]) if (s.sayT > 0) s.sayT -= dt;
+  }
+
+  function drawSpeech() {
+    if (!speech.length) return;
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `600 13px ${FONT}`;
+    for (const s of speech) {
+      const b = s.sp.body;
+      // Fades in fast and out slowly, so a line never blinks out mid-read.
+      const inA = Math.min(1, s.t / 0.12);
+      const outA = Math.min(1, (s.dur - s.t) / 0.5);
+      ctx.globalAlpha = Math.min(inA, outA);
+      const w = ctx.measureText(s.text).width + 20;
+      // Above the health bar over his head, and never off the top or the sides.
+      const x = Math.max(w / 2 + 6, Math.min(W - w / 2 - 6, b.x));
+      const y = Math.max(30, b.y - b.r - 52);
+      roundRect(x - w / 2, y - 13, w, 26, 7);
+      ctx.fillStyle = "rgba(16,12,7,0.86)";
+      ctx.fill();
+      ctx.strokeStyle = s.sp.color || COLORS.danger;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      // The little tail, so it is his line and not the other man's.
+      ctx.beginPath();
+      ctx.moveTo(x - 5, y + 13);
+      ctx.lineTo(x + 5, y + 13);
+      ctx.lineTo(x, y + 20);
+      ctx.closePath();
+      ctx.fillStyle = "rgba(16,12,7,0.86)";
+      ctx.fill();
+      ctx.fillStyle = "#e8dcc8";
+      ctx.fillText(s.text, x, y);
+    }
+    ctx.restore();
+  }
+
   // ---- Duellum: two men on the sand, and neither of them is you ----
   //
   // The pattern system is written against three module globals — `boss` is
@@ -5412,18 +5836,52 @@
   const DUEL_DMG = 3.4;        // health one shot takes off the man it lands on
   const DUEL_TOUCH = 26;       // ...and what standing inside him costs, per second
   const DUEL_RANGE = 300;      // the ground a man keeps between them when his pattern is quiet
+  // A duellist crosses the sand slower than you do. He is a full-sized gladiator
+  // carrying a full-sized armatura, not the small quick thing you play as — and
+  // at your speed the pair of them covered the arena faster than either could
+  // read it, which is what made two men throwing at once impossible to follow.
+  // Slower men make a legible fight.
+  const DUEL_SPEED = 0.7;
+  // What a shield actually runs out of is not width but the arm behind it. A
+  // scutum will turn a jab all afternoon, but a serpent's unbroken rope arriving
+  // at eleven shots a second is a man leaning on that arm until it gives — and
+  // until this, it never gave. A murmillo simply stood in the stream and won.
+  //
+  // So the arm is counted rather than the arc: blocks pile up faster than they
+  // can be shaken off, and past the cap the shield is beaten aside for a second
+  // and everything walks straight through it. Sparse fire never gets there,
+  // which is the distinction that matters — the shield is still superb against
+  // a slow pattern and now costs something against a fast one.
+  const GUARD_CAP = 5;         // blocks in quick succession before the arm gives
+  const GUARD_SHED = 4.5;      // how fast he shakes them off, per second
+  const GUARD_DOWN = 1.0;      // seconds the shield is beaten aside
+  // ---- Sudden death ----
+  // Two careful men can stand off each other all afternoon, and a spectator who
+  // has money on it cannot make either of them come forward. So the editor does.
+  // Past this many seconds the gates go up on every side of the arena at once and
+  // the beasts come in — and they are nobody's beasts. They belong to the green,
+  // which is not a side either man is on: they charge whoever is nearest and they
+  // do not stop arriving. There is no surviving it, only winning before it
+  // finishes, which is the entire purpose of it.
+  const SUDDEN_AT = 55;        // seconds of duel before the gates go up
+  const SUDDEN_WAVE = 1.15;    // seconds between beasts, shortening as it goes
+  const SUDDEN_SPEED = 132;    // how fast they come
+  const SUDDEN_BITE = 17;      // health a beast takes per second it is on a man
+  const SUDDEN_GREEN = "#22c55e";
   let duel = null;             // the bout on the sand, or null
   let duelSide = null;         // whichever man the globals are currently bound to
 
   function makeDuellist(f, x, y) {
     const A = armOf(f.arm);
-    const hp = Math.round(DUEL_HP * (A.hp || 1));
+    // Health takes half of what the rate takes, so a nerfed man is slower to kill
+    // with rather than simply easier to kill — he still has to be beaten.
+    const hp = Math.round(DUEL_HP * (A.hp || 1) * (0.5 + 0.5 * duelNerf(f)));
     return {
       f: f, name: f.name, key: f.key, armKey: f.arm, arm: A,
       color: COLORS.mine,        // set properly by startDuel, once there is money on it
       crest: A.color,            // what he is trained to, worn on the body
       body: {
-        x: x, y: y, r: 34, speed: 620 * (A.spd || 1), hits: 99,
+        x: x, y: y, r: 34, speed: 620 * (A.spd || 1) * DUEL_SPEED, hits: 99,
         fire: 0.6, fire2: 1.4, spin: 0, hitFlash: 0, hp: hp, maxhp: hp,
         dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
         netT: A.net ? A.net * 0.6 : 0, fouled: 0, shieldAng: -Math.PI / 2,
@@ -5433,8 +5891,10 @@
       // or both men walk into their own trident.
       bullets: [], nets: [], pending: [], minions: [], minionTimer: 2.0,
       fx: { shield: false, slow: 0, swift: 0, invuln: 0, snare: 0 },
-      spd: (A.spd || 1), rate: (A.rate || 1), phase2: false,
+      spd: (A.spd || 1), rate: (A.rate || 1) * duelNerf(f), phase2: false,
       botT: 0, botDx: 0, botDy: 0, botVx: 0, botVy: 0, skill: 0,
+      sayT: 0, said: {}, quiet: 0,     // what he has already said, and for how long nothing has touched him
+      guardLoad: 0, guardDown: 0,      // the weight on his shield arm, and whether it has given
       goalX: x, goalY: y, goalW: 0,
       hurt: 0,                 // how recently he was touched, for the flash
     };
@@ -5478,7 +5938,12 @@
     A.foe = B; B.foe = A;
     A.color = backed === 1 ? COLORS.theirs : COLORS.mine;
     B.color = backed === 1 ? COLORS.mine : COLORS.theirs;
-    duel = { a: A, b: B, t: 0, over: null };
+    duel = { a: A, b: B, t: 0, over: null, beasts: [], beastT: 0, sudden: false };
+    speech = [];
+    // The man on the left goes first, and the other answers a beat later — two
+    // openers in the same frame reads as one man arguing with himself.
+    say(A, "open", true);
+    B.sayT = 1.1;
     return duel;
   }
 
@@ -5487,7 +5952,7 @@
   // refused damage; here it refuses the shot itself.
   function duelGuarded(s, x, y) {
     const g = s.arm.shield;
-    if (!g) return false;
+    if (!g || s.guardDown > 0) return false;
     let d = Math.atan2(y - s.body.y, x - s.body.x) - s.body.shieldAng;
     while (d > Math.PI) d -= Math.PI * 2;
     while (d < -Math.PI) d += Math.PI * 2;
@@ -5508,7 +5973,22 @@
     s.body.hp -= amount;
     s.body.hitFlash = 0.12;
     s.hurt = 0.18;
-    if (shot) { crowdSurge(0.10); sfx("hit"); }
+    if (!shot) return;
+    crowdSurge(0.10);
+    sfx("hit");
+    s.quiet = 0;
+    if (s.foe) s.foe.quiet = 0;
+    const frac = s.body.hp / s.body.maxhp;
+    // Crossing a mark is worth saying something about; being hit again just
+    // below it is not, which is what `said` remembers.
+    if (frac <= 0.25 && !s.said.low) { s.said.low = 1; say(s, "low", true); }
+    else if (frac <= 0.5 && !s.said.half) { s.said.half = 1; say(s, "half", true); }
+    else if (!s.said.first) {
+      s.said.first = 1;
+      if (s.foe) s.foe.said.first = 1;
+      say(s.foe, "drew");
+      s.sayT = 1.4;                    // he answers, but not on top of the boast
+    } else if (Math.random() < 0.10) say(s, "took");
   }
 
   // One man's shots against the other man's body. Nets do not wound — they take
@@ -5522,7 +6002,20 @@
       if ((ob.x - b.x) ** 2 + (ob.y - b.y) ** 2 > rr * rr) continue;
       s.bullets.splice(i, 1);
       if (duelGuarded(o, b.x, b.y)) {
-        burst(b.x, b.y, 3, "#f0d489", 140, { life: 0.25, r: 1.8 });
+        o.guardLoad += 1;
+        if (o.guardLoad >= GUARD_CAP) {
+          // The arm gives. Everything already in the air goes through.
+          o.guardLoad = 0;
+          o.guardDown = GUARD_DOWN;
+          burst(b.x, b.y, 14, "#e0a03f", 260, { life: 0.5, r: 2.4 });
+          shockwaves.push({ x: o.body.x, y: o.body.y, t: 0, dur: 0.3 });
+          pickupFlash = { label: `${o.name.toUpperCase()} — GUARD BEATEN ASIDE`, color: "#e0a03f", t: 0 };
+          crowdSurge(0.4);
+          sfx("phase");
+          say(o, "guard", true);
+        } else {
+          burst(b.x, b.y, 3, "#f0d489", 140, { life: 0.25, r: 1.8 });
+        }
         continue;
       }
       duelWound(o, DUEL_DMG, true);
@@ -5571,6 +6064,8 @@
         if (pu.type === "slow") taken.foe.fx.slow = def.dur;
         else if (pu.type === "shield") taken.fx.shield = true;
         else if (pu.type === "swift") taken.fx.swift = def.dur;
+        say(taken, "gift");
+        if (Math.random() < 0.4) taken.foe.sayT = Math.max(taken.foe.sayT, 0.9);
         pickupFlash = { label: `${taken.name.toUpperCase()} — ${def.label}`, color: taken.color, t: 0 };
         burst(pu.x, pu.y, 24, def.color, 260, { life: 0.65 });
         shockwaves.push({ x: pu.x, y: pu.y, t: 0, dur: 0.3 });
@@ -5593,10 +6088,64 @@
     if (pickupFlash) { pickupFlash.t += dt; if (pickupFlash.t > 1.2) pickupFlash = null; }
   }
 
+  // The gates, and what comes through them.
+  function updateSuddenDeath(dt) {
+    if (duel.t < SUDDEN_AT) return;
+    if (!duel.sudden) {
+      duel.sudden = true;
+      duel.beastT = 0.5;
+      shake = 20;
+      pickupFlash = { label: "THE GATES — ALL OF THEM", color: SUDDEN_GREEN, t: 0 };
+      crowdSurge(1.2);
+      sfx("phase");
+      // Both men see it at once, and neither of them was expecting it.
+      say(duel.a, "bribed", true);
+      duel.b.sayT = 1.3;
+    }
+    // They come faster the longer the two of them refuse to finish it.
+    const urgency = 1 + Math.min(2.2, (duel.t - SUDDEN_AT) / 14);
+    duel.beastT -= dt * urgency;
+    if (duel.beastT <= 0) {
+      duel.beastT = SUDDEN_WAVE;
+      // From the wall, on a side chosen at random, so they arrive from
+      // everywhere rather than from a direction anyone can learn.
+      const edge = Math.floor(Math.random() * 4);
+      const along = Math.random();
+      const x = edge === 0 ? along * W : edge === 1 ? W + 30 : edge === 2 ? along * W : -30;
+      const y = edge === 0 ? -30 : edge === 1 ? along * H : edge === 2 ? H + 30 : along * H;
+      duel.beasts.push({ x: x, y: y, r: 13, t: 0 });
+    }
+    for (const bt of duel.beasts) {
+      bt.t += dt;
+      // Each one runs at whichever man is nearer. Neither of them is safe by
+      // standing still and neither is safe by running — the only way out of the
+      // arena is through the other man.
+      let target = duel.a, best = Infinity;
+      for (const s of [duel.a, duel.b]) {
+        const d = Math.hypot(s.body.x - bt.x, s.body.y - bt.y);
+        if (d < best) { best = d; target = s; }
+      }
+      const dx = target.body.x - bt.x, dy = target.body.y - bt.y;
+      const d = Math.hypot(dx, dy) || 1;
+      bt.x += (dx / d) * SUDDEN_SPEED * dt;
+      bt.y += (dy / d) * SUDDEN_SPEED * dt;
+      if (d <= target.body.r + bt.r) duelWound(target, SUDDEN_BITE * dt);
+    }
+  }
+
   function updateDuel(dt) {
     duel.t += dt;
     const sides = [duel.a, duel.b];
     updateDuelPowerups(dt);
+    updateSuddenDeath(dt);
+    updateSpeech(dt);
+    for (const s of [duel.a, duel.b]) {
+      if (s.fx.snare > 0 && !s.said.netted) { s.said.netted = 1; say(s, "netted", true); }
+      // Nothing has touched either of them for a long time. The crowd notices
+      // before the fighters do, and then one of them says so.
+      s.quiet += dt;
+      if (s.quiet > 11 && duel.t > 4) { s.quiet = 0; say(s, "taunt"); }
+    }
 
     // What the crowd is doing. They came to see it close and they came to see it
     // end: a bout where both men are still whole is worth less noise than one
@@ -5645,6 +6194,10 @@
       s.body.x = Math.max(s.body.r, Math.min(W - s.body.r, s.body.x));
       s.body.y = Math.max(s.body.r, Math.min(H - s.body.r, s.body.y));
       if (s.body.hitFlash > 0) s.body.hitFlash -= dt;
+      // He shakes the weight off his arm between shots, so only fire that arrives
+      // faster than he can shed it ever reaches the cap.
+      if (s.guardDown > 0) s.guardDown -= dt;
+      else if (s.guardLoad > 0) s.guardLoad = Math.max(0, s.guardLoad - GUARD_SHED * dt);
       if (s.hurt > 0) s.hurt -= dt;
     }
 
@@ -5693,6 +6246,9 @@
       freeze = 0.22;
       sfx("death");
       crowdSurge(1.1);
+      // The winner gets the last word, and gets it over the body.
+      const standing = duel.a.body.hp > 0 ? duel.a : (duel.b.body.hp > 0 ? duel.b : null);
+      if (standing) say(standing, "kill", true);
       // Both down in the same frame is a draw on the sand and a push at the desk.
       const aDown = duel.a.body.hp <= 0, bDown = duel.b.body.hp <= 0;
       duel.over = aDown && bDown ? null : (aDown ? duel.b : duel.a);
@@ -5705,6 +6261,16 @@
   // neither of them is you, so neither gets the colour that means "you".
   function drawDuel() {
     const sides = [duel.a, duel.b];
+    for (const bt of duel.beasts) {
+      // A beast just through the gate is still arriving; it fades up over its
+      // first moment so nothing lands on the sand out of nowhere.
+      ctx.globalAlpha = Math.min(1, bt.t / 0.4);
+      ctx.shadowColor = SUDDEN_GREEN; ctx.shadowBlur = 12;
+      circle(bt.x, bt.y, bt.r, SUDDEN_GREEN, "#c8f7d8", 2);
+      ctx.shadowBlur = 0;
+      circle(bt.x, bt.y, bt.r + 2, null, "rgba(16,12,7,0.55)", 1.5);
+      ctx.globalAlpha = 1;
+    }
     for (const s of sides) {
       for (const mn of s.minions) {
         if (mn.phase !== "active") continue;
@@ -5731,9 +6297,14 @@
       // to see which side, because it is the whole read on where to stand.
       if (s.arm.shield) {
         ctx.save();
-        ctx.strokeStyle = s.color;
-        ctx.globalAlpha = 0.75;
-        ctx.lineWidth = 5;
+        const down = s.guardDown > 0;
+        // Beaten aside: hanging off the arm, thin and broken up. Under load but
+        // still holding: it glows hotter the nearer the arm is to giving.
+        const load = Math.min(1, s.guardLoad / GUARD_CAP);
+        ctx.strokeStyle = down ? "#6b4f2a" : (load > 0.5 ? "#e0a03f" : s.color);
+        ctx.globalAlpha = down ? 0.3 : 0.6 + load * 0.4;
+        ctx.lineWidth = down ? 2 : 5 + load * 2;
+        if (down) ctx.setLineDash([5, 7]);
         ctx.beginPath();
         ctx.arc(b.x, b.y, b.r + 11, b.shieldAng - s.arm.shield, b.shieldAng + s.arm.shield);
         ctx.stroke();
@@ -5822,6 +6393,20 @@
       ctx.fillStyle = s.color;
       ctx.fillText(String(Math.max(0, Math.ceil(s.body.hp))), left ? x0 + span : x0, ty);
     });
+
+    // The gates, counting down. It is the one thing on this screen that can
+    // change the result without either fighter doing anything, so it is said out
+    // loud well before it happens.
+    const left = SUDDEN_AT - duel.t;
+    if (duel.sudden || left < 15) {
+      ctx.textAlign = "center";
+      ctx.font = `700 12px ${FONT}`;
+      const on = duel.sudden;
+      ctx.fillStyle = on ? SUDDEN_GREEN : (left < 6 ? COLORS.danger : COLORS.warn);
+      ctx.globalAlpha = on ? 0.7 + 0.3 * Math.sin(totalTime * 6) : 1;
+      ctx.fillText(on ? "THE BEASTS ARE IN" : `GATES IN ${Math.ceil(Math.max(0, left))}`, mid, H - 26);
+      ctx.globalAlpha = 1;
+    }
 
     // Between them, the only thing a spectator actually needs: which of the two
     // is carrying your money, and what it pays.
@@ -6412,6 +6997,7 @@
       drawDuel();
       drawShockwaves();
       drawParticles();
+      drawSpeech();
       drawDuelHealth();
       drawEffects();
       ctx.restore();
@@ -6584,6 +7170,8 @@
       }
 
       // Everything above this is what the andabata's helmet takes away.
+      // Under the helmet, not over it: a blind bout hides his words too.
+      drawSpeech();
       if (state === GS.PLAYING) drawBlind();
 
       drawShockwaves();
