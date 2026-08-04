@@ -62,7 +62,22 @@
     { id: "diodorus", name: "Diodorus", arm: "provocator", key: "pulsar", hp: 62,
       blurb: "His stone says he beat Demetrius and the referee gave it away anyway.",
       pugn: 20, vic: 14, miss: 4 },
+    // The one man on the board carrying a handicap, and the reason is that his
+    // two halves multiply instead of adding. The serpent is a rope of bullets
+    // with holes you have to aim for; the net is the thing that takes away your
+    // aim. Either alone belongs at rank IX. Together they were being fought at
+    // rank II — he played like Priscus, who has eighty-two health and the Void.
+    // `rate` slows every cooldown he has at once, which is the only lever that
+    // widens the gaps in the rope rather than just thinning it: the spacing of a
+    // stream is its interval times its speed, so stretching the interval alone is
+    // what turns a wall back into a fence. It slows his nets by the same amount.
+    // Ladder bouts only — what he is worth at the Sponsio desk is priced apart,
+    // in DUEL_NERF. Tempo and not health for that reason too: the desk reads hp
+    // straight off this line, but a duel gives every man the same body, so taking
+    // health off him here would mark his price down without costing him anything
+    // in the only fight that price is about.
     { id: "triumphus", name: "Triumphus", arm: "retiarius", key: "serpent", hp: 58,
+      rate: 0.82,
       blurb: "Net first, trident second. Cut the net loose or you don't get to dodge.",
       pugn: 19, vic: 13, miss: 3 },
     { id: "hermes", name: "Hermes", arm: "andabata", key: "pulsar", hp: 64,

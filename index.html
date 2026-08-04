@@ -937,6 +937,18 @@
   // crossing an edge to be culled.
   const BULLET_LIFE = 3;
   const ZONE_HEAL = 1 / 8;   // health returned if you ignore an eye for its whole stay
+  // The net. It takes your legs rather than your blood, and for a while it took
+  // rather too many of them: at a third of your speed you were slower than the
+  // bullets coming at you, so against the one man who throws a net over an
+  // unbroken stream there was no step you could take that got you out of it —
+  // the net didn't cost you a dodge, it cost you every dodge until it wore off.
+  // Hampered, now, rather than anchored: you can still cross the rope, you just
+  // cross it badly. Named rather than repeated, because the figure has to be the
+  // same in all four places a man is moved — you, the bot reading its own speed
+  // to decide where to go, the bot's clock, and a duellist — and four copies of a
+  // number that must not drift is three too many.
+  const SNARE_SLOW = 0.52;   // fraction of your speed while netted
+  const SNARE_TIME = 1.0;    // seconds it holds
 
   // The arms bought for a wager fighter. Empty for every bout you fight yourself,
   // which is why nothing outside the Sponsio has to know this exists.
@@ -1086,6 +1098,11 @@
         // A ladder fight is stage 0, so carry the pressure its rung deserves:
         // the top of the board fights like the end of a boss run.
         depth: depth,
+        // A handicap for one man whose arms and pattern happen to compound into
+        // something his rung does not deserve. Tempo rather than health, because
+        // it is the only thing that widens the gaps in what he throws — see the
+        // note on his entry in ladder.js. Almost everyone leaves this alone.
+        rate: f.rate || 1,
         minions: sine || rank <= LADDER.length - 8,
         final: rank === 1,
       }],
@@ -1313,9 +1330,18 @@
       pickupFlash = { label: "A WORD WITH THE EDITOR", color: "#b06bff", t: 0 };
     } else {
       // The gates: beasts, on him, and they do not care whose money is on what.
+      //
+      // They are hung on his OPPONENT, which reads backwards and is not. A man's
+      // beasts hunt the man across from him — bindThrower points `player` at the
+      // foe before updateMinions runs, so a beast belongs to the side that
+      // released it and goes for the other one. Hanging them on the target sent
+      // them at the man you had money on: you paid to open the gates on him and
+      // they ate your own fighter. The owner is the handle the engine gives you;
+      // the man they are for is his foe.
       slip.gatesOpen = true;
-      target.arm = Object.assign({}, target.arm, { beasts: (target.arm.beasts || 0) + 1.6 });
-      target.minionTimer = 0.4;
+      const keeper = target.foe;
+      keeper.arm = Object.assign({}, keeper.arm, { beasts: (keeper.arm.beasts || 0) + 1.6 });
+      keeper.minionTimer = 0.4;
       pickupFlash = { label: "THE GATES OPEN", color: COLORS.warn, t: 0 };
       shake = 12;
     }
@@ -3562,7 +3588,13 @@
   // snares, and being snared is what gets you hit by everything else.
   function updateNets(dt) {
     if (arm && arm.net) {
-      boss.netT -= dt;
+      // On stageRate like every other cooldown in the game. It was on the raw
+      // clock, which made the net the one thing a tempo change could not reach —
+      // so a man slowed to four fifths threw his stream four fifths as fast and
+      // his net exactly as often as before. That gap is most of why the one
+      // retiarius on the board kept beating a price that had already marked him
+      // down: the desk was selling a nerf that never touched his best weapon.
+      boss.netT -= dt * stageRate;
       if (boss.netT <= 0) {
         boss.netT = arm.net;
         const a = angleToPlayer();
@@ -3577,7 +3609,7 @@
       if (n.x < -60 || n.x > W + 60 || n.y < -60 || n.y > H + 60) { nets.splice(i, 1); continue; }
       if (hit(player, n)) {
         nets.splice(i, 1);
-        fx.snare = 1.25;
+        fx.snare = SNARE_TIME;
         pickupFlash = { label: "NETTED!", color: "#4f9bd8", t: 0 };
         burst(player.x, player.y, 16, "#4f9bd8", 190, { life: 0.5 });
         shake = 7;
@@ -3801,14 +3833,27 @@
         break;
       }
       case "serpent": {
-        // One continuous stream whose angle whips back and forth — a rope of
-        // bullets you step over rather than a wall you hide from.
+        // One stream whose angle whips back and forth — a rope of bullets you
+        // step over rather than a wall you hide from.
+        //
+        // It was a wall. The gap in a stream is the interval times the speed, and
+        // both carry m, so m cancels and the spacing is a fixed distance: at one
+        // shot every 0.085s at 210px/s the beads sat 17.9px apart, which is 5.9px
+        // of air between their edges for a man 26px across. No contract and no
+        // armatura ever opened that up, because there was nothing there for a
+        // tempo change to reach — the rope was solid on the Ludus too, and the
+        // only reason it was ever survivable was that it might not sweep over you.
+        //
+        // Now spaced 52px, which is 14px of daylight for the same man: a gap you
+        // have to actually aim for, but one that exists. That is three times fewer
+        // bullets, and it is meant to be — the pattern's whole idea is a line with
+        // holes in it, and it did not have any.
         moveToward(W / 2, H * 0.26, 55 * m, dt);
         if (boss.fire <= 0) {
-          boss.fire = 0.085 / m;
+          boss.fire = 0.26 / m;
           const a = angleToPlayer() + Math.sin(stageTime * 2.6) * 1.15;
-          spawn(boss.x, boss.y, a, 210 * m, 6);
-          spawn(boss.x, boss.y, a + Math.PI, 210 * m, 6); // tail whips the other way
+          spawn(boss.x, boss.y, a, 200 * m, 6);
+          spawn(boss.x, boss.y, a + Math.PI, 200 * m, 6); // tail whips the other way
         }
         break;
       }
@@ -4030,7 +4075,7 @@
 
   function botChoose() {
     const goal = botGoal();
-    const sp = player.speed * (fx.snare > 0 ? 0.34 : 1) * (fx.swift > 0 ? SWIFT_MULT : 1);
+    const sp = player.speed * (fx.snare > 0 ? SNARE_SLOW : 1) * (fx.swift > 0 ? SWIFT_MULT : 1);
     // Better-trained arms look further ahead as well as more often.
     const horizon = BOT.horizon * (1 + Math.max(-0.35, Math.min(0.35, botSkill)) * 0.7);
     // Scored as ground gained toward the eye rather than distance from it: the pull
@@ -4070,7 +4115,7 @@
       // capped so he never crosses too much sand without looking up.
       // Training scales what's left after the cap rather than racing it, or a cap
       // tight enough to help the swift would hand the blind man the same reflexes.
-      const sp = player.speed * (fx.snare > 0 ? 0.34 : 1) * (fx.swift > 0 ? SWIFT_MULT : 1);
+      const sp = player.speed * (fx.snare > 0 ? SNARE_SLOW : 1) * (fx.swift > 0 ? SWIFT_MULT : 1);
       botT = Math.max(0.03, Math.min(BOT.react, BOT.commit / sp) * (1 - botSkill * 1.9));
       botChoose();
     }
@@ -4118,7 +4163,7 @@
     if (dx || dy) {
       // A net doesn't wound you, it takes your legs — which is what the retiarius
       // was for. Everything else on the sand gets easier to hit you with.
-      const sp = player.speed * (fx.snare > 0 ? 0.34 : 1) * (fx.swift > 0 ? SWIFT_MULT : 1)
+      const sp = player.speed * (fx.snare > 0 ? SNARE_SLOW : 1) * (fx.swift > 0 ? SWIFT_MULT : 1)
                * throttle;
       player.x += dx * sp * dt;
       player.y += dy * sp * dt;
@@ -4716,7 +4761,7 @@
       // it — which is what turning is supposed to cost.
       const mag = Math.hypot(botVx, botVy);
       if (mag > 0.02) {
-        const sp = s.body.speed * (s.fx.snare > 0 ? 0.34 : 1) * (s.fx.swift > 0 ? SWIFT_MULT : 1);
+        const sp = s.body.speed * (s.fx.snare > 0 ? SNARE_SLOW : 1) * (s.fx.swift > 0 ? SWIFT_MULT : 1);
         const step = Math.min(1, mag) / mag;
         s.body.x += botVx * step * sp * dt;
         s.body.y += botVy * step * sp * dt;
