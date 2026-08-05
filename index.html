@@ -601,6 +601,20 @@
     width: 21px; height: 21px; border-radius: 3px; display: grid; place-items: center;
   }
   .stagerow select { width: 100%; min-width: 0; }
+  /* A stage's roster: one line per man, his own knobs under him. */
+  .stagerow .men { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .stagerow .manrow { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .stagerow .manrow select { flex: 1 1 auto; }
+  .stagerow .manrow button { flex: none; padding: 5px 8px; font-size: 12px; line-height: 1; }
+  .stagerow .mnum {
+    flex: none; width: 19px; height: 19px; border-radius: 3px; display: grid; place-items: center;
+    background: rgba(77,215,255,0.16); border: 1px solid rgba(77,215,255,0.5);
+    color: var(--safe); font-family: var(--serif); font-weight: 800; font-size: 10.5px;
+  }
+  .stagerow .addman {
+    align-self: flex-start; padding: 5px 10px; font-size: 11.5px; letter-spacing: 1px;
+  }
+  .stagerow .men .knobs { grid-column: auto; margin-bottom: 2px; }
   .stagerow .ops { display: flex; gap: 4px; }
   .stagerow .ops button { padding: 5px 8px; font-size: 12px; line-height: 1; }
   /* Second line of a card: the numeric knobs */
@@ -702,6 +716,7 @@
         <button data-tab="play" class="on">Play</button>
         <button data-tab="ladder">Ladder</button>
         <button data-tab="library">Library</button>
+        <button data-tab="munera">Munera</button>
         <button data-tab="horreum">Horreum</button>
         <button data-tab="vault">Vault</button>
         <button data-tab="tessera">Tessera</button>
@@ -775,6 +790,15 @@
           <button class="primary" id="newLevelBtn">New Level</button>
         </div>
         <p class="hint" id="editorLock"></p>
+      </div>
+
+      <!-- Munera: the missions fought against more than one man at once -->
+      <div class="tabpanel hidden" data-panel="munera">
+        <p class="sub">A <b style="color:var(--text)">munus</b> was the whole day's programme, not one bout. These are the parts of it nobody survives by taking turns: <b style="color:var(--text)">two to four men on the sand at once</b>, every one of them throwing his full pattern from the opening bell.</p>
+        <p class="sub">The emperor watches <b style="color:var(--safe)">one of them at a time</b>. That man wears the blue ring, the eye is his, and he is the only one your standing anywhere can hurt. The rest are weather. Put him down and the eye turns to the next — you do not get to choose the order, only to survive it.</p>
+        <p class="hint">The sand is rationed. A man in a crowd throws slower than the same man alone, and the more of them there are the slower each one gets — two men put out about half again what one does, four put out double, not quadruple. Four full patterns at full tempo is a wall, and a wall is not a difficulty.</p>
+        <div id="muneraList" class="liblist"></div>
+        <p class="hint" id="muneraLock"></p>
       </div>
 
       <!-- Horreum -->
@@ -957,6 +981,8 @@
   const tabPanels = [...document.querySelectorAll(".tabpanel")];
   const libList = document.getElementById("libList");
   const myList = document.getElementById("myList");
+  const muneraList = document.getElementById("muneraList");
+  const muneraLock = document.getElementById("muneraLock");
   const editorEl = document.getElementById("editor");
   const editorTitle = document.getElementById("editorTitle");
   const lvlName = document.getElementById("lvlName");
@@ -986,7 +1012,7 @@
     ARMATURAE, armOf,
     LADDER, LADDER_BY_ID, UNRANKED, tierOf,
     CONDICIO,
-    LEVEL_COLORS, LEVELS, BATTLES, formValue, chainPayout,
+    LEVEL_COLORS, LEVELS, BATTLES, MUNERA, formValue, chainPayout, stageForms,
     LINES, ARM_LINES, SPEECH_DUR, SPEECH_GAP,
   } = window.COLOSSEUM;
 
@@ -1036,6 +1062,10 @@
   // js/progress.js, and the sound settings behind AUDIO — the engine holds no
   // storage keys of its own but this one, which belongs to the contract picker.
   const MAX_CUSTOM_STAGES = 8;
+  // How many men a stage may put out at once. Four is where the sand runs out:
+  // every one of them throws a full pattern, and a fifth turns reading the fight
+  // into reading a wall.
+  const MAX_CROWD = 4;
   let myLevels = [];
   let editing = null;
 
@@ -1122,6 +1152,8 @@
   function resetGame() {
     duel = null;          // a duel is set up after the engine is reset, never before
     duelSide = null;
+    foes = [];            // and so is the crowd — beginStage fills this
+    mark = 0;
     player = { x: W / 2, y: H * 0.75, r: 13, speed: 640, hits: maxHits };
     hurtFlash = 0;
     boss = {
@@ -1627,38 +1659,113 @@
     burst(boss.x, boss.y, 30, COLORS.warn, 190, { life: 1.3, drag: 1.4 });
   }
 
+  // ---- The crowd on the sand ----
+  // A stage used to be one man. It can now be up to four, and the whole of the
+  // machinery for that is borrowed from the duel: the pattern engine reads a
+  // fistful of globals — boss, bullets, nets, pending, minions, arm, stageSpd —
+  // so running it N times a frame is a matter of pointing those at a different
+  // man each pass and putting them back afterwards. Nobody's trident ends up in
+  // anybody else's hand, because no two men ever share an array.
+  //
+  // The eye is the reason this is a game rather than a mob. Only ONE of them is
+  // ever marked — the emperor is watching that man and no other — so the eye
+  // drains him alone and the rest are pure incoming fire you have no answer to
+  // yet. Put him down and the eye moves to the next. You do not get to choose
+  // the order; you get to survive it.
+  let foes = [];          // everyone on the sand. foes[mark] is the marked man
+  let mark = 0;
+
+  // ---- What a crowd costs the men in it ----
+  // Four men throwing full patterns is four times the bullets, and four times
+  // the bullets is not four times the fight — it is a wall, and a wall is not a
+  // difficulty setting. So the sand is rationed: total incoming grows as the
+  // SQUARE ROOT of the crowd rather than in step with it. Two men together put
+  // out about 1.4 patterns' worth between them, four put out 2. Each man is
+  // slower to throw than he would be alone, and the more of them there are the
+  // slower each one gets.
+  //
+  // Legs are rationed more gently than hands — half the correction — because a
+  // pursuer that cannot close is not a threat you dodge, it is scenery.
+  //
+  // Both come out at exactly 1 for a crowd of one, so every bout that existed
+  // before this feature fights precisely as it always did.
+  function crowdHands(n) { return 1 / Math.sqrt(Math.max(1, n)); }
+  function crowdLegs(n) { return 0.5 + 0.5 * crowdHands(n); }
+
+  // One man's whole state, kept apart from every other man's.
+  function makeFoe(def, i, total) {
+    const a = def.arm ? ARMATURAE[def.arm] || null : null;
+    const maxhp = Math.round((def.hp || 40) * ((a && a.hp) || 1));
+    // Spread them across the top of the sand. One man stands where he always
+    // did; a crowd comes out in a line, so you can see how many before it starts.
+    const t = total === 1 ? 0.5 : (i + 1) / (total + 1);
+    return {
+      key: def.key, arm: a, armKey: def.arm || null, def: def,
+      body: {
+        x: W * (0.18 + t * 0.64), y: H * 0.22, r: 34,
+        fire: 0.6, fire2: 1.4, spin: 0, hp: maxhp, maxhp: maxhp, hitFlash: 0,
+        dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
+        netT: a && a.net ? a.net * 0.6 : 0, fouled: 0, shieldAng: -Math.PI / 2,
+      },
+      bullets: [], nets: [], pending: [], minions: [], minionTimer: 2.0,
+      phase2: false,
+      spd: (def.spd || 1) * ((a && a.spd) || 1) * crowdLegs(total),
+      rate: (def.rate || 1) * ((a && a.rate) || 1) * crowdHands(total),
+      speaker: null,      // filled below, once the body exists
+      dead: false,
+    };
+  }
+
+  // The roster a stage puts out. One man unless it says otherwise, and a stage
+  // that says otherwise is still described by exactly the same fields per man.
+  function rosterOf(st) {
+    return (st.crowd && st.crowd.length) ? st.crowd.slice(0, MAX_CROWD) : [st];
+  }
+
+  // Point the engine's globals at one man. Everything the pattern code touches
+  // is his and only his for the length of the call.
+  function bindFoe(f) {
+    boss = f.body;
+    bullets = f.bullets; nets = f.nets; pending = f.pending;
+    minions = f.minions; minionTimer = f.minionTimer;
+    arm = f.arm; stageSpd = f.spd; stageRate = f.rate; phase2 = f.phase2;
+    bossSpeaker = f.speaker;
+  }
+  // ...and hand them back. The arrays go back by reference rather than by
+  // trusting them not to have been reassigned — beginStage and the phase change
+  // both replace whole arrays, and a foe pointing at an array nobody writes to
+  // any more is a man whose shots stop existing.
+  function unbindFoe(f) {
+    f.bullets = bullets; f.nets = nets; f.pending = pending;
+    f.minions = minions; f.minionTimer = minionTimer;
+    f.phase2 = phase2;
+  }
+  function markedFoe() { return foes[mark] || null; }
+  function livingFoes() { return foes.filter((f) => !f.dead); }
+
   function beginStage(idx) {
     stageIdx = idx;
     stageTime = 0;
-    boss.fire = 0.6;
-    boss.fire2 = 1.4;
-    boss.spin = 0;
-    boss.hitFlash = 0;
-    // The armatura, if this opponent has one, scales the bout before anything else.
-    arm = STAGES[idx].arm ? ARMATURAE[STAGES[idx].arm] || null : null;
-    boss.maxhp = Math.round(STAGES[idx].hp * ((arm && arm.hp) || 1));
-    boss.hp = boss.maxhp;
-    boss.dash.phase = "idle";
-    boss.dash.t = 0;
-    boss.netT = arm && arm.net ? arm.net * 0.6 : 0;   // the first net comes early
-    boss.shieldAng = -Math.PI / 2;
-    nets = [];
+    const roster = rosterOf(STAGES[idx]);
+    foes = roster.map((def, i) => makeFoe(def, i, roster.length));
+    for (const f of foes) {
+      // The man across the sand, as someone who can talk. Every one of them gets
+      // a voice; only the marked man is answered by the eye, but they all have
+      // opinions about it.
+      f.speaker = {
+        body: f.body, armKey: f.armKey,
+        color: (f.arm && f.arm.color) || COLORS.danger,
+        sayT: 0, said: {}, quiet: 0,
+      };
+    }
+    mark = 0;
+    bindFoe(foes[0]);
     fx.snare = 0;
-    phase2 = false;
-    // Per-stage tuning from the level builder; the campaigns leave these at 1.
-    stageSpd = (STAGES[idx].spd || 1) * ((arm && arm.spd) || 1);
-    stageRate = (STAGES[idx].rate || 1) * ((arm && arm.rate) || 1);
-    // The man across the sand, as someone who can talk. A duel builds its own
-    // pair of these; an ordinary bout has exactly one, and you are not it —
-    // you are busy.
-    bossSpeaker = {
-      body: boss,
-      armKey: STAGES[idx].arm || null,
-      color: (arm && arm.color) || COLORS.danger,
-      sayT: 0, said: {}, quiet: 0,
-    };
     speech = [];
-    say(bossSpeaker, "open", true);
+    say(foes[0].speaker, "open", true);
+    // In a crowd the second man answers a beat later, the way the two duellists
+    // do — several openers in one frame reads as one man arguing with himself.
+    for (let i = 1; i < foes.length; i++) foes[i].speaker.sayT = 0.9 + i * 0.5;
     placeZone();
     updateHudStage();
     startMusic(STAGES[idx].key, STAGES[idx].arm);
@@ -1955,7 +2062,11 @@
       // Battles and Library levels both re-enter through their own definition.
       const b = BATTLES.find((x) => x.id === activeLevel.id);
       if (b) return playBattle(b);
-      const lv = LEVELS.concat(myLevels).find((x) => x.id === activeLevel.id);
+      // Library levels, munera and your own all re-enter through their own
+      // definition. A munus that was not in this list fell through to the boss
+      // run below, which is a different fight entirely — "again" has to mean
+      // the thing you just fought.
+      const lv = LEVELS.concat(MUNERA, myLevels).find((x) => x.id === activeLevel.id);
       if (lv) return playLevel(lv);
     }
     startBossRun(startIdx);
@@ -3323,6 +3434,90 @@
     return row;
   }
 
+  // ---- Munera ----
+  // Same gate as the Library: you may not be sent against four men running
+  // forms you have never seen one of. Every man in every stage has to be known.
+  function munusForms(m) {
+    return m.stages.flatMap((s) => stageForms(s));
+  }
+  function munusUnlocked(m) {
+    return munusForms(m).every((f) => keyBeaten(f.key));
+  }
+
+  function renderMunera() {
+    const done = loadCleared();
+    const times = bestTimes();
+    muneraList.innerHTML = "";
+    MUNERA.forEach((m) => {
+      const open = munusUnlocked(m);
+      const row = document.createElement("div");
+      row.className = open ? "libitem" : "libitem locked";
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = open ? m.accent : "#3a2c1a";
+      row.appendChild(dot);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      nm.textContent = open ? m.name : "🔒 " + m.name;
+      if (open && done.includes(m.id)) {
+        const tick = document.createElement("span");
+        tick.className = "tick";
+        tick.textContent = times[m.id] != null ? `✓ best ${times[m.id].toFixed(1)}s` : "✓ cleared";
+        nm.appendChild(tick);
+      }
+      const diff = document.createElement("span");
+      diff.className = "diff";
+      diff.style.color = open ? m.accent : "";
+      diff.textContent = perilName(m.rating);
+      nm.appendChild(diff);
+      meta.appendChild(nm);
+
+      const bl = document.createElement("div");
+      bl.className = "blurb";
+      const forms = munusForms(m);
+      const unknown = forms.filter((f) => !keyBeaten(f.key)).length;
+      bl.textContent = open
+        ? m.blurb
+        : `Sealed. ${unknown} of its ${forms.length} forms ${unknown === 1 ? "is" : "are"} still unknown to you.`;
+      meta.appendChild(bl);
+
+      // Who comes out, wave by wave. Forms you have not met stay anonymous.
+      const chain = document.createElement("div");
+      chain.className = "sub2";
+      chain.textContent = m.stages
+        .map((s) => stageForms(s)
+          .map((f) => (keyBeaten(f.key) ? PATTERN_BY_KEY[f.key].name : "???"))
+          .join(" + "))
+        .join("  →  ");
+      const most = Math.max(...m.stages.map((s) => stageForms(s).length));
+      chain.textContent += ` · ${most} at once`;
+      meta.appendChild(chain);
+      row.appendChild(meta);
+
+      const play = document.createElement("button");
+      if (open) {
+        play.className = "primary";
+        play.textContent = "Fight";
+        play.addEventListener("click", () => playLevel(m));
+      } else {
+        play.className = "lockbtn";
+        play.textContent = "Locked";
+        play.disabled = true;
+      }
+      row.appendChild(play);
+      muneraList.appendChild(row);
+    });
+
+    const shut = MUNERA.filter((m) => !munusUnlocked(m)).length;
+    muneraLock.textContent = shut
+      ? `${shut} of the ${MUNERA.length} are still sealed. A munus opens when you have met every form standing in it — go and beat them one at a time first, in Battles.`
+      : "";
+  }
+
   function renderLibrary() {
     myLevels = loadMine();
     libList.innerHTML = "";
@@ -3448,18 +3643,43 @@
 
   // ---- Level editor ----
   const DEF_STAGE = { hp: 55, minions: false, spd: 1, rate: 1 };
+  // Normalized on the way out, so a stage is never handed to the editor without
+  // its roster — every stage has a crowd now, and a crowd of one is the bout
+  // this game has always had. Duplicating a stage duplicates everyone in it.
   function newStage(from) {
-    return Object.assign({ key: PATTERNS[0].key }, DEF_STAGE, from || {});
+    return normalizeStage(Object.assign({ key: PATTERNS[0].key }, DEF_STAGE, from || {}));
   }
   // Older saved levels predate the speed/rate knobs — fill them in on load.
-  function normalizeStage(st) {
+  // One man in a stage. A stage used to be exactly this and nothing else; it is
+  // now a roster of these, and a roster of one is the old thing unchanged.
+  function normalizeForm(f) {
     return {
-      key: st.key,
-      hp: Math.max(10, Math.min(400, st.hp | 0 || 55)),
-      minions: !!st.minions,
-      spd: clampNum(st.spd, 0.5, 2, 1),
-      rate: clampNum(st.rate, 0.5, 2, 1),
+      key: PATTERN_BY_KEY[f && f.key] ? f.key : PATTERNS[0].key,
+      hp: Math.max(10, Math.min(400, (f && f.hp | 0) || 55)),
+      minions: !!(f && f.minions),
+      spd: clampNum(f && f.spd, 0.5, 2, 1),
+      rate: clampNum(f && f.rate, 0.5, 2, 1),
     };
+  }
+  function normalizeStage(st) {
+    const forms = ((st && st.crowd && st.crowd.length) ? st.crowd : [st])
+      .slice(0, MAX_CROWD).map(normalizeForm);
+    const s = { crowd: forms };
+    mirrorStage(s);
+    return s;
+  }
+  // The first man's numbers are copied onto the stage itself. Everything written
+  // before stages could hold a crowd — validLevel, the payout, the share code's
+  // older half, every list that prints a chain — reads st.key and st.hp off the
+  // stage, and all of it keeps working for exactly as long as this holds.
+  function mirrorStage(s) {
+    const first = s.crowd[0];
+    s.key = first.key;
+    s.hp = first.hp;
+    s.minions = first.minions;
+    s.spd = first.spd;
+    s.rate = first.rate;
+    return s;
   }
   function clampNum(v, lo, hi, dflt) {
     const n = Number(v);
@@ -3520,16 +3740,91 @@
       num.textContent = i + 1;
       row.appendChild(num);
 
-      const sel = document.createElement("select");
-      PATTERNS.forEach((p) => {
-        const o = document.createElement("option");
-        o.value = p.key;
-        o.textContent = `${p.name} — ${p.desc}`;
-        sel.appendChild(o);
+      // The men in this stage. One is an ordinary bout; more than one and they
+      // all come out together, in this order, which is the order the eye will
+      // come to them.
+      const men = document.createElement("div");
+      men.className = "men";
+      st.crowd.forEach((f, mi) => {
+        const mrow = document.createElement("div");
+        mrow.className = "manrow";
+        if (st.crowd.length > 1) {
+          const badge = document.createElement("span");
+          badge.className = "mnum";
+          badge.textContent = mi + 1;
+          badge.title = mi === 0 ? "The eye starts on this one" : `The eye reaches him ${mi === 1 ? "second" : "later"}`;
+          mrow.appendChild(badge);
+        }
+        const sel = document.createElement("select");
+        PATTERNS.forEach((p) => {
+          const o = document.createElement("option");
+          o.value = p.key;
+          o.textContent = `${p.name} — ${p.desc}`;
+          sel.appendChild(o);
+        });
+        sel.value = f.key;
+        sel.addEventListener("change", () => { f.key = sel.value; mirrorStage(st); renderSummary(); });
+        mrow.appendChild(sel);
+        if (st.crowd.length > 1) {
+          const cut = document.createElement("button");
+          cut.textContent = "✕";
+          cut.title = "Send this one home";
+          cut.addEventListener("click", () => {
+            st.crowd.splice(mi, 1);
+            mirrorStage(st);
+            renderStageRows();
+          });
+          mrow.appendChild(cut);
+        }
+        men.appendChild(mrow);
+
+        // Each man carries his own numbers. They were the stage's when a stage
+        // was one man; they are his now, because four men sharing one health
+        // box is not a thing anybody could build a fight out of.
+        const knobs = document.createElement("div");
+        knobs.className = "knobs";
+        const hpK = document.createElement("div");
+        hpK.className = "knob";
+        const hpL = document.createElement("label");
+        hpL.textContent = "HP";
+        hpK.appendChild(hpL);
+        const hp = document.createElement("input");
+        hp.type = "number"; hp.min = "10"; hp.max = "400"; hp.step = "5"; hp.value = f.hp;
+        hp.addEventListener("change", () => {
+          f.hp = Math.max(10, Math.min(400, parseInt(hp.value, 10) || 55));
+          hp.value = f.hp;
+          mirrorStage(st);
+          renderSummary();
+        });
+        hpK.appendChild(hp);
+        knobs.appendChild(hpK);
+        knobs.appendChild(knobSlider("SPEED", f.spd, (v) => { f.spd = v; mirrorStage(st); renderSummary(); }));
+        knobs.appendChild(knobSlider("FIRE RATE", f.rate, (v) => { f.rate = v; mirrorStage(st); renderSummary(); }));
+        const chk = document.createElement("label");
+        chk.className = "knob chk";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = !!f.minions;
+        cb.addEventListener("change", () => { f.minions = cb.checked; mirrorStage(st); renderSummary(); });
+        chk.appendChild(cb);
+        chk.appendChild(document.createTextNode("minions"));
+        knobs.appendChild(chk);
+        men.appendChild(knobs);
       });
-      sel.value = st.key;
-      sel.addEventListener("change", () => { st.key = sel.value; renderSummary(); });
-      row.appendChild(sel);
+      const add = document.createElement("button");
+      add.className = "addman";
+      add.title = st.crowd.length > 1
+        ? `Each man throws at ×${crowdHands(st.crowd.length).toFixed(2)} and moves at ×${crowdLegs(st.crowd.length).toFixed(2)} for being ${st.crowd.length} on the sand — add another and they all slow further.`
+        : "Two or more come out together, and the eye takes them in order.";
+      add.textContent = st.crowd.length >= MAX_CROWD ? `Sand is full · ${MAX_CROWD}` : "+ Another man, at the same time";
+      add.disabled = st.crowd.length >= MAX_CROWD;
+      add.addEventListener("click", () => {
+        st.crowd.push(normalizeForm({ key: st.crowd[st.crowd.length - 1].key, hp: 40 }));
+        mirrorStage(st);
+        renderStageRows();
+      });
+      men.appendChild(add);
+      row.appendChild(men);
 
       const ops = document.createElement("div");
       ops.className = "ops";
@@ -3552,42 +3847,10 @@
       mk("✕", "Remove", "del", editing.stages.length === 1);   // a level needs one stage
       row.appendChild(ops);
 
-      // Second line: the numbers that decide how the stage actually plays.
-      const knobs = document.createElement("div");
-      knobs.className = "knobs";
-
-      const hpK = document.createElement("div");
-      hpK.className = "knob";
-      const hpL = document.createElement("label");
-      hpL.textContent = "HP";
-      hpK.appendChild(hpL);
-      const hp = document.createElement("input");
-      hp.type = "number"; hp.min = "10"; hp.max = "400"; hp.step = "5"; hp.value = st.hp;
-      hp.addEventListener("change", () => {
-        st.hp = Math.max(10, Math.min(400, parseInt(hp.value, 10) || 55));
-        hp.value = st.hp;
-        renderSummary();
-      });
-      hpK.appendChild(hp);
-      knobs.appendChild(hpK);
-
-      knobs.appendChild(knobSlider("SPEED", st.spd, (v) => { st.spd = v; renderSummary(); }));
-      knobs.appendChild(knobSlider("FIRE RATE", st.rate, (v) => { st.rate = v; renderSummary(); }));
-
-      const chk = document.createElement("label");
-      chk.className = "knob chk";
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.checked = !!st.minions;
-      cb.addEventListener("change", () => { st.minions = cb.checked; renderSummary(); });
-      chk.appendChild(cb);
-      chk.appendChild(document.createTextNode("minions"));
-      knobs.appendChild(chk);
-
-      row.appendChild(knobs);
       stageRows.appendChild(row);
     });
-    editHint.textContent = `${editing.stages.length}/${MAX_CUSTOM_STAGES} stages · fought in order, last one wears the crown.`;
+    editHint.textContent = `${editing.stages.length}/${MAX_CUSTOM_STAGES} stages · fought in order, last one wears the crown. ` +
+      `A stage with more than one man sends them all out at once — the eye starts on the first and moves down the list as they fall.`;
     addStageBtn.disabled = editing.stages.length >= MAX_CUSTOM_STAGES;
     renderSummary();
   }
@@ -3630,7 +3893,16 @@
       const compact = {
         n: (lvlName.value || lv.name || "Unnamed Level").slice(0, 24),
         c: lv.accent,
-        s: lv.stages.map((s) => [s.key, s.hp, s.minions ? 1 : 0, s.spd, s.rate]),
+        // A stage of one man is written exactly as it always was — a flat tuple
+        // whose first element is a string. A stage with a crowd is written as an
+        // array OF those tuples, so the first element is an array instead, and
+        // that difference is the whole of how the decoder tells them apart. Old
+        // codes keep working because nothing about their shape has changed.
+        s: lv.stages.map((s) => {
+          const men = s.crowd && s.crowd.length ? s.crowd : [s];
+          const tup = (f) => [f.key, f.hp, f.minions ? 1 : 0, f.spd, f.rate];
+          return men.length > 1 ? men.map(tup) : tup(men[0]);
+        }),
       };
       const json = JSON.stringify(compact);
       // btoa is latin1-only; percent-encode first so names with any character survive.
@@ -3647,10 +3919,17 @@
       const b64 = raw.replace(/-/g, "+").replace(/_/g, "/");
       const obj = JSON.parse(decodeURIComponent(escape(atob(b64))));
       if (!obj || !Array.isArray(obj.s) || !obj.s.length) return null;
+      // Two shapes, told apart by what sits at [0]: a string is the old one-man
+      // tuple, an array is a stage holding a crowd of them.
+      const form = (a) => ({ key: a[0], hp: a[1], minions: a[2], spd: a[3], rate: a[4] });
       const stages = obj.s
-        .filter((a) => Array.isArray(a) && PATTERN_BY_KEY[a[0]])
+        .filter((a) => Array.isArray(a) && (Array.isArray(a[0])
+          ? a.some((m) => Array.isArray(m) && PATTERN_BY_KEY[m[0]])
+          : PATTERN_BY_KEY[a[0]]))
         .slice(0, MAX_CUSTOM_STAGES)
-        .map((a) => normalizeStage({ key: a[0], hp: a[1], minions: a[2], spd: a[3], rate: a[4] }));
+        .map((a) => normalizeStage(Array.isArray(a[0])
+          ? { crowd: a.filter((m) => Array.isArray(m) && PATTERN_BY_KEY[m[0]]).map(form) }
+          : form(a)));
       if (!stages.length) return null;
       const known = LEVEL_COLORS.some(([, hex]) => hex === obj.c);
       return {
@@ -3682,24 +3961,43 @@
 
   // Turn a level into something the engine can fight.
   function playLevel(lv) {
-    // Built-in levels are gated on knowing their forms; your own never are.
+    // Built-in levels and munera are gated on knowing their forms; your own
+    // never are.
     if (LEVELS.includes(lv) && !levelUnlocked(lv)) return;
+    if (MUNERA.includes(lv) && !munusUnlocked(lv)) return;
     activeLevel = lv;
     // Paid like a boss run: per form contained, doubled. A flat 1-5 by "peril"
-    // meant a five-stage Library run paid less than a single battle.
+    // meant a five-stage Library run paid less than a single battle. A stage
+    // with a crowd in it counts every man in the crowd — you fought all of them.
     activeRating = chainPayout(lv.stages);
     activeCamp = {
       name: lv.name,
       accent: lv.accent,
-      stages: lv.stages.map((s, i) => ({
-        name: PATTERN_BY_KEY[s.key].name,
-        key: s.key,
-        hp: s.hp,
-        minions: !!s.minions,
-        spd: clampNum(s.spd, 0.5, 2, 1),      // builder knobs reach the engine here
-        rate: clampNum(s.rate, 0.5, 2, 1),
-        final: i === lv.stages.length - 1,
-      })),
+      stages: lv.stages.map((s, i) => {
+        // One shape for both kinds of stage: a stage is always a roster, and a
+        // roster of one is the ordinary bout this game has always had.
+        const roster = stageForms(s).slice(0, MAX_CROWD).map((f) => ({
+          key: f.key,
+          hp: f.hp,
+          arm: f.arm || null,
+          minions: !!f.minions,
+          spd: clampNum(f.spd, 0.5, 2, 1),      // builder knobs reach the engine here
+          rate: clampNum(f.rate, 0.5, 2, 1),
+        }));
+        return {
+          // The HUD names who is out there. Several men are named in the order
+          // the eye will come to them, which is the order they must be killed.
+          name: roster.map((f) => PATTERN_BY_KEY[f.key].name).join(" · "),
+          key: roster[0].key,
+          hp: roster[0].hp,
+          arm: roster[0].arm,
+          minions: roster[0].minions,
+          spd: roster[0].spd,
+          rate: roster[0].rate,
+          crowd: roster,
+          final: i === lv.stages.length - 1,
+        };
+      }),
     };
     STAGES = activeCamp.stages;
     editorEl.classList.add("hidden");
@@ -4556,6 +4854,13 @@
     player.x = Math.max(player.r, Math.min(W - player.r, player.x));
     player.y = Math.max(player.r, Math.min(H - player.r, player.y));
 
+    // From here to the end of the drain, the engine is pointed at the marked
+    // man — he is the one the eye is on, the one the hot circle tows, and the
+    // only one your standing anywhere can hurt.
+    const marked = markedFoe();
+    if (!marked) return;
+    bindFoe(marked);
+
     // Damage zone: stand in the blue circle to drain the boss's health.
     zone.pulse += dt;
     zone.moveT -= dt;
@@ -4622,7 +4927,7 @@
     if (!phase2) setMusicIntensity(1 + (1 - hpFrac) * 0.28);
 
     // Hades and the Void change gear at half health.
-    const key = STAGES[stageIdx].key;
+    const key = marked.key;
     if (!phase2 && (key === "hades" || key === "void") && boss.hp <= boss.maxhp * 0.5) {
       phase2 = true;
       bullets.length = 0;                       // a clean slate for the new phase
@@ -4645,64 +4950,101 @@
       burst(boss.x, boss.y, 34, key === "void" ? "#8f6bff" : "#ff5a2b", 320);
     }
 
-    // Boss behaviour for this stage
-    // A man with a net around him is a man fighting slowly, whichever side threw it.
-    const foul = boss.fouled > 0 ? 0.55 : 1;
-    const rateWas = stageRate;
-    stageRate *= foul;
-    runStage(STAGES[stageIdx].key, edt, difficultyMul() * stageSpd * foul);
-    stageRate = rateWas;
+    // Whatever the marked man picked up above — his phase change, his beasts'
+    // clock — goes back to him before anybody else is bound.
+    unbindFoe(marked);
 
-    // Minions appear from stage 3 onward — unless a custom stage says otherwise.
-    // A bestiarius brings the beasts with him regardless, and brings more of them.
-    const beasts = arm && arm.beasts;
-    const wantMinions = beasts ? true
-      : (STAGES[stageIdx].minions !== undefined ? STAGES[stageIdx].minions : stageIdx >= 2);
-    if (wantMinions) updateMinions(edt, difficultyMul(), beasts);
-
-    updatePending(edt);
+    // Said once for the whole sand, not once per man: they are all talking into
+    // the same air.
     updateSpeech(dt);
-    if (bossSpeaker) {
-      bossSpeaker.quiet += dt;
-      if (bossSpeaker.quiet > 13 && stageTime > 5) { bossSpeaker.quiet = 0; say(bossSpeaker, "taunt"); }
-    }
 
-    // Move enemy bullets, cull off-screen or expired. The lifetime matters most
-    // for curved shots: a bent trajectory can circle inside the arena forever and
-    // never cross an edge, so without it a Thraex or Scissor bout slowly silts up.
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      const b = bullets[i];
-      b.age += edt;
-      if (b.age >= BULLET_LIFE) { bullets.splice(i, 1); continue; }
-      // A curved blade's throw keeps turning the whole way in.
-      if (b.curve) {
-        const c = Math.cos(b.curve * edt), s = Math.sin(b.curve * edt);
-        const vx = b.vx * c - b.vy * s;
-        b.vy = b.vx * s + b.vy * c;
-        b.vx = vx;
+    // Every man takes his turn with the engine. His pattern, his beasts, his
+    // shots in the air, his nets — bound, run, handed back, and the next man
+    // finds the globals exactly as he left them.
+    for (const f of foes) {
+      if (f.dead) continue;
+      bindFoe(f);
+
+      // A man with a net around him is a man fighting slowly, whichever side threw it.
+      const foul = boss.fouled > 0 ? 0.55 : 1;
+      const rateWas = stageRate;
+      stageRate *= foul;
+      runStage(f.key, edt, difficultyMul() * stageSpd * foul);
+      stageRate = rateWas;
+
+      // Minions appear from stage 3 onward — unless the man himself says
+      // otherwise. A bestiarius brings the beasts regardless, and brings more.
+      const beasts = arm && arm.beasts;
+      const wantMinions = beasts ? true
+        : (f.def.minions !== undefined ? f.def.minions : stageIdx >= 2);
+      if (wantMinions) updateMinions(edt, difficultyMul(), beasts);
+
+      updatePending(edt);
+      if (bossSpeaker) {
+        bossSpeaker.quiet += dt;
+        if (bossSpeaker.quiet > 13 && stageTime > 5) { bossSpeaker.quiet = 0; say(bossSpeaker, "taunt"); }
       }
-      b.x += b.vx * edt; b.y += b.vy * edt;
-      if (b.x < -50 || b.x > W + 50 || b.y < -50 || b.y > H + 50) bullets.splice(i, 1);
+
+      // Move his bullets, cull off-screen or expired. The lifetime matters most
+      // for curved shots: a bent trajectory can circle inside the arena forever
+      // and never cross an edge, so without it a Thraex or Scissor bout silts up.
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i];
+        b.age += edt;
+        if (b.age >= BULLET_LIFE) { bullets.splice(i, 1); continue; }
+        // A curved blade's throw keeps turning the whole way in.
+        if (b.curve) {
+          const c = Math.cos(b.curve * edt), s = Math.sin(b.curve * edt);
+          const vx = b.vx * c - b.vy * s;
+          b.vy = b.vx * s + b.vy * c;
+          b.vx = vx;
+        }
+        b.x += b.vx * edt; b.y += b.vy * edt;
+        if (b.x < -50 || b.x > W + 50 || b.y < -50 || b.y > H + 50) bullets.splice(i, 1);
+      }
+
+      updateNets(edt);
+      unbindFoe(f);
     }
 
-    updateNets(edt);
-
-    // Collisions — every red thing costs exactly one of your three hits
-    if (hit(player, boss) && playerHit()) return;
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      const b = bullets[i];
-      if (!hit(player, b)) continue;
-      // A shield is not mercy, it is a wall: what crosses it stops there.
-      if (playerHit()) return;
+    // Collisions — every red thing costs exactly one of your three hits, and it
+    // has never mattered less who threw it.
+    for (const f of foes) {
+      if (f.dead) continue;
+      if (hit(player, f.body) && playerHit()) return;
+      for (let i = f.bullets.length - 1; i >= 0; i--) {
+        // A shield is not mercy, it is a wall: what crosses it stops there.
+        if (hit(player, f.bullets[i]) && playerHit()) return;
+      }
+      for (const mn of f.minions) {
+        if (mn.phase === "active" && hit(player, { x: mn.x, y: mn.y, r: mn.r }) && playerHit()) return;
+      }
     }
-    for (const mn of minions) {
-      if (mn.phase === "active" && hit(player, { x: mn.x, y: mn.y, r: mn.r }) && playerHit()) return;
-    }
 
-    // Stage clear when the boss's HP is depleted
-    if (boss.hp <= 0) {
-      if (stageIdx >= STAGES.length - 1) return winGame();
-      nextStage();
+    // The marked man goes down and the eye moves to the next one. The stage is
+    // over only when there is nobody left for it to move to — the men you were
+    // not allowed to hurt are still standing, and now one of them is the fight.
+    if (marked.body.hp <= 0) {
+      marked.dead = true;
+      burst(marked.body.x, marked.body.y, 44, (marked.arm && marked.arm.color) || COLORS.danger, 380, { life: 0.9 });
+      shockwaves.push({ x: marked.body.x, y: marked.body.y, t: 0, dur: 0.5 });
+      sfx("death");
+      shake = Math.max(shake, 12);
+      const next = foes.findIndex((f) => !f.dead);
+      if (next < 0) {
+        if (stageIdx >= STAGES.length - 1) return winGame();
+        return nextStage();
+      }
+      mark = next;
+      bindFoe(foes[mark]);
+      // A new man for the eye, and a fresh eye to put on him — leaving it where
+      // it was would hand you a free drain on somebody who just became the fight.
+      placeZone();
+      hotZone.on = false;
+      hotZone.t = HOT_OFF;
+      freeze = 0.12;
+      pickupFlash = { label: "THE EYE TURNS", color: COLORS.warn, t: 0 };
+      say(foes[mark].speaker, "open", true);
     }
   }
 
@@ -4739,7 +5081,9 @@
       speech[i].t += dt;
       if (speech[i].t >= speech[i].dur) speech.splice(i, 1);
     }
-    if (bossSpeaker && bossSpeaker.sayT > 0) bossSpeaker.sayT -= dt;
+    // Every man's own clock, not just the bound one's — an unmarked fighter
+    // whose sayT never ticked down would open his mouth once and never again.
+    for (const f of foes) if (f.speaker && f.speaker.sayT > 0) f.speaker.sayT -= dt;
     if (duel) for (const s of [duel.a, duel.b]) if (s.sayT > 0) s.sayT -= dt;
   }
 
@@ -5927,20 +6271,37 @@
     ctx.restore();
   }
 
+  // One trough per man, side by side across the top, in the order the eye will
+  // come to them. The marked man's is full width of his share and lit; the ones
+  // waiting are dimmed and thin, because a bar you cannot move is information
+  // about what is coming rather than about what you are doing.
   function drawBossHpBar() {
-    const bw = W * 0.6, bh = 9, bx = (W - bw) / 2, by = 52;
-    const frac = Math.max(0, boss.hp / boss.maxhp);
-    // Blood in a bronze-framed trough.
-    ctx.fillStyle = "rgba(0,0,0,0.45)";
-    ctx.fillRect(bx, by, bw, bh);
-    const g = ctx.createLinearGradient(0, by, 0, by + bh);
-    g.addColorStop(0, "#ff5a3c");
-    g.addColorStop(1, "#8f1408");
-    ctx.fillStyle = g;
-    ctx.fillRect(bx, by, bw * frac, bh);
-    ctx.strokeStyle = "rgba(217,164,65,0.55)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+    if (!foes.length) return;
+    const bw = W * 0.6, bx = (W - bw) / 2, by = 52;
+    const gap = 6;
+    const n = foes.length;
+    const each = (bw - gap * (n - 1)) / n;
+    const now = markedFoe();
+    foes.forEach((f, i) => {
+      const bh = f === now ? 9 : 6;
+      const x = bx + i * (each + gap);
+      const y = by + (f === now ? 0 : 2);
+      const frac = f.dead ? 0 : Math.max(0, f.body.hp / f.body.maxhp);
+      // Blood in a bronze-framed trough.
+      ctx.save();
+      if (f !== now) ctx.globalAlpha = 0.5;
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.fillRect(x, y, each, bh);
+      const g = ctx.createLinearGradient(0, y, 0, y + bh);
+      g.addColorStop(0, "#ff5a3c");
+      g.addColorStop(1, "#8f1408");
+      ctx.fillStyle = g;
+      ctx.fillRect(x, y, each * frac, bh);
+      ctx.strokeStyle = f === now ? "rgba(77,215,255,0.75)" : "rgba(217,164,65,0.5)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, y + 0.5, each - 1, bh - 1);
+      ctx.restore();
+    });
   }
 
   // Safari < 16.4 has no roundRect; a plain rect is a fine stand-in.
@@ -6114,8 +6475,8 @@
     if (shown === GS.PLAYING || shown === GS.OVER) drawPowerups();
 
     if (shown === GS.PLAYING || shown === GS.TRANSITION || shown === GS.OVER) {
-      // Minions
-      for (const mn of minions) {
+      // Minions — every man's, since a bestiarius in a crowd brings his own.
+      for (const mn of foes.flatMap((f) => (f.dead ? [] : f.minions))) {
         const r = minionRadius(mn);
         if (mn.phase === "in") {
           // Warning telegraph before it becomes lethal. The sand is warm, so the
@@ -6134,16 +6495,45 @@
           circle(mn.x, mn.y, r + 2, null, "rgba(16,12,7,0.55)", 1.5);   // dark rim off the sand
         }
       }
-      drawTelegraphs();
-      for (const b of bullets) {
-        ctx.shadowColor = COLORS.danger; ctx.shadowBlur = 10;
-        circle(b.x, b.y, b.r, COLORS.danger, null);
+      // Everyone on the sand, drawn the same way the update runs them: bound in
+      // turn, so drawTelegraphs, drawNets and drawBoss each see one man's arrays.
+      const drawnMark = markedFoe();
+      for (const f of foes) {
+        if (f.dead) continue;
+        bindFoe(f);
+        drawTelegraphs();
+        for (const b of bullets) {
+          ctx.shadowColor = COLORS.danger; ctx.shadowBlur = 10;
+          circle(b.x, b.y, b.r, COLORS.danger, null);
+        }
+        ctx.shadowBlur = 0;
+        drawNets();
+        // The men the emperor is not watching are drawn back a little. They are
+        // no less dangerous — you simply cannot answer them yet, and the fight
+        // is unreadable if you cannot tell at a glance which one you are on.
+        ctx.save();
+        if (f !== drawnMark) ctx.globalAlpha = 0.62;
+        drawBoss();
+        drawFouled();
+        ctx.restore();
+        unbindFoe(f);
       }
-      ctx.shadowBlur = 0;
-      drawNets();
-
-      drawBoss();
-      drawFouled();
+      if (drawnMark) bindFoe(drawnMark);
+      // A ring of the emperor's own blue around the man he is watching, so the
+      // mark is never a thing you have to infer from where the eye happens to be.
+      if (drawnMark && foes.length > 1) {
+        const p = 0.5 + 0.5 * Math.sin(totalTime * 3.4);
+        ctx.save();
+        ctx.setLineDash([9, 8]);
+        ctx.lineDashOffset = -totalTime * 20;
+        ctx.strokeStyle = `rgba(77,215,255,${0.5 + 0.35 * p})`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = COLORS.safe; ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(drawnMark.body.x, drawnMark.body.y, drawnMark.body.r + 13 + p * 3, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
 
       drawTrail();
       // Player — flashes white during post-shield mercy invulnerability.
@@ -6257,7 +6647,13 @@
   function updateHudStage() {
     const s = STAGES[stageIdx];
     hudStageNum.textContent = `${roman(stageIdx + 1)}/${roman(STAGES.length)}`;
-    hudStageName.textContent = s.arm ? `${s.name} · ${armOf(s.arm).name}` : s.name;
+    // One man gets his armatura named beside his form. A crowd does not: they
+    // have four different ones between them, and naming only the first man's
+    // says something untrue about the other three.
+    const crowded = s.crowd && s.crowd.length > 1;
+    hudStageName.textContent = crowded
+      ? `${s.crowd.length} men · ${s.name}`
+      : (s.arm ? `${s.name} · ${armOf(s.arm).name}` : s.name);
     hudStageName.style.color = mode === "level" ? activeCamp.accent : "";
     const here = stageIdx;
     pips.forEach((p, i) => {
@@ -6411,6 +6807,7 @@
     renderShop();
     renderLadder();
     renderTessera();
+    renderMunera();
   }
 
   // The armatura list in How to Play, built from the table so it can't drift.

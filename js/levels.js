@@ -159,9 +159,89 @@
     if (FORM_VALUE[b.stage.key] == null) FORM_VALUE[b.stage.key] = b.rating;
   }
   function formValue(key) { return FORM_VALUE[key] || 1; }
+  // What a run is worth: every form in it, fought singly, doubled. A stage with
+  // a crowd in it is worth every man standing in it — you fought all of them.
+  function stageForms(s) {
+    return (s.crowd && s.crowd.length) ? s.crowd : [s];
+  }
   function chainPayout(stages) {
-    return stages.reduce((a, s) => a + formValue(s.key), 0) * 2;
+    return stages.reduce((a, s) => a + stageForms(s).reduce((b, f) => b + formValue(f.key), 0), 0) * 2;
   }
 
-  Object.assign(C, { LEVEL_COLORS, LEVELS, BATTLES, formValue, chainPayout });
+  // ---- Munera: the missions fought against more than one man ----
+  //
+  // A munus was the whole day's programme, not a single bout, and these are the
+  // parts of it nobody survives by taking turns. Every man on the sand throws
+  // his full pattern from the opening bell. The emperor watches exactly one of
+  // them — that is the one the eye drains and the only one you can hurt — and
+  // when he goes down the eye turns to the next. You do not choose the order.
+  //
+  // Health is deliberately short. The length of one of these is not how long a
+  // man takes to put down, it is how long you last with three other patterns in
+  // the air while you do it; pricing them like solo bouts would make a four-man
+  // mission a two-minute war of attrition nobody finishes.
+  const MUNERA = [
+    {
+      id: "par", name: "Par", accent: "#4dd7ff", rating: 2,
+      blurb: "A matched pair — the smallest thing that is not a duel. One chases, one blooms, and only one of them can be answered.",
+      stages: [
+        { crowd: [
+          { key: "pursuer", hp: 32, minions: false },
+          { key: "nova",    hp: 32, minions: false },
+        ] },
+      ],
+    },
+    {
+      id: "umbrae", name: "Tres Umbrae", accent: "#7b5cff", rating: 3,
+      blurb: "Three shades, none of them aiming. Nothing here is chasing you — but there is three times as much of it, and two thirds cannot be stopped.",
+      stages: [
+        { crowd: [
+          { key: "lattice", hp: 34, minions: false },
+          { key: "spiral",  hp: 34, minions: false },
+          { key: "cross",   hp: 34, minions: false },
+        ] },
+      ],
+    },
+    {
+      id: "grex", name: "Grex", accent: "#3ddc84", rating: 4,
+      blurb: "The herd. Four of the cheapest men the school owns, sent out together because that is the only way they are worth watching.",
+      stages: [
+        { crowd: [
+          { key: "pursuer", hp: 26, arm: "eques",  minions: false },
+          { key: "charger", hp: 26, arm: "eques",  minions: false },
+          { key: "nova",    hp: 26, arm: "thraex", minions: false },
+          { key: "weaver",  hp: 26, arm: "thraex", minions: false },
+        ] },
+      ],
+    },
+    {
+      id: "cohors", name: "Cohors", accent: "#f0b429", rating: 5,
+      blurb: "Two armed pairs, then three. The second wave knows what happened to the first and does not care.",
+      stages: [
+        { crowd: [
+          { key: "gatling", hp: 34, arm: "sagittarius", minions: false },
+          { key: "mirror",  hp: 34, arm: "dimachaerus", minions: false },
+        ] },
+        { crowd: [
+          { key: "swarm",   hp: 34, arm: "bestiarius",  minions: true },
+          { key: "lattice", hp: 40, arm: "provocator",  minions: false },
+          { key: "pursuer", hp: 30, arm: "secutor",     minions: false },
+        ] },
+      ],
+    },
+    {
+      id: "damnatio", name: "Damnatio ad Gladium", accent: "#ff5a2b", rating: 6,
+      blurb: "Condemned to the sword. Four armed men, the serpent among them, and an emperor who is watching one of them at a time and enjoying the arithmetic.",
+      stages: [
+        { crowd: [
+          { key: "serpent", hp: 38, arm: "retiarius",   minions: false },
+          { key: "hades",   hp: 44, arm: "murmillo",    minions: false },
+          { key: "gatling", hp: 34, arm: "sagittarius", minions: false },
+          { key: "pulsar",  hp: 34, arm: "andabata",    minions: false },
+        ] },
+      ],
+    },
+  ];
+
+  Object.assign(C, { LEVEL_COLORS, LEVELS, BATTLES, MUNERA, formValue, chainPayout, stageForms });
 })();
