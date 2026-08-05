@@ -18,6 +18,9 @@
     --stone2: #251d14;        /* raised panel */
     --bronze: #6b4f2a;        /* borders */
     --gold: #d9a441;
+    /* Between torchlight and blood. The condition bars need five steps that can
+       be told apart at seven pixels, and gold against warn is not two of them. */
+    --ember: #e07a3f;
     --purple: #6b3f8f;
     --serif: "Trajan Pro", Optima, "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   }
@@ -75,6 +78,39 @@
     border-radius: 10px;
   }
   .screen.hidden { display: none; }
+  /* The intro sits over a live bout, so unlike every other screen it does not
+     black the arena out. The wash is light enough to watch two men fight
+     through, and the text gets its legibility from the band behind it instead
+     — an overlay heavy enough to read white text off anywhere on the sand is an
+     overlay that has hidden the thing it was put up to show. */
+  #intro {
+    background: rgba(10,7,4,0.34);
+    backdrop-filter: none;
+    gap: 0; cursor: pointer;
+    /* Down at the foot of the arena. Two duellists hold a stand-off ring around
+       each other near the middle of the sand, so a title card in the middle is
+       a title card sitting on top of the fight it is advertising. */
+    justify-content: flex-end; padding-bottom: 7%;
+  }
+  .introcard {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 26px 40px;
+    background: radial-gradient(ellipse at 50% 50%, rgba(8,5,3,0.92) 0%, rgba(8,5,3,0.78) 55%, rgba(8,5,3,0) 100%);
+  }
+  #intro h1 { text-shadow: 0 3px 18px rgba(0,0,0,0.9); }
+  .introline { color: var(--muted); font-family: var(--serif); letter-spacing: 2px;
+               font-size: clamp(12px, 2.4vw, 15px); text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
+  #introKey {
+    margin-top: 10px; font-family: var(--serif); font-weight: 700; color: var(--gold);
+    letter-spacing: clamp(3px, 1.2vw, 7px); font-size: clamp(13px, 2.8vw, 19px);
+    text-shadow: 0 2px 14px rgba(0,0,0,0.95);
+    animation: introPulse 1.9s ease-in-out infinite;
+  }
+  /* A slow breath rather than a blink — this is a building, not an arcade. */
+  @keyframes introPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.34; } }
+  @media (prefers-reduced-motion: reduce) { #introKey { animation: none; } }
+  .introfoot { color: var(--muted); font-size: clamp(10px, 2vw, 12px); letter-spacing: 1.5px;
+               text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
   h1 {
     font-family: var(--serif);
     font-size: clamp(26px, 5.4vw, 44px);
@@ -194,6 +230,26 @@
   .libitem button { padding: 7px 12px; font-size: 12px; align-self: center; flex: none; }
   /* Vault */
   #vaultRow { display: flex; gap: 8px; width: 100%; max-width: 340px; }
+  /* Tessera — the bone tag, and the house it belongs to */
+  .tessnow { width: 100%; max-width: 460px; border: 1px solid var(--gold);
+             background: rgba(201,162,39,0.07); padding: 10px 12px; text-align: left; }
+  .tessnow .tn { font-family: var(--serif); font-size: 19px; font-weight: 700;
+                 letter-spacing: 2px; color: var(--gold); }
+  .tessnow .tl { font-size: 11.5px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+  .tessrow { display: flex; gap: 8px; width: 100%; max-width: 460px; }
+  .tessrow input { flex: 1 1 auto; min-width: 0; }
+  .tessrow button { flex: none; padding: 8px 14px; font-size: 12px; }
+  .tessman { display: flex; align-items: center; gap: 10px; text-align: left;
+             border: 1px solid #2e2418; background: rgba(20,15,9,0.5); padding: 8px 10px; }
+  .tessman.on { border-color: var(--gold); background: rgba(201,162,39,0.09); }
+  .tessman .who { flex: 1 1 auto; min-width: 0; }
+  .tessman .wn { font-family: var(--serif); font-weight: 700; letter-spacing: 1.5px; font-size: 14px; }
+  .tessman.on .wn { color: var(--gold); }
+  .tessman .wb { color: var(--muted); font-size: 11.5px; line-height: 1.4; }
+  .tessman button { flex: none; padding: 6px 11px; font-size: 11.5px; }
+  #tessMsg, #saveMsg { font-size: 13px; min-height: 1.4em; font-weight: 600; }
+  #tessMsg.good, #saveMsg.good { color: var(--gold); }
+  #tessMsg.bad, #saveMsg.bad { color: var(--danger); }
   #vaultRow input {
     flex: 1; min-width: 0; text-align: center;
     font-family: var(--serif); font-size: 15px; letter-spacing: 4px; text-transform: uppercase;
@@ -216,7 +272,7 @@
   #vaultMsg.good, #shopMsg.good { color: var(--gold); }
   #vaultMsg.bad, #shopMsg.bad { color: var(--danger); }
   #prizeList .libitem { align-items: flex-start; }
-  #wipeBtn.arm { border-color: var(--danger); color: #ff9a8c; }
+  #wipeBtn.arm, .tessman button.arm { border-color: var(--danger); color: #ff9a8c; }
   /* Collapsible section (the Battles list) */
   .fold { width: 100%; max-width: 460px; }
   .fold > summary {
@@ -247,7 +303,12 @@
   }
   button.lockbtn:hover { border-color: #3a2c1a; background: #17110a; box-shadow: none; }
   /* Sponsio — the wager */
-  .sponsio { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 10px; }
+  /* Wider than everything else in the Horreum, and deliberately so. The rest of
+     this panel is prose in a column you read down; the card is six men to be
+     compared across, and the condition bars are the comparison — they need the
+     run of the arena to be worth reading at all. Capped against the viewport so
+     a narrow screen still gets one column of bout rather than a squeezed two. */
+  .sponsio { width: 100%; max-width: min(820px, 100%); display: flex; flex-direction: column; gap: 10px; }
   .stakerow { display: flex; gap: 6px; flex-wrap: wrap; }
   .stakerow button { padding: 6px 12px; font-size: 12px; letter-spacing: 1.2px; }
   .stakerow button.on { border-color: var(--gold); color: var(--gold); }
@@ -286,9 +347,16 @@
   .bout { border: 1px solid #2e2418; background: rgba(20,15,9,0.5); padding: 8px;
           display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .bout .vs { text-align: center; font-size: 9px; letter-spacing: 3px; color: var(--muted); }
+  /* The two men face each other across the bout, which is the whole reason the
+     card is laid out at all — so they sit left and right, and the condition
+     bars line up beside each other where they can be compared at a glance. */
   .bout .corners { display: flex; gap: 6px; }
-  .corner { flex: 1 1 0; min-width: 0; text-align: left; padding: 7px 8px;
-            display: flex; flex-direction: column; gap: 2px; }
+  /* The corner is a <button>, and Safari will not let a button be a flex
+     container — its children fall back to shrink-to-fit, which collapses the
+     condition bar to a thumbnail with the word stacked one letter per line.
+     So the button stays a plain block and an inner span does the laying out. */
+  .corner { display: block; flex: 1 1 0; min-width: 0; text-align: left; padding: 8px 10px; }
+  .corner .cbody { display: flex; flex-direction: column; gap: 2px; width: 100%; }
   .corner.on { border-color: var(--gold); background: rgba(201,162,39,0.09); }
   .corner .cn { font-family: var(--serif); font-weight: 700; font-size: 13px; letter-spacing: 1px; }
   .corner .cb { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
@@ -297,6 +365,26 @@
   .corner .cd { font-size: 10px; letter-spacing: 1px; }
   .corner .cd.in { color: var(--danger); }    /* shortening — they like him */
   .corner .cd.out { color: var(--safe); }     /* drifting — they have left him */
+  /* What state he is in, posted under the price and given the room to be read
+     across the table. The bar is the statement — filled as far as he is fit,
+     coloured by which step of the scale he is on — and the word rides inside
+     it rather than beside it, because a hover tooltip is a word nobody sees.
+     Both halves of the label are shadowed so they hold up over a gold fill and
+     over the empty track behind it. */
+  .corner .cc { display: flex; align-items: center; width: 100%; margin: 5px 0 2px; }
+  .corner .meter { position: relative; flex: 1 1 auto; width: 100%; min-width: 18px; height: 30px;
+                   background: #2e2418; border: 1px solid #3a2d1c; overflow: hidden; }
+  .corner .meter i { display: block; height: 100%; opacity: 0.85; }
+  .corner .meter .lab {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 8px; pointer-events: none;
+    font-family: var(--serif); font-weight: 700; font-size: 12px; letter-spacing: 1.6px;
+    color: var(--text); text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 0 6px rgba(0,0,0,0.7);
+  }
+  .corner .meter .lab .num { font-size: 14px; letter-spacing: 0.5px; }
+  .corner .cs { font-size: 9.5px; color: var(--muted); letter-spacing: 0.2px; line-height: 1.45; }
+  .corner .cs b { color: var(--text); font-weight: 600; }
+  .corner .cw { font-size: 9.5px; color: var(--muted); font-style: italic; line-height: 1.4; }
   .slipbox { border: 1px solid var(--gold); padding: 8px; font-size: 12px; line-height: 1.6; }
   .slipbox b { color: var(--gold); font-family: var(--serif); letter-spacing: 1px; }
   #wagerMsg { font-size: 13px; min-height: 1.4em; font-weight: 600; }
@@ -567,8 +655,20 @@
       <p class="ep-foot">Both land on the man you bet against, and both are priced off your stake — so the sum is the same question whether you laid ten or two hundred and fifty. You are no longer betting on what happens; you are paying for it, and the desk prices that in.</p>
     </div>
 
+    <!-- The intro. Two men are already fighting behind this; nobody's money is
+         on it and neither of them is you. It is the building doing what it does
+         whether you came in or not. -->
+    <div id="intro" class="screen">
+      <div class="introcard">
+        <h1>ENTER THE<br><span class="accent">COLOSSEUM</span></h1>
+        <p class="introline">The sand is already wet.</p>
+        <p id="introKey">PRESS ANY KEY TO BEGIN</p>
+        <p class="introfoot">Arrow keys to move · a touch screen works too</p>
+      </div>
+    </div>
+
     <!-- Menu -->
-    <div id="menu" class="screen scroll">
+    <div id="menu" class="screen scroll hidden">
       <h1>ENTER THE<br><span class="accent">COLOSSEUM</span></h1>
 
       <div class="tabs" id="tabs">
@@ -577,6 +677,7 @@
         <button data-tab="library">Library</button>
         <button data-tab="horreum">Horreum</button>
         <button data-tab="vault">Vault</button>
+        <button data-tab="tessera">Tessera</button>
         <button data-tab="help">How to Play</button>
       </div>
 
@@ -665,6 +766,8 @@
             <span id="cardClock">OFF IN —</span>
           </div>
           <div id="cardList"></div>
+          <p class="hint">Under every price is the state the man is in, and the desk has already read it into the price. <b>Wounds</b> is what is still open on him, taken on the sand and closing a little each day. <b>Fed</b> is the ration he has been eating — the school feeds everyone barley, but a man they have money in eats better. <b>Load</b> is what his armatura weighs on him: a provocator in a breastplate spends ×1.35 of a bout's wind every time he fights one and is that much longer getting it back, where a retiarius in a shoulder-guard spends ×0.75. It is why two men who fought the same three bouts this week are not in the same state, and the line under each man says which of them is feeling it.</p>
+          <p class="hint">A card fought, a card bought, or a rung contested — each of those is a day, and a day rests everybody a little. A card left to time out is not: waiting at the board rests nobody.</p>
           <p class="hint">The stake. Lose and it stays in the sand.</p>
           <div class="stakerow" id="stakeRow"></div>
           <div id="slipBox" class="slipbox hidden"></div>
@@ -691,7 +794,36 @@
         <div class="btnrow">
           <button id="wipeBtn">Clear All Progress</button>
         </div>
-        <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms and your standing on both Ladder boards. Levels you built stay put.</p>
+        <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms and your standing on both Ladder boards. Levels you built stay put, and so does every other man in the house — a wipe is scoped to whoever is holding the tessera.</p>
+      </div>
+
+      <!-- Tessera: the identity tag, and everything that hangs off it -->
+      <div class="tabpanel hidden" data-panel="tessera">
+        <p class="sub">A <b style="color:var(--text)">tessera gladiatoria</b> was a small bone tag with a man's name cut into it, carried to prove whose fights these were. The house holds more than one. Everything the arena remembers — your purse, your rungs, your forms, what the school thinks of the men you have been fighting — is filed under whichever tag is in your hand.</p>
+        <div id="tessNow" class="tessnow"></div>
+        <div class="tessrow">
+          <input id="tessName" maxlength="20" placeholder="A name to cut into it" spellcheck="false" autocomplete="off">
+          <button id="tessRename">Rename</button>
+        </div>
+        <div class="divider"></div>
+        <p class="sub"><b style="color:var(--text)">The house</b></p>
+        <div id="tessList" class="liblist"></div>
+        <div class="btnrow">
+          <button class="primary" id="tessNew">Enter A New Man</button>
+        </div>
+        <p id="tessMsg"></p>
+
+        <div class="divider"></div>
+        <p class="sub"><b style="color:var(--text)">Save and load.</b> A save is one line of text holding everything this man has done. Copy it somewhere safe, and paste it back into any arena to have him again — he comes in as a new man in the house, so loading never lands on top of somebody.</p>
+        <div class="tessrow">
+          <input id="saveCode" placeholder="Your save appears here" spellcheck="false" readonly>
+          <button id="saveBtn">Copy The Save</button>
+        </div>
+        <div class="tessrow">
+          <input id="loadCode" placeholder="Paste a save here to load it" spellcheck="false" autocomplete="off">
+          <button class="primary" id="loadBtn">Load</button>
+        </div>
+        <p id="saveMsg"></p>
       </div>
 
       <!-- How to play -->
@@ -772,6 +904,7 @@
 <script src="js/campaigns.js"></script>
 <script src="js/armaturae.js"></script>
 <script src="js/ladder.js"></script>
+<script src="js/condicio.js"></script>
 <script src="js/levels.js"></script>
 <script src="js/lines.js"></script>
 <script src="js/audio.js"></script>
@@ -825,6 +958,7 @@
     CAMPAIGNS, PATTERNS, PATTERN_BY_KEY,
     ARMATURAE, armOf,
     LADDER, LADDER_BY_ID, UNRANKED, tierOf,
+    CONDICIO,
     LEVEL_COLORS, LEVELS, BATTLES, formValue, chainPayout,
     LINES, ARM_LINES, SPEECH_DUR, SPEECH_GAP,
   } = window.COLOSSEUM;
@@ -856,6 +990,8 @@
     fighterAt, challengeable, friendlyable, rollInvite, onSine, TILT,
     keyBeaten, levelUnlocked, campaignCleared, editorUnlocked,
     denarii, addDenarii, spendDenarii, boughtCodes, buy, redeem, claimedCodes, CODES, SHOP,
+    accountList, activeAccount, createAccount, switchAccount, renameAccount, deleteAccount,
+    exportSave, importSave,
     wipeProgress,
   } = PROGRESS;
 
@@ -877,8 +1013,11 @@
   let editing = null;
 
   // ---- Game state ----
-  const GS = { MENU: "menu", PLAYING: "playing", TRANSITION: "transition", OVER: "over" };
-  let state = GS.MENU;
+  const GS = { INTRO: "intro", MENU: "menu", PLAYING: "playing", TRANSITION: "transition", OVER: "over" };
+  // The building is running before you walk in. See startAttract() at the foot
+  // of this file: two ladder men are put out on the sand with nothing on the
+  // result, and they keep being put out until somebody presses a key.
+  let state = GS.INTRO;
   let mode = "boss"; // "boss" | "campaign" | "level"
 
   const keys = Object.create(null);
@@ -1182,6 +1321,11 @@
     // fought on — drop it here and the renderer falls back to the ordinary
     // one-fighter scene, drawn from globals still pointing at two dead duellists.
     duel.finished = true;
+    // The school writes it down. Both men have a bout in their legs from here
+    // on, and whoever went down is carrying it — which is what he will be quoted
+    // on the next time his name comes up on a card.
+    if (push) CONDICIO.fought(leg.a, leg.b, true);
+    else CONDICIO.fought(duel.over.f, duel.over.foe.f, false);
     if (push) return finishSlip("push", leg);
     if (!won) return finishSlip("lost", leg);
     slip.idx += 1;
@@ -1203,8 +1347,10 @@
   function finishSlip(how, leg) {
     const s = slip;
     slip = null;
-    // The board you bet into is spent. Post the next one now, so the desk has a
-    // card standing by the time you walk back to it.
+    // The board you bet into is spent. The afternoon it was fought on goes with
+    // it — wounds close a little, the week's bouts fade, everybody eats again —
+    // and then the next card is posted, priced off the men as they now are.
+    CONDICIO.advanceDay();
     dealCard();
     slipEl.classList.add("hidden");
     editorPanel.classList.add("hidden");
@@ -1357,6 +1503,12 @@
     activeLadderFoe = null;
     ladderFriendly = false;
     if (!f || practice) return null;
+    // Whatever it settles, he was on the sand this afternoon, and the desk will
+    // know about it: a man you have just put down is quoted as a man who has
+    // just been put down. Logged before the day turns, so it counts as today's.
+    if (friendly) CONDICIO.sparred(f);
+    else CONDICIO.fought(won ? null : f, won ? f : null, false);
+    CONDICIO.advanceDay();
     if (friendly) {
       // No rung, no record, no tilt, and he is not struck off the board — you
       // have not beaten him where it counts. What you have is his measure. The
@@ -1658,6 +1810,10 @@
   }
 
   window.addEventListener("keydown", (e) => {
+    // Any key at all opens the building, and nothing else in here gets a look
+    // at that press — otherwise the Space that dismissed the intro would fall
+    // through and start a bout you never chose.
+    if (state === GS.INTRO) { e.preventDefault(); leaveIntro(); return; }
     if (duel && slip && (e.key === "1" || e.key === "2")) {
       e.preventDefault();
       buyBribe(e.key === "1" ? "slow" : "gates");
@@ -2056,8 +2212,15 @@
     // Whatever the sand takes off him, the price knows about too. A nerf the desk
     // cannot see is just a slower way of selling the same certainty.
     w *= duelNerf(f);
+    // And what state he is in this afternoon — the only term in this whole
+    // function that is different tomorrow. Everything above is what a man is;
+    // this is what he has left. See js/condicio.js.
+    w *= CONDICIO.priceFactor(f);
     return w;
   }
+
+  // A stat as the board prints it.
+  function pct(v) { return String(Math.round(v * 100)); }
 
   // The unseen half. Drawn once when the bout is posted and held for as long as
   // it stands, so a price does not shiver every time the board redraws — the
@@ -2096,7 +2259,10 @@
     for (let i = 0; i < CARD_SIZE * 2 && bouts.length < CARD_SIZE; i += 2) {
       bouts.push(makeBout(pool[i], pool[i + 1]));
     }
-    card = { bouts: bouts, off: OFF_SECONDS, settled: false };
+    // Stamped with the day it was posted. A board priced off men as they were
+    // yesterday is a board lying about today, and a day can pass while it hangs
+    // there — you can walk off and go fight a rung of the ladder.
+    card = { bouts: bouts, off: OFF_SECONDS, settled: false, day: CONDICIO.day() };
     picks = [];
   }
 
@@ -2136,7 +2302,7 @@
     renderShop();
     // A card that has been fought is finished business. Coming back to the desk
     // means a new board, not the wreckage of the last one.
-    if (!card || card.settled) dealCard();
+    if (!card || card.settled || card.day !== CONDICIO.day()) dealCard();
     renderSponsio();
   }
 
@@ -2159,14 +2325,18 @@
     picks.push({ bout: bt, side: side, taken: taken });
   }
 
-  function renderSponsio() {
-    if (!card) dealCard();
-    const purse = denarii();
+  // The board is drawn in two passes, and the reason is that a click is not one
+  // event — it is a press and a release on the same element, and the browser
+  // throws the whole thing away if that element stops existing in between. The
+  // card redraws four times per turn of the drift, so tearing the DOM down and
+  // building it again every time meant a press landing at the wrong moment was
+  // simply eaten, and a man you clicked would not take. Build once per card;
+  // after that only repaint the numbers that actually moved.
+  let cardDom = null;      // { card, corners: [{ bout, side, el, cp, cd }] }
 
-    cardClock.textContent = `OFF IN ${Math.max(0, Math.ceil(card.off))}s`;
-    cardClock.className = card.off <= 10 ? "late" : "";
-
+  function buildCard() {
     cardList.innerHTML = "";
+    cardDom = { card: card, corners: [] };
     card.bouts.forEach((bt) => {
       const row = document.createElement("div");
       row.className = "bout";
@@ -2174,26 +2344,48 @@
       corners.className = "corners";
       [bt.a, bt.b].forEach((f, side) => {
         const A = armOf(f.arm);
-        const held = picks.find((pk) => pk.bout === bt && pk.side === side);
         const c = document.createElement("button");
-        c.className = "corner" + (held ? " on" : "");
-        c.innerHTML = `<span class="cn"></span><span class="cb"></span><span class="cp"></span><span class="cd"></span>`;
+        c.className = "corner";
+        // Everything stacks down the corner — name, arms, price, which way the
+        // money has moved it — and then the bar runs the corner's full width
+        // underneath. The inner span is what makes that layout hold in Safari;
+        // see the note on .corner in the stylesheet.
+        c.innerHTML = `<span class="cbody">` +
+          `<span class="cn"></span><span class="cb"></span><span class="cp"></span><span class="cd"></span>` +
+          `<span class="cc"><span class="meter"><i></i>` +
+          `<span class="lab"><span class="wd"></span><span class="num"></span></span></span></span>` +
+          `<span class="cs"></span><span class="cw"></span></span>`;
         c.querySelector(".cn").textContent = f.name;
         c.querySelector(".cn").style.color = A.color;
         c.querySelector(".cb").textContent = `${A.name} · ${PATTERN_BY_KEY[f.key].name}`;
-        c.querySelector(".cp").textContent = `×${bt.odds[side].toFixed(2)}`;
-        const move = bt.odds[side] - bt.open[side];
-        const cd = c.querySelector(".cd");
-        if (Math.abs(move) >= 0.05) {
-          cd.textContent = move < 0 ? `▼ from ×${bt.open[side].toFixed(2)}` : `▲ from ×${bt.open[side].toFixed(2)}`;
-          cd.className = "cd " + (move < 0 ? "in" : "out");
-        } else {
-          cd.textContent = "unmoved";
-          cd.className = "cd";
-        }
+        // What state he is in. Posted rather than hidden: the desk has already
+        // read these four numbers into the price above, and what it is selling
+        // is the reading, not the numbers.
+        const cd_ = CONDICIO.readOut(f);
+        const bar = c.querySelector(".meter i");
+        bar.style.width = `${Math.round(cd_.habitudo * 100)}%`;
+        bar.style.background = `var(--${cd_.tone})`;
+        // The word the desk would put on him, and the figure behind it, both
+        // sitting inside the bar. A tooltip was where this lived for about ten
+        // minutes, and a tooltip is a thing nobody hovers over.
+        c.querySelector(".cc .wd").textContent = cd_.verdict;
+        c.querySelector(".cc .num").textContent = pct(cd_.habitudo);
+        c.querySelector(".cc").title = `${cd_.verdict} — ${pct(cd_.habitudo)} of the man he is when he is right`;
+        // Wind is not printed as a number. It is the one stat the line under this
+        // already says in words — "twice on the sand in five days" is the same
+        // fact as a percentage and is worth more to read — and a corner with
+        // four figures on it stops being read at all.
+        c.querySelector(".cs").innerHTML =
+          `wounds <b>${pct(cd_.vulnus)}</b> · fed <b>${pct(cd_.cibus)}</b> · ` +
+          `load <b>${cd_.pondusWord}</b>, ×${cd_.pondus.toFixed(2)} a bout`;
+        c.querySelector(".cw").textContent = cd_.reason;
         c.addEventListener("click", () => {
           togglePick(bt, side, bt.odds[side]);
           renderSponsio();
+        });
+        cardDom.corners.push({
+          bout: bt, side: side, el: c,
+          cp: c.querySelector(".cp"), cd: c.querySelector(".cd"),
         });
         corners.appendChild(c);
       });
@@ -2204,17 +2396,47 @@
       row.appendChild(vs);
       cardList.appendChild(row);
     });
+  }
 
-    stakeRow.innerHTML = "";
-    STAKES.forEach((s) => {
-      const b = document.createElement("button");
-      b.textContent = `✦ ${s}`;
-      b.className = s === betStake ? "on" : "";
-      b.disabled = s > purse;
-      if (s > purse) b.classList.add("lockbtn");
-      b.addEventListener("click", () => { betStake = s; renderSponsio(); });
-      stakeRow.appendChild(b);
-    });
+  // The stakes never change, so they are built exactly once and only ever
+  // repainted — for the same reason as the corners above.
+  const stakeEls = STAKES.map((s) => {
+    const b = document.createElement("button");
+    b.textContent = `✦ ${s}`;
+    b.addEventListener("click", () => { betStake = s; renderSponsio(); });
+    stakeRow.appendChild(b);
+    return { stake: s, el: b };
+  });
+
+  function renderSponsio() {
+    if (!card) dealCard();
+    const purse = denarii();
+
+    cardClock.textContent = `OFF IN ${Math.max(0, Math.ceil(card.off))}s`;
+    cardClock.className = card.off <= 10 ? "late" : "";
+
+    // A fresh board needs fresh DOM; the same board standing needs none.
+    if (!cardDom || cardDom.card !== card) buildCard();
+
+    for (const cn of cardDom.corners) {
+      const bt = cn.bout, side = cn.side;
+      const held = picks.some((pk) => pk.bout === bt && pk.side === side);
+      cn.el.className = "corner" + (held ? " on" : "");
+      cn.cp.textContent = `×${bt.odds[side].toFixed(2)}`;
+      const move = bt.odds[side] - bt.open[side];
+      if (Math.abs(move) >= 0.05) {
+        cn.cd.textContent = move < 0 ? `▼ from ×${bt.open[side].toFixed(2)}` : `▲ from ×${bt.open[side].toFixed(2)}`;
+        cn.cd.className = "cd " + (move < 0 ? "in" : "out");
+      } else {
+        cn.cd.textContent = "unmoved";
+        cn.cd.className = "cd";
+      }
+    }
+
+    for (const st of stakeEls) {
+      st.el.className = st.stake === betStake ? "on" : (st.stake > purse ? "lockbtn" : "");
+      st.el.disabled = st.stake > purse;
+    }
 
     if (picks.length === 0) {
       slipBox.classList.add("hidden");
@@ -2258,11 +2480,17 @@
     const cost = newCardCost();
     if (cost > 0) {
       spendDenarii(cost);
-      wagerMsg.textContent = `The desk tears down the board and posts another. That is ${cost} denarii.`;
+      wagerMsg.textContent = `The desk tears down the board and posts tomorrow's. That is ${cost} denarii.`;
       wagerMsg.className = "";
     } else {
       wagerMsg.textContent = "";
     }
+    // What a fresh card actually buys is a day. Everybody on the ladder rests,
+    // heals a little and eats again — so a fifth of your purse is also the price
+    // of getting a favourite you like off the bottom of his condition. A card
+    // that merely times out with nobody's money on it does NOT do this: that is
+    // the same afternoon still standing, and waiting at the board rests nobody.
+    CONDICIO.advanceDay();
     dealCard();
     renderSponsio();
   });
@@ -2305,11 +2533,141 @@
       return;
     }
     wipeProgress();
+    // wipeProgress clears the school's book off the disk; this drops the copy of
+    // it the desk is holding, so the next card is priced off a fresh ladder
+    // rather than off men the wipe was supposed to have forgotten.
+    CONDICIO.wipe();
+    card = null;
     disarmWipe();
     vaultMsg.textContent = "Progress cleared. The sand is raked flat.";
     vaultMsg.className = "good";
     renderPrizes();
     renderCampaign();
+  });
+
+  // ---- Tessera: whose fights these are ----
+  // An account is a namespace on the disk (see js/progress.js) and a name on a
+  // bone tag here. Everything below is the tag changing hands, and the one thing
+  // the engine has to remember when it does is that it is holding a career's
+  // worth of loose state — a card on the wall, picks on that card, the school's
+  // book of condition — none of which belongs to the man walking in.
+  const tessNow = document.getElementById("tessNow");
+  const tessList = document.getElementById("tessList");
+  const tessName = document.getElementById("tessName");
+  const tessMsg = document.getElementById("tessMsg");
+  const saveCode = document.getElementById("saveCode");
+  const loadCode = document.getElementById("loadCode");
+  const saveMsg = document.getElementById("saveMsg");
+
+  // What a man has to show for himself, said in one line.
+  function careerLine() {
+    const st = loadLadder();
+    const rec = loadRecord();
+    const rank = st.rank > LADDER.length ? "unranked" : `rank ${roman(st.rank)} — ${tierOf(st.rank).name}`;
+    const fought = rec.pugn ? `${rec.pugn} fought, ${rec.vic} won` : "not yet on the sand";
+    return `${rank} · ${fought} · ✦ ${denarii()} · ${loadCleared().length} cleared`;
+  }
+
+  // The tessera has changed hands. Everything the engine is holding that belongs
+  // to the last man goes back on the shelf: the board he was reading, what he
+  // had picked on it, and the desk's copy of the school's book.
+  function adoptAccount() {
+    card = null;
+    cardDom = null;
+    picks = [];
+    CONDICIO.forget();
+    refreshMenu();
+    renderCampaign();
+    renderTessera();
+  }
+
+  function renderTessera() {
+    const me = activeAccount();
+    tessNow.innerHTML = `<div class="tn"></div><div class="tl"></div>`;
+    tessNow.querySelector(".tn").textContent = me.name.toUpperCase();
+    tessNow.querySelector(".tl").textContent = careerLine();
+    if (document.activeElement !== tessName) tessName.value = me.name;
+
+    tessList.innerHTML = "";
+    const all = accountList();
+    for (const a of all) {
+      const held = a.id === me.id;
+      const row = document.createElement("div");
+      row.className = "tessman" + (held ? " on" : "");
+      row.innerHTML = `<div class="who"><div class="wn"></div><div class="wb"></div></div>`;
+      row.querySelector(".wn").textContent = a.name;
+      row.querySelector(".wb").textContent = held ? "holding the tessera" : "in the house";
+      if (!held) {
+        const take = document.createElement("button");
+        take.textContent = "Take His Tessera";
+        take.addEventListener("click", () => {
+          switchAccount(a.id);
+          adoptAccount();
+          tessMsg.textContent = `The tessera is ${a.name}'s. Everything on these screens is his now.`;
+          tessMsg.className = "good";
+        });
+        row.appendChild(take);
+      }
+      if (all.length > 1) {
+        // Two taps, same as the wipe — a career is not a thing to lose to one
+        // stray click, and there is no dialog anywhere else in this arena.
+        const strike = document.createElement("button");
+        strike.textContent = "Strike Off";
+        let armed = false;
+        strike.addEventListener("click", () => {
+          if (!armed) {
+            armed = true;
+            strike.textContent = "Tap again — he is gone";
+            strike.classList.add("arm");
+            return;
+          }
+          const res = deleteAccount(a.id);
+          tessMsg.textContent = res.msg;
+          tessMsg.className = res.ok ? "good" : "bad";
+          if (res.ok) adoptAccount(); else renderTessera();
+        });
+        row.appendChild(strike);
+      }
+      tessList.appendChild(row);
+    }
+  }
+
+  document.getElementById("tessNew").addEventListener("click", () => {
+    const res = createAccount(tessName.value);
+    tessMsg.textContent = res.msg;
+    tessMsg.className = res.ok ? "good" : "bad";
+    if (res.ok) { tessName.value = ""; adoptAccount(); }
+  });
+  document.getElementById("tessRename").addEventListener("click", () => {
+    const ok = renameAccount(activeAccount().id, tessName.value);
+    tessMsg.textContent = ok ? "The tag is recut." : "It needs a name to cut.";
+    tessMsg.className = ok ? "good" : "bad";
+    renderTessera();
+  });
+
+  document.getElementById("saveBtn").addEventListener("click", () => {
+    const code = exportSave();
+    if (!code) {
+      saveMsg.textContent = "The save would not write.";
+      saveMsg.className = "bad";
+      return;
+    }
+    saveCode.value = code;
+    saveCode.select();
+    // Over file:// the clipboard is often shut, and the select() above is the
+    // fallback that always works: it is already highlighted, ready for a copy.
+    let copied = false;
+    try { copied = document.execCommand("copy"); } catch (e) { copied = false; }
+    saveMsg.textContent = copied
+      ? `${activeAccount().name} is on your clipboard. Keep it somewhere.`
+      : "Your save is in the box, selected — copy it now.";
+    saveMsg.className = "good";
+  });
+  document.getElementById("loadBtn").addEventListener("click", () => {
+    const res = importSave(loadCode.value);
+    saveMsg.textContent = res.msg;
+    saveMsg.className = res.ok ? "good" : "bad";
+    if (res.ok) { loadCode.value = ""; adoptAccount(); }
   });
 
   addStageBtn.addEventListener("click", () => {
@@ -4450,13 +4808,18 @@
     const A = armOf(f.arm);
     // Health takes half of what the rate takes, so a nerfed man is slower to kill
     // with rather than simply easier to kill — he still has to be beaten.
-    const hp = Math.round(DUEL_HP * (A.hp || 1) * (0.5 + 0.5 * duelNerf(f)));
+    // What he brings out is his arms, his handicap, and the week he has had.
+    // Condition is gentler here than it is at the desk on purpose: the board is
+    // allowed to be surer of these numbers than the sand turns out to be, and
+    // the gap between the two is where a punter makes his money.
+    const hp = Math.round(DUEL_HP * (A.hp || 1) * (0.5 + 0.5 * duelNerf(f)) * CONDICIO.bodyFactor(f));
+    const tempo = CONDICIO.tempoFactor(f);
     return {
       f: f, name: f.name, key: f.key, armKey: f.arm, arm: A,
       color: COLORS.mine,        // set properly by startDuel, once there is money on it
       crest: A.color,            // what he is trained to, worn on the body
       body: {
-        x: x, y: y, r: 34, speed: 620 * (A.spd || 1) * DUEL_SPEED, hits: 99,
+        x: x, y: y, r: 34, speed: 620 * (A.spd || 1) * DUEL_SPEED * tempo, hits: 99,
         fire: 0.6, fire2: 1.4, spin: 0, hitFlash: 0, hp: hp, maxhp: hp,
         dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
         netT: A.net ? A.net * 0.6 : 0, fouled: 0, shieldAng: -Math.PI / 2,
@@ -4466,8 +4829,13 @@
       // or both men walk into their own trident.
       bullets: [], nets: [], pending: [], minions: [], minionTimer: 2.0,
       fx: { shield: false, slow: 0, swift: 0, invuln: 0, snare: 0 },
-      spd: (A.spd || 1), rate: (A.rate || 1) * duelNerf(f), phase2: false,
-      botT: 0, botDx: 0, botDy: 0, botVx: 0, botVy: 0, skill: 0,
+      spd: (A.spd || 1) * tempo, rate: (A.rate || 1) * duelNerf(f) * tempo, phase2: false,
+      // How well he reads what is coming at him. This term has been sitting at
+      // zero for both men since duels existed; condition is what it is for. A
+      // man on short rest looks less far ahead, wobbles more on the read, and
+      // takes longer to commit to a dodge — which is what actually decides a
+      // bout, far more than the health he started with.
+      botT: 0, botDx: 0, botDy: 0, botVx: 0, botVy: 0, skill: CONDICIO.skillFactor(f),
       sayT: 0, said: {}, quiet: 0,     // what he has already said, and for how long nothing has touched him
       guardLoad: 0, guardDown: 0,      // the weight on his shield arm, and whether it has given
       goalX: x, goalY: y, goalW: 0,
@@ -5900,6 +6268,16 @@
       else if (state === GS.PLAYING) { updatePlaying(dt); if (state === GS.PLAYING) updateHud(); }
       else updateTransition(dt);
       updateParticles(dt);
+    } else if (state === GS.INTRO) {
+      // The attract bout. Same clock, same duel, none of the rest of it — there
+      // is no zone, no wounds and no HUD, because nobody in this fight is you.
+      if (lastTs == null) lastTs = ts;
+      let dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+      if (dt > 0.05) dt = 0.05;
+      if (shake > 0) shake = Math.max(0, shake - dt * 34);
+      updateAttract(dt);
+      updateParticles(dt);
     } else {
       lastTs = null;
     }
@@ -5907,12 +6285,69 @@
     requestAnimationFrame(frame);
   }
 
+  // ---- The intro ----
+  // What plays behind the title: two men off the ladder, put out on the sand
+  // with nothing riding on it and nobody watching who matters. One falls, the
+  // gates give the crowd a moment, and the next pair comes out. It is the same
+  // duel the Sponsio desk sells, run with no slip against it — which is the
+  // honest way to show a game: by playing it, badly attended.
+  const introEl = document.getElementById("intro");
+  let attractHold = 0;
+
+  function startAttract() {
+    const a = LADDER[Math.floor(Math.random() * LADDER.length)];
+    let b = a;
+    while (b === a) b = LADDER[Math.floor(Math.random() * LADDER.length)];
+    slip = null;                 // there is no slip on this one, and never will be
+    // The engine is reset first and the duel put on top of it, in that order —
+    // resetGame() says so itself, and it means it: the zone, the particles and
+    // the arrays the renderer walks every frame all come from here. A duel laid
+    // on an unreset engine draws nothing at all.
+    resetGame();
+    startDuel(a, b, null);
+    attractHold = 0;
+  }
+
+  function updateAttract(dt) {
+    if (!duel) { startAttract(); return; }
+    if (duel.finished) {
+      // Let the body lie a moment. Cutting straight to the next pair reads as a
+      // glitch rather than as a card of bouts.
+      attractHold -= dt;
+      if (attractHold <= 0) { duel = null; startAttract(); }
+      return;
+    }
+    if (updateDuel(dt)) {
+      duel.finished = true;
+      attractHold = 2.4;
+    }
+  }
+
+  // Any key, any click, any touch. Everything the arena does from here needs a
+  // gesture behind it anyway — the audio context is one of them, which is why
+  // resumeAudio() hangs off this and not off the boot.
+  function leaveIntro() {
+    if (state !== GS.INTRO) return;
+    state = GS.MENU;
+    duel = null;
+    duelSide = null;
+    speech = [];
+    introEl.classList.add("hidden");
+    menuEl.classList.remove("hidden");
+    resumeAudio();
+    refreshMenu();
+    renderCampaign();
+  }
+  introEl.addEventListener("click", leaveIntro);
+  introEl.addEventListener("touchstart", (e) => { e.preventDefault(); leaveIntro(); }, { passive: false });
+
   function refreshMenu() {
     renderBattles();
     renderLibrary();
     renderPrizes();
     renderShop();
     renderLadder();
+    renderTessera();
   }
 
   // The armatura list in How to Play, built from the table so it can't drift.
@@ -5930,6 +6365,10 @@
   })();
 
   renderCampaign();
+
+  // Send the first pair out before the first frame, so the title never comes up
+  // over an empty arena.
+  startAttract();
 
   requestAnimationFrame(frame);
 })();

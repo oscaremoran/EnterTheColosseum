@@ -39,6 +39,165 @@
   // Levels you build yourself, kept next to the built-in ones.
   const MINE_KEY = "dodger_my_levels";
   const TIMES_KEY = "dodger_level_times";
+  // The school's book on who is fit to fight. Owned by condicio.js, which asks
+  // this file to scope it — the name lives here because this file is what knows
+  // the full list of a career's keys, and a save that forgot one is not a save.
+  const CONDICIO_KEY = "dodger_condicio";
+
+  // ---- Accounts ----
+  // Everything above is one career's worth of memory, and until now there was
+  // exactly one career per browser. A house has more than one gladiator in it.
+  //
+  // An account is a namespace and nothing more: every key below is written
+  // under a prefix belonging to whoever is currently holding the tessera, so
+  // two careers can sit side by side on the same disk without either of them
+  // knowing the other exists. The index of who exists is itself unprefixed —
+  // it is the one thing that has to be readable before you know who you are.
+  //
+  // One exception, and it is deliberate: the levels you built are yours, not
+  // your account's. They already survived wipeProgress for the same reason.
+  const ACCOUNTS_KEY = "dodger_accounts";       // { active, list: [{ id, name, born }] }
+  // The names the house gives, in order, before you give it one yourself.
+  const HOUSE_NAMES = ["Primus", "Secundus", "Tertius", "Quartus", "Quintus", "Sextus"];
+  let accounts = null;
+
+  function rawGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+  function rawSet(key, v) { try { localStorage.setItem(key, String(v)); } catch (e) { /* full disk */ } }
+  function rawDel(key) { try { localStorage.removeItem(key); } catch (e) { /* nothing to clear */ } }
+
+  // Every key this file writes, so a save can be gathered up and an account can
+  // be emptied without either job having to remember the list by hand.
+  function careerKeys() {
+    return [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
+            LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY,
+            CONDICIO_KEY];
+  }
+  // The levels you built, which belong to you rather than to a career.
+  function isGlobal(key) { return key === MINE_KEY; }
+  function scoped(key) {
+    if (isGlobal(key)) return key;
+    return "a" + activeId() + ":" + key;
+  }
+  function get(key) { return rawGet(scoped(key)); }
+  function set(key, v) { rawSet(scoped(key), v); }
+  function del(key) { rawDel(scoped(key)); }
+
+  function loadAccounts() {
+    if (accounts) return accounts;
+    let raw = null;
+    try { raw = JSON.parse(rawGet(ACCOUNTS_KEY) || "null"); } catch (e) { raw = null; }
+    if (raw && Array.isArray(raw.list) && raw.list.length) {
+      const list = raw.list
+        .filter((a) => a && Number.isInteger(a.id) && a.id > 0)
+        .map((a) => ({ id: a.id, name: String(a.name || "Nameless").slice(0, 20), born: a.born || 0 }));
+      if (list.length) {
+        const active = list.some((a) => a.id === raw.active) ? raw.active : list[0].id;
+        accounts = { active, list };
+        return accounts;
+      }
+    }
+    // Nothing on the disk, or nothing this file can read. Open the first account
+    // and adopt whatever career was already here — a save written before there
+    // were accounts is not a stranger's, it is yours, and it moves in with you.
+    accounts = { active: 1, list: [{ id: 1, name: HOUSE_NAMES[0], born: Date.now() }] };
+    for (const key of careerKeys()) {
+      const legacy = rawGet(key);
+      if (legacy != null) { rawSet(scoped(key), legacy); rawDel(key); }
+    }
+    saveAccounts();
+    return accounts;
+  }
+  function saveAccounts() { rawSet(ACCOUNTS_KEY, JSON.stringify(accounts)); }
+  function activeId() { return loadAccounts().active; }
+  function activeAccount() {
+    const a = loadAccounts();
+    return a.list.find((x) => x.id === a.active) || a.list[0];
+  }
+  function accountList() { return loadAccounts().list.slice(); }
+
+  function createAccount(name) {
+    const a = loadAccounts();
+    if (a.list.length >= 8) return { ok: false, msg: "The house holds eight. Strike one off first." };
+    const id = a.list.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+    const given = String(name || "").trim().slice(0, 20);
+    a.list.push({ id, name: given || HOUSE_NAMES[a.list.length] || ("Account " + id), born: Date.now() });
+    a.active = id;
+    saveAccounts();
+    return { ok: true, msg: "A new man is entered in the book, and you are him.", id };
+  }
+  function switchAccount(id) {
+    const a = loadAccounts();
+    if (!a.list.some((x) => x.id === id)) return false;
+    a.active = id;
+    saveAccounts();
+    return true;
+  }
+  function renameAccount(id, name) {
+    const a = loadAccounts();
+    const who = a.list.find((x) => x.id === id);
+    if (!who) return false;
+    const given = String(name || "").trim().slice(0, 20);
+    if (!given) return false;
+    who.name = given;
+    saveAccounts();
+    return true;
+  }
+  // Struck off the book, and everything he owned with him. The last man standing
+  // cannot be struck off — there has to be somebody holding the tessera.
+  function deleteAccount(id) {
+    const a = loadAccounts();
+    if (a.list.length <= 1) return { ok: false, msg: "Somebody has to hold the tessera." };
+    const at = a.list.findIndex((x) => x.id === id);
+    if (at < 0) return { ok: false, msg: "No such man." };
+    const was = a.active;
+    a.active = id;                              // scope the wipe to him...
+    for (const key of careerKeys()) del(key);
+    a.list.splice(at, 1);
+    a.active = was === id ? a.list[0].id : was; // ...then hand the tessera back
+    saveAccounts();
+    return { ok: true, msg: "Struck off the book." };
+  }
+
+  // ---- The save itself ----
+  // Everything one account holds, in one string, in the same shape as a level
+  // share code so there is only one kind of code in this game to explain.
+  function exportSave() {
+    try {
+      const data = {};
+      for (const key of careerKeys()) {
+        const v = get(key);
+        if (v != null) data[key] = v;
+      }
+      const json = JSON.stringify({ v: 1, n: activeAccount().name, d: data });
+      return "COLOSSEUM1:" + btoa(unescape(encodeURIComponent(json)))
+        .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    } catch (e) {
+      return "";
+    }
+  }
+  // A save always comes in as a NEW man rather than landing on top of the one
+  // you are holding. Importing is not something you should be able to do to
+  // yourself by accident, and a career is not a thing to overwrite on a paste.
+  function importSave(text) {
+    const raw = String(text || "").trim().replace(/^COLOSSEUM1:/, "");
+    if (!raw) return { ok: false, msg: "Paste a save first." };
+    let obj = null;
+    try {
+      obj = JSON.parse(decodeURIComponent(escape(atob(raw.replace(/-/g, "+").replace(/_/g, "/")))));
+    } catch (e) {
+      return { ok: false, msg: "That is not a save this arena wrote." };
+    }
+    if (!obj || obj.v !== 1 || !obj.d || typeof obj.d !== "object") {
+      return { ok: false, msg: "That is not a save this arena wrote." };
+    }
+    const made = createAccount(String(obj.n || "Imported").slice(0, 20));
+    if (!made.ok) return made;
+    const allowed = careerKeys();
+    for (const key of allowed) {
+      if (typeof obj.d[key] === "string") set(key, obj.d[key]);
+    }
+    return { ok: true, msg: `Loaded as ${activeAccount().name}. The tessera is his.` };
+  }
 
   // Which contract is being fought under. The engine pushes this in whenever it
   // changes; only the ladder cares, but it cares a great deal — see onSine().
@@ -52,7 +211,7 @@
   // ---- Library ----
   function readJSON(key, fallback) {
     try {
-      const v = JSON.parse(localStorage.getItem(key) || "null");
+      const v = JSON.parse(get(key) || "null");
       return v == null ? fallback : v;
     } catch (e) {
       return fallback;      // corrupt storage shouldn't cost you the Library
@@ -69,7 +228,7 @@
     return l && typeof l.name === "string" && Array.isArray(l.stages) && l.stages.length > 0
       && l.stages.every((s) => PATTERN_BY_KEY[s.key]);
   }
-  function saveMine(levels) { localStorage.setItem(MINE_KEY, JSON.stringify(levels)); }
+  function saveMine(levels) { set(MINE_KEY, JSON.stringify(levels)); }
 
   // Best clear time per level — no score, just how fast you did it.
   function bestTimes() { return readJSON(TIMES_KEY, {}) || {}; }
@@ -79,7 +238,7 @@
     const prev = times[id];
     if (prev == null || secs < prev) {
       times[id] = Number(secs.toFixed(1));
-      localStorage.setItem(TIMES_KEY, JSON.stringify(times));
+      set(TIMES_KEY, JSON.stringify(times));
       return { best: true, prev };
     }
     return { best: false, prev };
@@ -87,7 +246,7 @@
 
   function loadCleared() {
     try {
-      const raw = JSON.parse(localStorage.getItem(CLEARED_KEY) || "[]");
+      const raw = JSON.parse(get(CLEARED_KEY) || "[]");
       return Array.isArray(raw) ? raw : [];
     } catch (e) {
       return [];   // corrupt storage shouldn't cost you the Library
@@ -98,7 +257,7 @@
     const done = loadCleared();
     if (done.includes(id)) return;
     done.push(id);
-    localStorage.setItem(CLEARED_KEY, JSON.stringify(done));
+    set(CLEARED_KEY, JSON.stringify(done));
   }
 
   // ---- Which forms you've earned the right to fight on their own ----
@@ -106,7 +265,7 @@
   // runs don't count, same as everywhere else.
   function loadForms() {
     try {
-      const raw = JSON.parse(localStorage.getItem(FORMS_KEY) || "[]");
+      const raw = JSON.parse(get(FORMS_KEY) || "[]");
       return Array.isArray(raw) ? raw : [];
     } catch (e) {
       return [];
@@ -120,7 +279,7 @@
     const done = loadForms();
     if (done.includes(id)) return;
     done.push(id);
-    localStorage.setItem(FORMS_KEY, JSON.stringify(done));
+    set(FORMS_KEY, JSON.stringify(done));
   }
   // Battles are a chain, not a reward for the boss run. The first form of each
   // boss is always open, and every one after it opens when you put the previous
@@ -138,7 +297,7 @@
     const done = loadForms();
     if (done.includes(id)) return;
     done.push(id);
-    localStorage.setItem(FORMS_KEY, JSON.stringify(done));
+    set(FORMS_KEY, JSON.stringify(done));
   }
   // How far along a boss's chain of forms you are.
   function formsKnown(campKey) {
@@ -224,7 +383,7 @@
     return { rank, board, tiltId, tilt, felled, invite };
   }
   function saveLadder(st) {
-    localStorage.setItem(ladderKey(), JSON.stringify({
+    set(ladderKey(), JSON.stringify({
       rank: st.rank, board: st.board, tiltId: st.tiltId, tilt: st.tilt, felled: st.felled,
       invite: st.invite || null,
     }));
@@ -232,8 +391,8 @@
   // Sine Missione has no memory. Lose once and the whole climb is gone — which is
   // what "without reprieve" means when it's applied to a career and not a bout.
   function wipeSineLadder() {
-    localStorage.removeItem(LADDER_SINE_KEY);
-    localStorage.removeItem(RUDIS_SINE_KEY);
+    del(LADDER_SINE_KEY);
+    del(RUDIS_SINE_KEY);
   }
   // Move the player down `steps` rungs, one swap at a time so the board stays
   // whole. Returns the fighters who stepped over you, in order.
@@ -258,12 +417,12 @@
       felled: (r && Array.isArray(r.felled)) ? r.felled : [],
     };
   }
-  function saveRecord(r) { localStorage.setItem(RECORD_KEY, JSON.stringify(r)); }
-  function hasRudis() { return localStorage.getItem(rudisKey()) === "yes"; }
+  function saveRecord(r) { set(RECORD_KEY, JSON.stringify(r)); }
+  function hasRudis() { return get(rudisKey()) === "yes"; }
   // The wooden sword, granted once and never taken back — and granted per board,
   // so a discharge earned under the sanctioned contract leaves you still owned on
   // the Sine Missione one. There is no matching revoke: only wipeProgress clears it.
-  function grantRudis() { localStorage.setItem(rudisKey(), "yes"); }
+  function grantRudis() { set(rudisKey(), "yes"); }
 
   // The fighter standing on a given rung.
   function fighterAt(rank, st) {
@@ -328,14 +487,14 @@
   // Codes you type in the Vault tab. Each prize applies once and is remembered.
   function claimedCodes() {
     try {
-      const raw = JSON.parse(localStorage.getItem(CODES_KEY) || "[]");
+      const raw = JSON.parse(get(CODES_KEY) || "[]");
       return Array.isArray(raw) ? raw : [];
     } catch (e) {
       return [];
     }
   }
   function unlockAllForms() {
-    localStorage.setItem(FORMS_KEY, JSON.stringify(BATTLES.map((b) => b.id)));
+    set(FORMS_KEY, JSON.stringify(BATTLES.map((b) => b.id)));
   }
   const CODES = {
     // A dev key, not something the Horreum sells.
@@ -350,20 +509,20 @@
   // ---- Denarii ----
   // Won on the sand, spent in the Horreum. Practice pays nothing.
   function denarii() {
-    return Math.max(0, Number(localStorage.getItem(DEN_KEY)) || 0);
+    return Math.max(0, Number(get(DEN_KEY)) || 0);
   }
   function addDenarii(n) {
-    localStorage.setItem(DEN_KEY, String(denarii() + n));
+    set(DEN_KEY, String(denarii() + n));
   }
   // Money leaving the purse — a stake laid, a bribe paid, a card bought. Floors
   // at nothing, because there is no credit in this arena: whatever the caller
   // thinks it is spending, the purse never goes below empty.
   function spendDenarii(n) {
-    localStorage.setItem(DEN_KEY, String(Math.max(0, denarii() - n)));
+    set(DEN_KEY, String(Math.max(0, denarii() - n)));
   }
   function boughtCodes() {
     try {
-      const raw = JSON.parse(localStorage.getItem(BOUGHT_KEY) || "[]");
+      const raw = JSON.parse(get(BOUGHT_KEY) || "[]");
       return Array.isArray(raw) ? raw : [];
     } catch (e) {
       return [];
@@ -377,10 +536,10 @@
     if (denarii() < prize.price) {
       return { ok: false, msg: `${prize.price - denarii()} more denarii needed.` };
     }
-    localStorage.setItem(DEN_KEY, String(denarii() - prize.price));
+    set(DEN_KEY, String(denarii() - prize.price));
     const bought = boughtCodes();
     bought.push(code);
-    localStorage.setItem(BOUGHT_KEY, JSON.stringify(bought));
+    set(BOUGHT_KEY, JSON.stringify(bought));
     return { ok: true, msg: `Bought ${prize.name}. Your code is ${code} — redeem it in the Vault.` };
   }
   function redeem(raw) {
@@ -392,14 +551,16 @@
     if (claimed.includes(code)) return { ok: false, msg: `Already claimed: ${prize.name}.` };
     prize.apply();
     claimed.push(code);
-    localStorage.setItem(CODES_KEY, JSON.stringify(claimed));
+    set(CODES_KEY, JSON.stringify(claimed));
     return { ok: true, msg: `${prize.name} — ${prize.desc}` };
   }
-  // Everything you've earned, gone. Levels you built are yours and survive.
+  // Everything this account has earned, gone — including the school's book on
+  // who is fit to fight, which is a record of what this career did to the ladder
+  // and cannot outlive it. The levels you built are yours rather than his, and
+  // survive. Other accounts are untouched: the wipe is scoped like everything
+  // else here.
   function wipeProgress() {
-    [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
-     LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY]
-      .forEach((k) => localStorage.removeItem(k));
+    careerKeys().forEach((k) => del(k));
   }
 
   // ---- What the engine may ask for ----
@@ -429,6 +590,14 @@
 
     // Purse, shelf and vault.
     denarii, addDenarii, spendDenarii, boughtCodes, buy, redeem, claimedCodes, CODES, SHOP,
+
+    // Who is holding the tessera, and the book of everyone who has one. Every
+    // key above is written under whoever this returns.
+    accountList, activeAccount, createAccount, switchAccount, renameAccount, deleteAccount,
+    exportSave, importSave,
+    // For the one other file that keeps its own key and needs it scoped the
+    // same way — condicio.js. It loads before this one, so it asks at call time.
+    scopedKey: scoped, CONDICIO_KEY,
 
     wipeProgress,
   };
