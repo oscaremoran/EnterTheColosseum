@@ -111,6 +111,23 @@
   @media (prefers-reduced-motion: reduce) { #introKey { animation: none; } }
   .introfoot { color: var(--muted); font-size: clamp(10px, 2vw, 12px); letter-spacing: 1.5px;
                text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
+  /* The mobile warning. It takes the title card's place rather than sitting on
+     top of it — two things asking to be read at once is neither of them read. */
+  .mobwarn {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    max-width: 460px; margin: 0 18px; padding: 20px 22px;
+    border: 1px solid var(--danger); background: rgba(12,7,5,0.95);
+    box-shadow: 0 0 34px rgba(0,0,0,0.8);
+  }
+  .mobwarn.hidden { display: none; }
+  .mw-bang {
+    font-family: var(--serif); font-weight: 700; color: var(--danger);
+    letter-spacing: clamp(3px, 1.4vw, 6px); font-size: clamp(17px, 4vw, 23px);
+  }
+  .mw-body { color: var(--text); font-size: clamp(13px, 2.8vw, 15px); line-height: 1.55; }
+  .mw-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .mw-btns button { padding: 11px 18px; font-size: 13px; }
+  #mobQuit { border-color: var(--danger); color: #ff9a8c; }
   h1 {
     font-family: var(--serif);
     font-size: clamp(26px, 5.4vw, 44px);
@@ -659,11 +676,21 @@
          on it and neither of them is you. It is the building doing what it does
          whether you came in or not. -->
     <div id="intro" class="screen">
-      <div class="introcard">
+      <div class="introcard" id="introCard">
         <h1>ENTER THE<br><span class="accent">COLOSSEUM</span></h1>
         <p class="introline">The sand is already wet.</p>
         <p id="introKey">PRESS ANY KEY TO BEGIN</p>
         <p class="introfoot">Arrow keys to move · a touch screen works too</p>
+      </div>
+      <!-- Raised instead of the title card when the first thing that touches
+           this screen is a finger. -->
+      <div class="mobwarn hidden" id="mobWarn">
+        <p class="mw-bang">! WARNING !</p>
+        <p class="mw-body">Mobile device detected. Experience is greatly improved if you play on computer.</p>
+        <div class="mw-btns">
+          <button id="mobQuit">Quit</button>
+          <button class="primary" id="mobGo">Continue Anyway</button>
+        </div>
       </div>
     </div>
 
@@ -6323,11 +6350,43 @@
     }
   }
 
+  // ---- The finger test ----
+  // A tap is the one input that tells you something about the machine holding
+  // it. This game is arrow keys and a bullet pattern with gaps sized for a man
+  // 26px across, and a thumb over the top of it is a different game — so the
+  // first touch on the opening screen is answered rather than obeyed.
+  const introCard = document.getElementById("introCard");
+  const mobWarn = document.getElementById("mobWarn");
+  function warned() { return !mobWarn.classList.contains("hidden"); }
+  function warnMobile() {
+    if (warned() || state !== GS.INTRO) return;
+    introCard.classList.add("hidden");
+    mobWarn.classList.remove("hidden");
+  }
+  document.getElementById("mobGo").addEventListener("click", (e) => {
+    e.stopPropagation();
+    mobWarn.classList.add("hidden");
+    introCard.classList.remove("hidden");
+    leaveIntro();
+  });
+  document.getElementById("mobQuit").addEventListener("click", (e) => {
+    e.stopPropagation();
+    // A page cannot close a tab it did not open, and every browser refuses. So
+    // try it, and when it is refused — which is nearly always — say the true
+    // thing instead of pretending the button did something.
+    try { window.close(); } catch (err) { /* refused, as expected */ }
+    mobWarn.innerHTML = `<p class="mw-bang">THE GATES STAY SHUT</p>` +
+      `<p class="mw-body">Close this tab and come back on a computer. The sand keeps.</p>`;
+  });
+
   // Any key, any click, any touch. Everything the arena does from here needs a
   // gesture behind it anyway — the audio context is one of them, which is why
   // resumeAudio() hangs off this and not off the boot.
   function leaveIntro() {
-    if (state !== GS.INTRO) return;
+    // While the warning is up it is the only thing that may open the building —
+    // its two buttons are the whole of the decision, and a stray tap on the
+    // sand behind it must not answer for you.
+    if (state !== GS.INTRO || warned()) return;
     state = GS.MENU;
     duel = null;
     duelSide = null;
@@ -6339,7 +6398,11 @@
     renderCampaign();
   }
   introEl.addEventListener("click", leaveIntro);
-  introEl.addEventListener("touchstart", (e) => { e.preventDefault(); leaveIntro(); }, { passive: false });
+  // preventDefault matters twice over: it stops the browser turning this touch
+  // into a synthetic click that would fall straight through to the handler
+  // above, and it is what keeps the tap from opening the building behind the
+  // warning it just raised.
+  introEl.addEventListener("touchstart", (e) => { e.preventDefault(); warnMobile(); }, { passive: false });
 
   function refreshMenu() {
     renderBattles();
