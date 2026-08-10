@@ -6920,14 +6920,24 @@
   function leaveIntro() {
     if (state !== GS.INTRO) return;
     state = GS.MENU;
-    duel = null;
-    duelSide = null;
-    foes = [];
-    speech = [];
-    // Put back everything the trailer borrowed. `practice` above all: a slide
-    // runs as a Ludus bout so it cannot end in a death screen, and leaving that
-    // set would hand the player a career in which nothing can hurt them.
     trailer = null;
+    // A slide is a real bout, and a bout leaves things running. beginStage
+    // starts a boss theme and the crowd bed under it, and the sand ends up
+    // holding that slide's bullets, nets, beasts, particles and shockwaves.
+    // None of that stopped on its own when the menu came up, so the theme
+    // played on underneath it and the next real bout started on top of the
+    // last slide's leftovers. Every other way back to the menu does these two
+    // things; this one now does as well.
+    // Cut, not faded. The whole trailer plays with the audio context still
+    // suspended, because nothing may make a sound before the first gesture —
+    // and the first gesture is this one. A half-second fade scheduled against
+    // a clock that is not running is a fade that has not happened yet, so the
+    // theme the reel queued up would arrive the instant the menu opened. That
+    // is the noise you were hearing.
+    stopMusic(true);      // takes the crowd with it
+    resetGame();          // clears the sand and everything still flying over it
+    duelSide = null;
+    speech = [];
     stick.mag = 0;
     trailerCard.classList.add("hidden");
     introCard.classList.remove("hidden");
