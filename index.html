@@ -660,6 +660,80 @@
   #shareRow input { flex: 1; min-width: 0; font-size: 11.5px; font-family: ui-monospace, Menlo, monospace; }
   #shareMsg { color: var(--gold); font-size: 12px; min-height: 1.3em; }
   .hidden { display: none; }
+
+  /* ---- The phone ----
+     A portrait phone is not a small desktop. The arena is square and the screen
+     is not, so laid out the desktop way it comes out as a 359px postage stamp
+     with 485px of nothing above and below it, and a thumb parked in the middle
+     of the only part you needed to see.
+     So in portrait the page becomes three bands: the HUD as real text at the
+     top, the sand at the full width of the screen under it, and everything left
+     over at the bottom given to the hand. Landscape keeps the desktop layout,
+     where the arena is limited by height and already fits.
+     The breakpoint is repeated once in script as PHONE_Q — keep them in step. */
+  #pad { display: none; }
+  @media (max-width: 620px) and (orientation: portrait) {
+    html, body {
+      display: block; padding: 0; overflow: hidden;
+      /* iOS puts the URL bar in vh, so the bottom band would sit under it. */
+      height: 100dvh;
+    }
+    #wrap {
+      width: 100vw; height: 100dvh; max-width: none; aspect-ratio: auto;
+      margin: 0; --hud-h: 54px;
+    }
+    canvas {
+      position: absolute; left: 0; top: var(--hud-h);
+      width: 100vw; height: auto; aspect-ratio: 1 / 1; border-radius: 0;
+    }
+    #hud {
+      top: 0; left: 0; right: 0; height: var(--hud-h);
+      padding: 8px 12px 0; align-items: center;
+      background: linear-gradient(180deg, rgba(20,15,9,0.92) 0%, rgba(20,15,9,0) 100%);
+    }
+    /* The band under the sand. Its top edge is the bottom of the square. */
+    #pad {
+      display: block; position: absolute; left: 0; right: 0; bottom: 0;
+      top: calc(var(--hud-h) + 100vw);
+      touch-action: none; -webkit-user-select: none; user-select: none;
+    }
+    /* No bout, no pad. The HUD is hidden outside a fight and the pad follows it
+       rather than keeping its own copy of that state. */
+    #hud.hidden ~ #pad { display: none; }
+    #padRing {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 156px; height: 156px; border-radius: 50%;
+      border: 2px solid rgba(217,164,65,0.35);
+      background: radial-gradient(circle at 50% 50%, rgba(217,164,65,0.10) 0%, rgba(217,164,65,0) 70%);
+    }
+    #padKnob {
+      position: absolute; left: 50%; top: 50%; width: 62px; height: 62px;
+      margin: -31px 0 0 -31px; border-radius: 50%;
+      background: radial-gradient(circle at 40% 35%, #7fe4ff 0%, #2aa8cc 70%, #17607a 100%);
+      box-shadow: 0 0 18px rgba(77,215,255,0.45);
+    }
+    #padHint {
+      position: absolute; left: 0; right: 0; bottom: 14px; text-align: center;
+      font-size: 11px; letter-spacing: 2px; color: var(--muted); pointer-events: none;
+    }
+    #padRing.on + #padHint, #pad.on #padHint { opacity: 0; }
+    /* The overlays are full-screen here, not a panel floating in a square. */
+    .screen { border-radius: 0; padding: 16px 12px; }
+    .screen.scroll { padding: 16px 12px; }
+
+    /* Anything you have to hit with a thumb gets a thumb's worth of room. The
+       desktop sizes are built for a cursor, which is a single pixel and never
+       misses; 34px tall tab buttons on glass are a different proposition. */
+    .tabs button { padding: 11px 13px; min-height: 44px; }
+    .btnrow button, .stakerow button, .libitem button,
+    .tessman button, .tessrow button, #vaultRow button { min-height: 44px; }
+    /* Rows of a list stop trying to be one line and wrap instead, so the button
+       on the end never gets squeezed down to its text. */
+    .libitem, .tessman { flex-wrap: wrap; }
+    .libitem .meta, .tessman .who { flex: 1 1 100%; min-width: 0; }
+    /* Long prose in a narrow column reads better ragged than centred. */
+    .screen.scroll p.sub, .screen.scroll .hint { text-align: left; max-width: none; }
+  }
 </style>
 </head>
 <body>
@@ -672,6 +746,14 @@
         <div id="pips"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div style="text-align:right"><span class="label" id="hudTimerLabel">Left</span><span id="hudTimer">0.0</span></div>
+    </div>
+
+    <!-- The thumb's own ground, on a phone. It sits under the sand rather than
+         on it, so a hand never covers the thing it is trying to read. Bound to
+         the HUD by CSS below: no bout, no pad. -->
+    <div id="pad">
+      <div id="padRing"><div id="padKnob"></div></div>
+      <div id="padHint">drag to move</div>
     </div>
 
     <!-- The betting slip, only up while a wager is riding on the sand -->
@@ -2024,10 +2106,87 @@
     stick.dx = stick.dy = stick.mag = 0;
   }
 
+  // ---- The pad ----
+  // On a portrait phone the stick comes off the sand and lives in the band
+  // underneath it. Same breakpoint as the stylesheet; the two have to agree,
+  // because the CSS decides whether the pad is on screen and this decides
+  // whether the canvas still answers a thumb.
+  const PHONE_Q = "(max-width: 620px) and (orientation: portrait)";
+  const phoneMQ = window.matchMedia(PHONE_Q);
+  let padMode = phoneMQ.matches;
+  const onPhoneChange = (e) => {
+    padMode = e.matches;
+    padRelease();
+  };
+  if (phoneMQ.addEventListener) phoneMQ.addEventListener("change", onPhoneChange);
+  else phoneMQ.addListener(onPhoneChange);      // Safari before 14
+
+  const padEl = document.getElementById("pad");
+  const padRing = document.getElementById("padRing");
+  const padKnob = document.getElementById("padKnob");
+  let padId = null;
+
+  function padRelease() {
+    padId = null;
+    stick.dx = 0; stick.dy = 0; stick.mag = 0;
+    padKnob.style.transform = "";
+    padEl.classList.remove("on");
+  }
+  // Where the thumb is, relative to the middle of the ring. Full deflection at
+  // the rim; past the rim it stays at full rather than doing nothing, so a
+  // thumb that overshoots in a panic still runs.
+  function padSet(e) {
+    const r = padRing.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dx = e.clientX - cx, dy = e.clientY - cy;
+    const d = Math.hypot(dx, dy);
+    const reach = r.width / 2;
+    const dead = 7;
+    if (d <= dead) {
+      stick.dx = 0; stick.dy = 0; stick.mag = 0;
+      padKnob.style.transform = "";
+      return;
+    }
+    const ux = dx / d, uy = dy / d;
+    stick.dx = ux; stick.dy = uy;
+    stick.mag = Math.min(1, (d - dead) / (reach - dead));
+    const shown = Math.min(d, reach);
+    padKnob.style.transform = `translate(${ux * shown}px, ${uy * shown}px)`;
+  }
+
+  padEl.addEventListener("pointerdown", (e) => {
+    if (padId !== null) return;
+    e.preventDefault();
+    resumeAudio();                 // a phone's first gesture may well be this one
+    padId = e.pointerId;
+    padEl.classList.add("on");
+    padSet(e);
+    // Capture keeps a thumb that slides off the ring still ours. Some browsers
+    // refuse for a pointer they no longer recognise, and a throw here would
+    // abandon a stick that is already engaged.
+    try { padEl.setPointerCapture(e.pointerId); } catch (err) { /* keep the stick */ }
+  });
+  padEl.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== padId) return;
+    e.preventDefault();
+    padSet(e);
+  });
+  for (const ev of ["pointerup", "pointercancel"]) {
+    padEl.addEventListener(ev, (e) => {
+      if (e.pointerId !== padId) return;
+      e.preventDefault();
+      padRelease();
+    });
+  }
+
   canvas.addEventListener("pointerdown", (e) => {
     // A mouse still plays with the arrow keys — grabbing the pointer here would
     // turn a stray click into a walk, and there is nothing to gain by it.
     if (e.pointerType === "mouse") return;
+    // With the pad on screen the sand is for looking at. A floating stick here
+    // as well would put a hand back over the fight, which is the entire thing
+    // the pad exists to stop.
+    if (padMode) { resumeAudio(); return; }
     // First touch is also the gesture the browser wants before it will let any
     // sound out. On a phone this is the only gesture the game ever gets.
     resumeAudio();
@@ -3548,14 +3707,17 @@
       myLevels.forEach((lv) => myList.appendChild(levelRow(lv, true)));
     }
 
-    // The builder stays shut until Vulcan's run is done.
+    // The builder stays shut until Vulcan's run is done, and on a phone it stays
+    // shut for a different reason: it is a tool for a desk.
     const canBuild = editorUnlocked();
-    newLevelBtn.disabled = !canBuild;
-    newLevelBtn.className = canBuild ? "primary" : "lockbtn";
+    newLevelBtn.disabled = !canBuild || padMode;
+    newLevelBtn.className = (canBuild && !padMode) ? "primary" : "lockbtn";
     newLevelBtn.textContent = canBuild ? "New Level" : "🔒 New Level";
-    editorLock.textContent = canBuild
-      ? ""
-      : "The builder opens when you've taken Vulcan's run end to end.";
+    editorLock.textContent = !canBuild
+      ? "The builder opens when you've taken Vulcan's run end to end."
+      : padMode
+        ? "The builder wants a bigger screen than this one. Your levels still play here; building them is a job for a computer."
+        : "";
   }
 
   // ---- Battle list ----
@@ -3704,6 +3866,14 @@
 
   function openEditor(idx) {
     if (!editorUnlocked()) return;      // the builder is earned, not given
+    // A stage row is a select, a number box and two sliders per fighter, up to
+    // four fighters deep. That is a desk tool. Rather than shipping a version of
+    // it that technically fits on glass and is miserable to use, the phone is
+    // told plainly to come back on something bigger.
+    if (padMode) {
+      editorLock.textContent = "The builder wants a bigger screen than this. Open the game on a computer and it is here waiting.";
+      return;
+    }
     const src = idx == null ? null : myLevels[idx];
     if (idx != null && !src) return;    // row went stale; nothing to edit
     editing = src
