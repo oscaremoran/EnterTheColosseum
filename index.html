@@ -92,6 +92,11 @@
        a title card sitting on top of the fight it is advertising. */
     justify-content: flex-end; padding-bottom: 7%;
   }
+  /* Once the trailer is running the card goes right to the floor. The player's
+     side of the sand is the bottom third — that is where he starts and where he
+     is driven back to — and a caption parked on it hides the half of the fight
+     the slide is there to show. */
+  #intro.showing { padding-bottom: 1.5%; }
   .introcard {
     display: flex; flex-direction: column; align-items: center; gap: 10px;
     padding: 26px 40px;
@@ -111,23 +116,35 @@
   @media (prefers-reduced-motion: reduce) { #introKey { animation: none; } }
   .introfoot { color: var(--muted); font-size: clamp(10px, 2vw, 12px); letter-spacing: 1.5px;
                text-shadow: 0 2px 10px rgba(0,0,0,0.9); }
-  /* The mobile warning. It takes the title card's place rather than sitting on
-     top of it — two things asking to be read at once is neither of them read. */
-  .mobwarn {
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
-    max-width: 460px; margin: 0 18px; padding: 20px 22px;
-    border: 1px solid var(--danger); background: rgba(12,7,5,0.95);
-    box-shadow: 0 0 34px rgba(0,0,0,0.8);
+  /* The trailer's caption. Sits where the title card was, and stays low and
+     narrow — everything worth looking at is happening above it. */
+  .trailercard {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    max-width: 560px; margin: 0 18px; padding: 16px 24px 14px;
+    background: radial-gradient(ellipse at 50% 50%, rgba(8,5,3,0.94) 0%, rgba(8,5,3,0.8) 60%, rgba(8,5,3,0) 100%);
   }
-  .mobwarn.hidden { display: none; }
-  .mw-bang {
-    font-family: var(--serif); font-weight: 700; color: var(--danger);
-    letter-spacing: clamp(3px, 1.4vw, 6px); font-size: clamp(17px, 4vw, 23px);
+  .trailercard.hidden { display: none; }
+  .tc-kicker { font-size: clamp(9px, 1.9vw, 11px); letter-spacing: 3px; color: var(--muted); }
+  .tc-head {
+    font-family: var(--serif); font-weight: 700; color: var(--gold);
+    font-size: clamp(19px, 4.4vw, 30px); letter-spacing: clamp(2px, 0.9vw, 5px);
+    text-shadow: 0 2px 14px rgba(0,0,0,0.95);
   }
-  .mw-body { color: var(--text); font-size: clamp(13px, 2.8vw, 15px); line-height: 1.55; }
-  .mw-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-  .mw-btns button { padding: 11px 18px; font-size: 13px; }
-  #mobQuit { border-color: var(--danger); color: #ff9a8c; }
+  .tc-body {
+    color: var(--text); font-size: clamp(12px, 2.5vw, 14.5px); line-height: 1.5;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+  }
+  .tc-dots { display: flex; gap: 6px; margin-top: 6px; }
+  .tc-dots i {
+    display: block; width: 16px; height: 3px; background: #3a2d1c; border-radius: 2px;
+  }
+  .tc-dots i.on { background: var(--gold); }
+  .tc-key {
+    margin-top: 6px; font-family: var(--serif); font-weight: 700; color: var(--muted);
+    letter-spacing: clamp(2px, 1vw, 5px); font-size: clamp(10px, 2.1vw, 13px);
+    animation: introPulse 1.9s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { .tc-key { animation: none; } }
   h1 {
     font-family: var(--serif);
     font-size: clamp(26px, 5.4vw, 44px);
@@ -696,15 +713,14 @@
         <p id="introKey">PRESS ANY KEY TO BEGIN</p>
         <p class="introfoot">Arrow keys to move · a touch screen works too</p>
       </div>
-      <!-- Raised instead of the title card when the first thing that touches
-           this screen is a finger. -->
-      <div class="mobwarn hidden" id="mobWarn">
-        <p class="mw-bang">! WARNING !</p>
-        <p class="mw-body">Mobile device detected. Experience is greatly improved if you play on computer.</p>
-        <div class="mw-btns">
-          <button id="mobQuit">Quit</button>
-          <button class="primary" id="mobGo">Continue Anyway</button>
-        </div>
+      <!-- The trailer's caption, raised in place of the title card once the
+           building has been left running long enough to start showing itself. -->
+      <div class="trailercard hidden" id="trailerCard">
+        <p class="tc-kicker" id="tcKicker"></p>
+        <p class="tc-head" id="tcHead"></p>
+        <p class="tc-body" id="tcBody"></p>
+        <div class="tc-dots" id="tcDots"></div>
+        <p class="tc-key">PRESS ANY KEY TO BEGIN</p>
       </div>
     </div>
 
@@ -4261,7 +4277,16 @@
     sfx(dead ? "death" : "hit");
     crowdSurge(dead ? 1.1 : 0.45);        // blood is what they came for
     if (dead && bossSpeaker) say(bossSpeaker, "kill", true);
-    if (player.hits <= 0) { player.hits = 0; loseGame(); return true; }
+    if (player.hits <= 0) {
+      player.hits = 0;
+      // A trailer slide is a real bout on the real contract — three lives, the
+      // same as anybody gets — so the man on the sand can genuinely be put down.
+      // What he cannot do is drop a defeat screen over the title, so the reel
+      // simply cuts. Which is what a reel would do anyway.
+      if (trailer) { nextSlide(); return true; }
+      loseGame();
+      return true;
+    }
     return false;
   }
 
@@ -5032,6 +5057,8 @@
       shake = Math.max(shake, 12);
       const next = foes.findIndex((f) => !f.dead);
       if (next < 0) {
+        // A trailer slide has no win screen to go to — it cuts to the next one.
+        if (trailer) return nextSlide();
         if (stageIdx >= STAGES.length - 1) return winGame();
         return nextStage();
       }
@@ -6314,7 +6341,10 @@
 
   function render() {
     ctx.clearRect(0, 0, W, H);
-    const shown = state;
+    // A trailer slide showing a bout IS a bout — the eye, the crowd, the shots
+    // and the man dodging them all have to be drawn, and every one of those is
+    // behind a check for the playing state. So the intro borrows it.
+    const shown = (state === GS.INTRO && trailerBout()) ? GS.PLAYING : state;
     ctx.save();
     if (shake > 0) {
       ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
@@ -6699,7 +6729,12 @@
       lastTs = ts;
       if (dt > 0.05) dt = 0.05;
       if (shake > 0) shake = Math.max(0, shake - dt * 34);
-      updateAttract(dt);
+      if (freeze > 0) freeze -= dt;
+      // The reel is running from the first frame: the title over a live bout,
+      // and then the building showing you what it has until somebody presses
+      // a key. There is no idle screen to wait out any more.
+      if (trailer) updateTrailer(dt);
+      else updateAttract(dt);
       updateParticles(dt);
     } else {
       lastTs = null;
@@ -6731,6 +6766,140 @@
     attractHold = 0;
   }
 
+  // ---- The trailer ----
+  // Leave the building running for long enough and it starts showing you what
+  // it has. Not a slideshow of pictures: every one of these is the real game,
+  // played by the same autopilot the ladder men use, on the real engine, with
+  // the real patterns. Nothing here is a mock-up and nothing here is recorded —
+  // it runs as a Ludus bout, which is the one contract with no blood in it, so
+  // the demonstration cannot pay, cost, or mark anybody's career.
+  const SLIDE_SECS = 8.5;       // how long each one holds
+  const TITLE_SECS = 5.5;       // ...except the title, which is a beat, not a pitch
+  const trailerCard = document.getElementById("trailerCard");
+  const tcKicker = document.getElementById("tcKicker");
+  const tcHead = document.getElementById("tcHead");
+  const tcBody = document.getElementById("tcBody");
+  const tcDots = document.getElementById("tcDots");
+
+  // Each slide names a scene to build and the words to put under it.
+  const SLIDES = [
+    // The opening beat. The name of the thing, over two men already fighting —
+    // the same card the intro used to hold on its own, now the first slide of
+    // the reel rather than a screen you have to wait out.
+    { kind: "duel", title: true },
+    {
+      kind: "bout", kicker: "THE SANCTIONED BOUT", head: "STAND IN THE EYE",
+      body: "You do not shoot. The emperor watches one patch of sand, and only what happens under his eye counts — so the ground you want is always the ground he is making dangerous.",
+      stage: { key: "spiral", hp: 900, arm: "thraex", minions: false },
+    },
+    {
+      kind: "bout", kicker: "MUNERA", head: "THREE AT ONCE",
+      body: "Whole rosters, all of them throwing from the opening bell. The eye is on one man at a time — he is the only one you can hurt, and the rest are weather until he falls.",
+      crowd: [
+        { key: "lattice", hp: 900, minions: false },
+        { key: "gatling", hp: 900, arm: "sagittarius", minions: false },
+        { key: "cross",   hp: 900, arm: "scissor", minions: false },
+      ],
+    },
+    {
+      kind: "duel", kicker: "THE LADDER", head: "TWENTY-FOUR MEN",
+      body: "Real names off the inscriptions, holding twenty-four rungs. You may call out the one directly above you — and the school keeps a book on how fit every one of them is this week.",
+    },
+    {
+      kind: "duel", kicker: "SPONSIO", head: "OR JUST BET ON IT",
+      body: "Hold no sword at all. Three bouts are posted, the crowd's money moves the prices while you read them, and you stand in the stands and find out whether you were right.",
+    },
+  ];
+
+  let trailer = null;           // { i, t } while it is running
+
+  function trailerBout() { return trailer && SLIDES[trailer.i].kind === "bout"; }
+
+  function paintSlide() {
+    const s = SLIDES[trailer.i];
+    tcKicker.textContent = s.kicker;
+    tcHead.textContent = s.head;
+    tcBody.textContent = s.body;
+    tcDots.innerHTML = "";
+    SLIDES.forEach((_, i) => {
+      const d = document.createElement("i");
+      if (i === trailer.i) d.className = "on";
+      tcDots.appendChild(d);
+    });
+  }
+
+  // Build whatever this slide is showing. A duel is the attract bout we already
+  // had; a bout is a real stage with the autopilot holding the arrow keys.
+  function stageSlide() {
+    const s = SLIDES[trailer.i];
+    // The title slide wears the real title card — the h1 with the laurel under
+    // it — rather than a caption pretending to be one.
+    introCard.classList.toggle("hidden", !s.title);
+    trailerCard.classList.toggle("hidden", !!s.title);
+    introEl.classList.toggle("showing", !s.title);
+    if (!s.title) paintSlide();
+    if (s.kind === "duel") { startAttract(); return; }
+    duel = null;
+    duelSide = null;
+    slip = null;
+    mode = "level";
+    activeLevel = null;
+    activeRating = 0;
+    activeCamp = { name: s.head, accent: COLORS.gold, stages: [{
+      name: s.head, key: (s.crowd ? s.crowd[0].key : s.stage.key), hp: 900,
+      arm: (s.crowd ? s.crowd[0].arm : s.stage.arm) || null,
+      minions: false, spd: 1, rate: 1, final: false,
+      crowd: (s.crowd || [s.stage]).map((f) => ({
+        key: f.key, hp: f.hp, arm: f.arm || null, minions: !!f.minions, spd: 1, rate: 1,
+      })),
+    }] };
+    STAGES = activeCamp.stages;
+    resetGame();
+    beginStage(0);
+    // Health is set high on purpose: a slide must not end in a win screen
+    // either. Nobody is meant to finish these — they are meant to be watched
+    // for eight seconds and cut away from.
+    botT = 0; botDx = 0; botDy = 0; botVx = 0; botVy = 0; botSkill = 0.12;
+  }
+
+  function nextSlide() {
+    trailer.i = (trailer.i + 1) % SLIDES.length;
+    trailer.t = 0;
+    stageSlide();
+  }
+
+  function startTrailer() {
+    trailer = { i: 0, t: 0 };
+    stageSlide();
+  }
+
+  function updateTrailer(dt) {
+    trailer.t += dt;
+    if (trailer.t >= (SLIDES[trailer.i].title ? TITLE_SECS : SLIDE_SECS)) return nextSlide();
+    if (!trailerBout()) return updateAttract(dt);
+    // The autopilot takes the player's side: it wants the eye, it reads every
+    // man's shots, and it drives through the thumbstick rather than through a
+    // second copy of the movement code.
+    duelSide = null;
+    const m = markedFoe();
+    if (!m) return nextSlide();
+    // What the bot is allowed to see: the marked man, and every shot, net and
+    // beast on the sand whoever threw it. A dodger that could only see one
+    // man's bullets would walk into the other two.
+    boss = m.body;
+    arm = m.arm;
+    bullets = foes.flatMap((f) => (f.dead ? [] : f.bullets));
+    nets = foes.flatMap((f) => (f.dead ? [] : f.nets));
+    minions = foes.flatMap((f) => (f.dead ? [] : f.minions));
+    autopilot(dt);
+    const mag = Math.hypot(botVx, botVy);
+    stick.dx = mag > 0.001 ? botVx / mag : 0;
+    stick.dy = mag > 0.001 ? botVy / mag : 0;
+    stick.mag = Math.min(1, mag);
+    updatePlaying(dt);
+    stick.mag = 0;
+  }
+
   function updateAttract(dt) {
     if (!duel) { startAttract(); return; }
     if (duel.finished) {
@@ -6746,47 +6915,25 @@
     }
   }
 
-  // ---- The finger test ----
-  // A tap is the one input that tells you something about the machine holding
-  // it. This game is arrow keys and a bullet pattern with gaps sized for a man
-  // 26px across, and a thumb over the top of it is a different game — so the
-  // first touch on the opening screen is answered rather than obeyed.
-  const introCard = document.getElementById("introCard");
-  const mobWarn = document.getElementById("mobWarn");
-  function warned() { return !mobWarn.classList.contains("hidden"); }
-  function warnMobile() {
-    if (warned() || state !== GS.INTRO) return;
-    introCard.classList.add("hidden");
-    mobWarn.classList.remove("hidden");
-  }
-  document.getElementById("mobGo").addEventListener("click", (e) => {
-    e.stopPropagation();
-    mobWarn.classList.add("hidden");
-    introCard.classList.remove("hidden");
-    leaveIntro();
-  });
-  document.getElementById("mobQuit").addEventListener("click", (e) => {
-    e.stopPropagation();
-    // A page cannot close a tab it did not open, and every browser refuses. So
-    // try it, and when it is refused — which is nearly always — say the true
-    // thing instead of pretending the button did something.
-    try { window.close(); } catch (err) { /* refused, as expected */ }
-    mobWarn.innerHTML = `<p class="mw-bang">THE GATES STAY SHUT</p>` +
-      `<p class="mw-body">Close this tab and come back on a computer. The sand keeps.</p>`;
-  });
-
   // Any key, any click, any touch. Everything the arena does from here needs a
   // gesture behind it anyway — the audio context is one of them, which is why
   // resumeAudio() hangs off this and not off the boot.
   function leaveIntro() {
-    // While the warning is up it is the only thing that may open the building —
-    // its two buttons are the whole of the decision, and a stray tap on the
-    // sand behind it must not answer for you.
-    if (state !== GS.INTRO || warned()) return;
+    if (state !== GS.INTRO) return;
     state = GS.MENU;
     duel = null;
     duelSide = null;
+    foes = [];
     speech = [];
+    // Put back everything the trailer borrowed. `practice` above all: a slide
+    // runs as a Ludus bout so it cannot end in a death screen, and leaving that
+    // set would hand the player a career in which nothing can hurt them.
+    trailer = null;
+    stick.mag = 0;
+    trailerCard.classList.add("hidden");
+    introCard.classList.remove("hidden");
+    introEl.classList.remove("showing");
+    setDifficulty(difficulty);
     introEl.classList.add("hidden");
     menuEl.classList.remove("hidden");
     resumeAudio();
@@ -6794,11 +6941,10 @@
     renderCampaign();
   }
   introEl.addEventListener("click", leaveIntro);
-  // preventDefault matters twice over: it stops the browser turning this touch
-  // into a synthetic click that would fall straight through to the handler
-  // above, and it is what keeps the tap from opening the building behind the
-  // warning it just raised.
-  introEl.addEventListener("touchstart", (e) => { e.preventDefault(); warnMobile(); }, { passive: false });
+  // preventDefault stops the browser turning this touch into a synthetic click
+  // that would fall straight through to the handler above and open the building
+  // twice over.
+  introEl.addEventListener("touchstart", (e) => { e.preventDefault(); leaveIntro(); }, { passive: false });
 
   function refreshMenu() {
     renderBattles();
@@ -6826,9 +6972,9 @@
 
   renderCampaign();
 
-  // Send the first pair out before the first frame, so the title never comes up
-  // over an empty arena.
-  startAttract();
+  // The reel starts before the first frame, so the title never comes up over an
+  // empty arena — slide one is the name of the game over two men already at it.
+  startTrailer();
 
   requestAnimationFrame(frame);
 })();
