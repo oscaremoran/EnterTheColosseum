@@ -709,7 +709,6 @@
     <div id="intro" class="screen">
       <div class="introcard" id="introCard">
         <h1>ENTER THE<br><span class="accent">COLOSSEUM</span></h1>
-        <p class="introline">The sand is already wet.</p>
         <p id="introKey">PRESS ANY KEY TO BEGIN</p>
         <p class="introfoot">Arrow keys to move · a touch screen works too</p>
       </div>
@@ -810,9 +809,9 @@
 
       <!-- Munera: the missions fought against more than one man at once -->
       <div class="tabpanel hidden" data-panel="munera">
-        <p class="sub">A <b style="color:var(--text)">munus</b> was the whole day's programme, not one bout. These are the parts of it nobody survives by taking turns: <b style="color:var(--text)">two to four men on the sand at once</b>, every one of them throwing his full pattern from the opening bell.</p>
-        <p class="sub">The emperor watches <b style="color:var(--safe)">one of them at a time</b>. That man wears the blue ring, the eye is his, and he is the only one your standing anywhere can hurt. The rest are weather. Put him down and the eye turns to the next — you do not get to choose the order, only to survive it.</p>
-        <p class="hint">The sand is rationed. A man in a crowd throws slower than the same man alone, and the more of them there are the slower each one gets — two men put out about half again what one does, four put out double, not quadruple. Four full patterns at full tempo is a wall, and a wall is not a difficulty.</p>
+        <p class="sub">A <b style="color:var(--text)">munus</b> was a whole day of games rather than a single bout. These are the parts of one you cannot take in turn. <b style="color:var(--text)">Two to four men come out together</b> and all of them start throwing at the bell.</p>
+        <p class="sub">The emperor only ever watches <b style="color:var(--safe)">one of them</b>. That man wears the blue ring and the eye is his, so he is the only one you can do anything about. Everyone else just keeps firing. When he falls the eye moves to whoever is next in line, and the line is not yours to arrange.</p>
+        <p class="hint">Nobody throws at full speed in a crowd. Two men together put out about half again what one man does, and four put out roughly double, not four times. Each of them is slowed to make that come out right, and the more of them there are the slower each one gets.</p>
         <div id="muneraList" class="liblist"></div>
         <p class="hint" id="muneraLock"></p>
       </div>
@@ -833,8 +832,8 @@
             <span id="cardClock">OFF IN —</span>
           </div>
           <div id="cardList"></div>
-          <p class="hint">Under every price is the state the man is in, and the desk has already read it into the price. <b>Wounds</b> is what is still open on him, taken on the sand and closing a little each day. <b>Fed</b> is the ration he has been eating — the school feeds everyone barley, but a man they have money in eats better. <b>Load</b> is what his armatura weighs on him: a provocator in a breastplate spends ×1.35 of a bout's wind every time he fights one and is that much longer getting it back, where a retiarius in a shoulder-guard spends ×0.75. It is why two men who fought the same three bouts this week are not in the same state, and the line under each man says which of them is feeling it.</p>
-          <p class="hint">A card fought, a card bought, or a rung contested — each of those is a day, and a day rests everybody a little. A card left to time out is not: waiting at the board rests nobody.</p>
+          <p class="hint">The bar under each price is the shape he is in, and the desk has already worked it into the odds. <b>Wounds</b> is whatever is still open on him; it closes a little every day. <b>Fed</b> is his ration. Everyone gets barley, but a man the school has money in eats better than one it does not. <b>Load</b> is the weight of his kit. A provocator in a breastplate burns about a third more of himself per fight than a retiarius in a shoulder-guard does, and takes longer to come back, which is why two men with the same three bouts behind them can be in very different states. The italic line says which of the three is hurting him.</p>
+          <p class="hint">Fighting a card, buying a fresh one, or taking a rung on the Ladder all count as a day passing, and everyone recovers a bit overnight. Letting a card expire does not count. You cannot rest a favourite by standing around.</p>
           <p class="hint">The stake. Lose and it stays in the sand.</p>
           <div class="stakerow" id="stakeRow"></div>
           <div id="slipBox" class="slipbox hidden"></div>
@@ -866,7 +865,7 @@
 
       <!-- Tessera: the identity tag, and everything that hangs off it -->
       <div class="tabpanel hidden" data-panel="tessera">
-        <p class="sub">A <b style="color:var(--text)">tessera gladiatoria</b> was a small bone tag with a man's name cut into it, carried to prove whose fights these were. The house holds more than one. Everything the arena remembers — your purse, your rungs, your forms, what the school thinks of the men you have been fighting — is filed under whichever tag is in your hand.</p>
+        <p class="sub">A <b style="color:var(--text)">tessera gladiatoria</b> was a bone tag with a man's name cut into it, carried so there was no argument about whose fights were whose. You can keep several. Your purse, your rungs, the forms you have beaten and the school's notes on everyone else all sit under whichever tag you are holding.</p>
         <div id="tessNow" class="tessnow"></div>
         <div class="tessrow">
           <input id="tessName" maxlength="20" placeholder="A name to cut into it" spellcheck="false" autocomplete="off">
@@ -881,7 +880,7 @@
         <p id="tessMsg"></p>
 
         <div class="divider"></div>
-        <p class="sub"><b style="color:var(--text)">Save and load.</b> A save is one line of text holding everything this man has done. Copy it somewhere safe, and paste it back into any arena to have him again — he comes in as a new man in the house, so loading never lands on top of somebody.</p>
+        <p class="sub"><b style="color:var(--text)">Save and load.</b> A save is a single line of text with everything this man has done in it. Keep it somewhere. Pasting it back into any copy of the game brings him in alongside whoever you already have, so a load can never write over the career you are in the middle of.</p>
         <div class="tessrow">
           <input id="saveCode" placeholder="Your save appears here" spellcheck="false" readonly>
           <button id="saveBtn">Copy The Save</button>
@@ -3530,7 +3529,7 @@
 
     const shut = MUNERA.filter((m) => !munusUnlocked(m)).length;
     muneraLock.textContent = shut
-      ? `${shut} of the ${MUNERA.length} are still sealed. A munus opens when you have met every form standing in it — go and beat them one at a time first, in Battles.`
+      ? `${shut} of the ${MUNERA.length} are still sealed. You have to have met every form in a munus before it will open, so beat them singly in Battles first.`
       : "";
   }
 
@@ -3830,8 +3829,8 @@
       const add = document.createElement("button");
       add.className = "addman";
       add.title = st.crowd.length > 1
-        ? `Each man throws at ×${crowdHands(st.crowd.length).toFixed(2)} and moves at ×${crowdLegs(st.crowd.length).toFixed(2)} for being ${st.crowd.length} on the sand — add another and they all slow further.`
-        : "Two or more come out together, and the eye takes them in order.";
+        ? `With ${st.crowd.length} on the sand each of them throws at ×${crowdHands(st.crowd.length).toFixed(2)} and moves at ×${crowdLegs(st.crowd.length).toFixed(2)}. Adding another slows all of them again.`
+        : "Anyone you add comes out at the same time. The eye takes them in order.";
       add.textContent = st.crowd.length >= MAX_CROWD ? `Sand is full · ${MAX_CROWD}` : "+ Another man, at the same time";
       add.disabled = st.crowd.length >= MAX_CROWD;
       add.addEventListener("click", () => {
@@ -3866,7 +3865,7 @@
       stageRows.appendChild(row);
     });
     editHint.textContent = `${editing.stages.length}/${MAX_CUSTOM_STAGES} stages · fought in order, last one wears the crown. ` +
-      `A stage with more than one man sends them all out at once — the eye starts on the first and moves down the list as they fall.`;
+      `Put more than one man in a stage and they all come out together. The eye starts on the top of the list and works down it.`;
     addStageBtn.disabled = editing.stages.length >= MAX_CUSTOM_STAGES;
     renderSummary();
   }
@@ -6789,12 +6788,12 @@
     { kind: "duel", title: true },
     {
       kind: "bout", kicker: "THE SANCTIONED BOUT", head: "STAND IN THE EYE",
-      body: "You do not shoot. The emperor watches one patch of sand, and only what happens under his eye counts — so the ground you want is always the ground he is making dangerous.",
+      body: "You have no weapon. The emperor watches one patch of sand at a time and only what happens there counts, so the ground you need is usually the worst ground available.",
       stage: { key: "spiral", hp: 900, arm: "thraex", minions: false },
     },
     {
       kind: "bout", kicker: "MUNERA", head: "THREE AT ONCE",
-      body: "Whole rosters, all of them throwing from the opening bell. The eye is on one man at a time — he is the only one you can hurt, and the rest are weather until he falls.",
+      body: "Two, three, four men, every one of them firing from the bell. Only the man wearing the ring can be hurt. The others go on throwing while you deal with him.",
       crowd: [
         { key: "lattice", hp: 900, minions: false },
         { key: "gatling", hp: 900, arm: "sagittarius", minions: false },
@@ -6803,11 +6802,11 @@
     },
     {
       kind: "duel", kicker: "THE LADDER", head: "TWENTY-FOUR MEN",
-      body: "Real names off the inscriptions, holding twenty-four rungs. You may call out the one directly above you — and the school keeps a book on how fit every one of them is this week.",
+      body: "Twenty-four rungs, held by men whose names came off the inscriptions. You can call out the one directly above you and nobody else. The school keeps notes on what shape they are all in.",
     },
     {
       kind: "duel", kicker: "SPONSIO", head: "OR JUST BET ON IT",
-      body: "Hold no sword at all. Three bouts are posted, the crowd's money moves the prices while you read them, and you stand in the stands and find out whether you were right.",
+      body: "Some days you would rather not be down there. Three bouts go up on a board, the prices drift while you make your mind up, and then you watch from the stands like everyone else.",
     },
   ];
 

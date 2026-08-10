@@ -200,21 +200,21 @@
     const recent = m.log.filter((d) => b.day - d <= 5).length;
     const worst = Math.min(v, w, c);
     if (worst > 0.82) {
-      return recent === 0 ? "Rested, fed, and unmarked." : "Fought lately and none the worse for it.";
+      return recent === 0 ? "Rested, fed and unmarked." : "Fought lately and looks none the worse.";
     }
     if (worst === w) {
-      return w < 0.55 ? "Carrying the last one, and it has not closed."
-                      : "Marked from his last, but he is walking on it.";
+      return w < 0.55 ? "Still carrying the last one. It has not closed."
+                      : "Marked from his last bout, though he walks on it well enough.";
     }
     if (worst === v) {
       const kit = pondus(f) >= 1.15 ? ` in ${armOf(f.arm).name.toLowerCase()}'s weight of iron` : "";
-      if (recent >= 3) return `Three and more bouts inside the week${kit}.`;
+      if (recent >= 3) return `Three bouts inside the week${kit}, and it shows.`;
       if (recent === 2) return `Twice on the sand in five days${kit}.`;
       if (recent === 1) return `Out again on short rest${kit}.`;
-      return "Never fully got his wind back.";
+      return "Never really got his wind back.";
     }
     if (c < 0.50) return "On the thin end of the barley ration.";
-    if (c < 0.72) return "Eating what the school can spare, and no better.";
+    if (c < 0.72) return "Eating whatever the school can spare him.";
     return "Fed like a man they have money in.";
   }
 
