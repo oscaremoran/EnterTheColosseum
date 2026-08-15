@@ -29,7 +29,8 @@
   // ---- Storage keys ----
   // Everything that survives a reload, under one prefix.
   const CLEARED_KEY = "dodger_levels_cleared";
-  // Forms you've beaten inside a boss run — that's what unlocks the single battle.
+  // The forms you have actually put down. Each one unseals the next man in that
+  // boss's chain, and the full set of a boss is what opens the builder.
   const FORMS_KEY = "dodger_forms_beaten";
   // Vault codes you've already redeemed.
   const CODES_KEY = "dodger_codes";
@@ -39,6 +40,10 @@
   // Levels you build yourself, kept next to the built-in ones.
   const MINE_KEY = "dodger_my_levels";
   const TIMES_KEY = "dodger_level_times";
+  // The day's card: what you have been told to fight, and how far through it you
+  // are. One per career, and it survives a reload — a plan you could re-roll by
+  // pressing F5 until the Library gave you something easy is not a plan.
+  const PLAN_KEY = "dodger_plan";
   // The school's book on who is fit to fight. Owned by condicio.js, which asks
   // this file to scope it — the name lives here because this file is what knows
   // the full list of a career's keys, and a save that forgot one is not a save.
@@ -70,7 +75,7 @@
   function careerKeys() {
     return [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
             LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY,
-            CONDICIO_KEY];
+            CONDICIO_KEY, PLAN_KEY];
   }
   // The levels you built, which belong to you rather than to a career.
   function isGlobal(key) { return key === MINE_KEY; }
@@ -271,20 +276,9 @@
       return [];
     }
   }
-  function markFormBeaten(campKey, idx) {
-    if (onLudus()) return;
-    const s = CAMPAIGNS[campKey] && CAMPAIGNS[campKey].stages[idx];
-    if (!s) return;
-    const id = "battle:" + campKey + ":" + s.key + ":" + idx;
-    const done = loadForms();
-    if (done.includes(id)) return;
-    done.push(id);
-    set(FORMS_KEY, JSON.stringify(done));
-  }
-  // Battles are a chain, not a reward for the boss run. The first form of each
-  // boss is always open, and every one after it opens when you put the previous
-  // one down — so the intended way in is to learn the forms one at a time and
-  // only then fight the run end to end.
+  // Battles are a chain. The first form of each boss is always open, and every
+  // one after it opens when you put the previous one down — the only way to a
+  // boss's crown is through the six men standing in front of it, one at a time.
   function formUnlocked(b) {
     if (b.stageIdx === 0) return true;
     const prev = BATTLES.find((x) => x.campaign === b.campaign && x.stageIdx === b.stageIdx - 1);
@@ -332,6 +326,16 @@
     LADDER.forEach((f, i) => { board[f.id] = LADDER.length - i; });
     return board;   // fighters fill 1..LADDER.length; you start on UNRANKED
   }
+  // The board belonging to a contract other than the one being fought under.
+  // The Ladder tab shows all of them side by side, and it must be able to read
+  // a board without pretending to be standing on it — every write in this file
+  // still goes to the active contract's board and only that one.
+  function loadLadderFor(key) {
+    const was = contract;
+    contract = key === "sine" ? "sine" : "normal";
+    try { return loadLadder(); } finally { contract = was; }
+  }
+
   function loadLadder() {
     const raw = readJSON(ladderKey(), null);
     let board = defaultBoard();
@@ -463,6 +467,20 @@
     return st;
   }
 
+  // ---- The day's card ----
+  // Stored whole, and stored dumb: this file does not know what a bout is or
+  // how one is dealt, only that the engine handed it an object and wants the
+  // same object back tomorrow. A card the parser cannot read is a card that
+  // never existed, and the engine deals a fresh one.
+  function loadPlan() {
+    const p = readJSON(PLAN_KEY, null);
+    if (!p || typeof p !== "object" || !Array.isArray(p.bouts)) return null;
+    if (!Number.isInteger(p.day)) return null;
+    return p;
+  }
+  function savePlan(p) { set(PLAN_KEY, JSON.stringify(p)); }
+  function clearPlan() { del(PLAN_KEY); }
+
   // A pattern key is "known" once you've beaten that form in its boss's run —
   // every key belongs to exactly one form, so the id's key segment is enough.
   function keyBeaten(key) {
@@ -472,8 +490,8 @@
   function levelUnlocked(lv) {
     return lv.stages.every((s) => keyBeaten(s.key));
   }
-  // The builder is earned: clear Vulcan's run end to end (or buy your way in
-  // with a vault code).
+  // The builder is earned: put down all seven of Vulcan's forms (or buy your
+  // way in with a vault code).
   function campaignCleared(key) {
     const done = loadForms();
     return CAMPAIGNS[key].stages.every((s, i) =>
@@ -575,12 +593,13 @@
 
     // Clears, times, forms.
     bestTimes, recordTime, loadCleared, markCleared,
-    loadForms, markFormBeaten, markFormId, formUnlocked, formBeaten, formsKnown,
+    loadForms, markFormId, formUnlocked, formBeaten, formsKnown,
+    loadPlan, savePlan, clearPlan,
 
     // Ladder standing, on whichever board the contract plays for. onSine and
     // TILT go out too: the Ladder tab has to say which board you are looking at
     // and how close to the drop you are, and both are this file's rules to state.
-    loadLadder, saveLadder, wipeSineLadder, dropPlayer,
+    loadLadder, loadLadderFor, saveLadder, wipeSineLadder, dropPlayer,
     loadRecord, saveRecord, hasRudis, grantRudis,
     fighterAt, challengeable, friendlyable, rollInvite,
     onSine, TILT,

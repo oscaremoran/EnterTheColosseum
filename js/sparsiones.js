@@ -20,7 +20,10 @@
   // with the whole arena crawling — not a combo, a cheat code. Mobility instead:
   // it helps you reach the dangerous ground rather than paying you more for it.
   const POWERUPS = {
-    shield:  { color: "#3ddc84", label: "SHIELD", latin: "Scutum",         dur: 0   },  // absorbs one hit
+    // The ludus surgeon, sent out with the gifts. He puts a mark back on the
+    // board — and if you have not lost one, he gives you a mark you were never
+    // entitled to, which lasts until something takes it off you again.
+    medicus: { color: "#3ddc84", label: "A MARK",  latin: "Medicus",        dur: 0   },  // a life back
     slow:    { color: "#b06bff", label: "SLOW",   latin: "Filum Parcarum", dur: 5.0 },  // everything red crawls
     swift:   { color: "#dbe6f2", label: "SWIFT",  latin: "Talaria",        dur: 7.0 },  // Mercury's winged sandals
   };
