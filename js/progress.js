@@ -44,6 +44,13 @@
   // are. One per career, and it survives a reload — a plan you could re-roll by
   // pressing F5 until the Library gave you something easy is not a plan.
   const PLAN_KEY = "dodger_plan";
+  // Whether this man has been through the school. A career's fact, not a
+  // browser's: the second gladiator in the house has not been taught anything
+  // just because the first one was, and a wipe puts him back in the Ludus.
+  const TUTORIAL_KEY = "dodger_tutorial_done";
+  // Who this man has stood in front of. Only the two crowns are written here,
+  // and only so the gate scene plays in full the first time and shortens after.
+  const MET_KEY = "dodger_met";
   // The school's book on who is fit to fight. Owned by condicio.js, which asks
   // this file to scope it — the name lives here because this file is what knows
   // the full list of a career's keys, and a save that forgot one is not a save.
@@ -75,7 +82,7 @@
   function careerKeys() {
     return [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
             LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY,
-            CONDICIO_KEY, PLAN_KEY];
+            CONDICIO_KEY, PLAN_KEY, TUTORIAL_KEY, MET_KEY];
   }
   // The levels you built, which belong to you rather than to a career.
   function isGlobal(key) { return key === MINE_KEY; }
@@ -472,6 +479,17 @@
   // how one is dealt, only that the engine handed it an object and wants the
   // same object back tomorrow. A card the parser cannot read is a card that
   // never existed, and the engine deals a fresh one.
+  function hasMet(key) { return (readJSON(MET_KEY, []) || []).includes(key); }
+  function markMet(key) {
+    const seen = readJSON(MET_KEY, []) || [];
+    if (seen.includes(key)) return;
+    seen.push(key);
+    set(MET_KEY, JSON.stringify(seen));
+  }
+
+  function tutorialDone() { return get(TUTORIAL_KEY) === "1"; }
+  function markTutorialDone() { set(TUTORIAL_KEY, "1"); }
+
   function loadPlan() {
     const p = readJSON(PLAN_KEY, null);
     if (!p || typeof p !== "object" || !Array.isArray(p.bouts)) return null;
@@ -594,7 +612,7 @@
     // Clears, times, forms.
     bestTimes, recordTime, loadCleared, markCleared,
     loadForms, markFormId, formUnlocked, formBeaten, formsKnown,
-    loadPlan, savePlan, clearPlan,
+    loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone, hasMet, markMet,
 
     // Ladder standing, on whichever board the contract plays for. onSine and
     // TILT go out too: the Ladder tab has to say which board you are looking at

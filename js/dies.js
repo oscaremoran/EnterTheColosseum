@@ -59,7 +59,7 @@
   // One ladder bout, two out of the Library, one munus, and the next man down
   // each of the two campaign paths. Anybody above you who has asked for a bout
   // is added on top of this, so a day can run to seven.
-  const PLAN = { library: 2, munera: 1, ladder: 1, campaign: 1 };
+  const PLAN = { library: 1, munera: 1, ladder: 1, campaign: 1 };
 
   // ---- Knowing when to stop ----
   // Three days is a long sitting. The building says so once, and if you stay it

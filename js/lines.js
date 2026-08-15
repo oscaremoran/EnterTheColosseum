@@ -109,6 +109,59 @@
     ],
   };
 
+  // ---- At the gate, before a crown ----
+  //
+  // The two final forms are the only ones that get a scene. Everybody else in
+  // this building barks from the pool above, which is right for a man being
+  // shoved onto sand he did not choose — but Vulcan and Nox are the ends of
+  // their halves of the game, and a thing you have walked seven fights to reach
+  // should say something before it starts.
+  //
+  // The rule these are written to: every line has to be TRUE about how that
+  // form actually fights. A gate speech that is only atmosphere is a gate
+  // speech the player learns to skip. These are tells, delivered by the man
+  // who is about to use them, which is the only kind of boast worth hearing.
+  // ---- At the gate, before a crown ----
+  //
+  // The two final forms are the only ones with a scene. Everybody else in this
+  // building barks from the pool above, which is right for a man being shoved
+  // onto sand he did not choose — but Vulcan and Nox are the ends of their
+  // halves of the game, and a thing you have walked seven fights to reach ought
+  // to say something first.
+  //
+  // ---------------------------------------------------------------------
+  //  THIS IS WHERE THE BOSS TEXT IS WRITTEN. Add, cut or rewrite freely.
+  //
+  //  lines[]  one card each, shown in order, advanced with Space or a
+  //           double-tap. Any number works — two, six, one. An empty array
+  //           skips the scene entirely.
+  //  short    the single line used on every meeting after the first.
+  //  name     what the card is headed with. sub is the small line under it.
+  //
+  //  Nothing else in the game reads these, so there is no length to keep to
+  //  and nothing to break by editing them.
+  // ---------------------------------------------------------------------
+  const GATE_TALK = {
+    hades: {
+      name: "VULCAN", sub: "the forge-god · seventh of his own",
+      lines: [
+        "Those six were mine. I taught Taurus to drop his head before he ran. I taught Vesuvius when to open.",
+        "Everything they got wrong, they got from me. I kept the rest of it back.",
+        "You will see the true fury of Vulcan, GOD OF THE FORGE!",
+      ],
+      short: "Back for more?",
+    },
+    void: {
+      name: "NOX", sub: "the goddess of night · the last name on the card",
+      lines: [
+        "You should be honored. The goddess of night rarely comes down to battle a mere man.",
+        "You are the first to defeat my finest pupil.",
+        "I will not let this stand. Nox, GODDESS OF NIGHT, WILL DESTROY YOU!",
+      ],
+      short: "You again. Nothing here has moved.",
+    },
+  };
+
   // What each armatura says instead, where the arms he carries give him something
   // better to say than the general pool.
   const ARM_LINES = {
@@ -166,5 +219,5 @@
   const SPEECH_DUR = 4.6;
   const SPEECH_GAP = 5.4;      // ...and how long before he is allowed another
 
-  Object.assign(C, { LINES, ARM_LINES, SPEECH_DUR, SPEECH_GAP });
+  Object.assign(C, { LINES, ARM_LINES, GATE_TALK, SPEECH_DUR, SPEECH_GAP });
 })();

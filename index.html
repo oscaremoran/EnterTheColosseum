@@ -307,6 +307,31 @@
   .subpane.hidden { display: none; }
   .subpane { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
 
+  /* ---- The gate card ----
+     Same wash and the same rules as a Ludus card, but the type is his rather
+     than the building's: his name at full height, in his own colour. */
+  #gate {
+    background: rgba(8,5,3,0.55);
+    backdrop-filter: none;
+    gap: 0; cursor: pointer;
+    justify-content: flex-end; padding-bottom: 7%;
+  }
+  .gatecard {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    max-width: 560px; margin: 0 18px; padding: 22px 28px 16px;
+    background: radial-gradient(ellipse at 50% 50%, rgba(6,4,2,0.96) 0%, rgba(6,4,2,0.86) 60%, rgba(6,4,2,0) 100%);
+  }
+  .gate-name {
+    font-family: var(--serif); font-weight: 700;
+    font-size: clamp(26px, 6vw, 44px); letter-spacing: clamp(4px, 1.4vw, 9px);
+    text-shadow: 0 2px 20px rgba(0,0,0,0.95);
+  }
+  .gate-sub { font-size: clamp(10px, 2vw, 12px); letter-spacing: 3px; color: var(--muted); }
+  .gate-line {
+    color: #f2e7d2; font-size: clamp(13px, 2.7vw, 16px); line-height: 1.55;
+    margin-top: 10px; text-shadow: 0 2px 12px rgba(0,0,0,0.95);
+  }
+
   /* ---- Credits ---- */
   .creditcard { display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .credtitle {
@@ -995,6 +1020,21 @@
       </div>
     </div>
 
+    <!-- At the gate, before a crown. The arena is stopped behind it and the man
+         is already out there; this is the beat before the gate lifts. -->
+    <div id="gate" class="screen hidden">
+      <div class="gatecard">
+        <p class="gate-name" id="gateName">—</p>
+        <p class="gate-sub" id="gateSub">—</p>
+        <p class="gate-line" id="gateLine">—</p>
+        <div class="tut-dots" id="gateDots"></div>
+        <div class="tut-foot">
+          <span class="tut-key" id="gateKey">PRESS SPACE</span>
+          <button class="tut-skip" id="gateSkip">skip</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Three days is a long sitting. The building says so once. -->
     <div id="breakAsk" class="screen hidden">
       <div class="tutcard">
@@ -1309,7 +1349,7 @@
 
         <div class="subpane" data-helppane="eye">
           <p class="sub"><b style="color:var(--text)">Arrow keys</b> to move. Stand inside the <b style="color:var(--safe)">Emperor's Eye</b>, the patch of sand he is watching to drain your opponent's life.</p>
-          <p class="sub">The special <b style="color:#5b78ff">×III Eye</b> sits under your opponent's shield and orbits with them, draining three times as fast. But it only burns in bursts: it goes <b>cold</b>, and standing on a cold circle does nothing. Watch the ring spark just before it lights, and be on it when it does.</p>
+          <p class="sub">The special <b style="color:#5b78ff">×III Eye</b> sits under your opponent's shield and orbits with them, draining three times as fast. But it only burns in bursts: it goes <b>cold</b>, and standing on a cold circle does nothing. Watch the ring spark just before it lights, and be on it when it does. <b>A wound puts it out</b> — the burn is for a fighter nobody is touching, so you cannot buy it with marks.</p>
           <p class="sub"><b style="color:var(--warn)">Go to the eye.</b> If an eye opens and you never set foot in it before it moves on, your opponent gets <b>a chunk of their health back.</b> The eye turns yellow and counts down first, so you'll see it coming. Waiting in a safe corner for the damage to come to you is not a plan. The ×III Eye never vanishes, it just goes cold with no punishment for not coming.</p>
         </div>
 
@@ -1463,6 +1503,7 @@
     LADDER, LADDER_BY_ID, UNRANKED, tierOf,
     CONDICIO,
     LEVEL_COLORS, LEVELS, BATTLES, MUNERA, formValue, chainPayout, stageForms,
+    GATE_TALK,
     skipCost, perilPay, sparePay, SPARE_OVATION, PLAN, DAYS_PER_SITTING,
     LINES, ARM_LINES, SPEECH_DUR, SPEECH_GAP,
   } = window.COLOSSEUM;
@@ -1489,7 +1530,7 @@
     loadMine, saveMine,
     bestTimes, recordTime, loadCleared, markCleared,
     markFormId, formUnlocked, formBeaten,
-    loadPlan, savePlan, clearPlan,
+    loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone, hasMet, markMet,
     loadLadder, loadLadderFor, saveLadder, wipeSineLadder, dropPlayer,
     loadRecord, saveRecord, hasRudis, grantRudis,
     fighterAt, challengeable, friendlyable, rollInvite, onSine, TILT,
@@ -1610,6 +1651,12 @@
   const HOT_ON = 5.0;        // seconds it burns
   const HOT_OFF = 6.5;       // seconds it is cold
   const HOT_WARN = 1.3;      // how long it glows before it lights, so the trip can be started early
+  // What a wound costs the burn. It goes out — that is the rule that stops you
+  // buying the ×III with marks — but it comes back on a short count rather than
+  // the full cold cycle. Losing the window you were standing in is the penalty;
+  // losing the next two as well was the punishment, and that is a different
+  // thing to be doing to somebody who has just been hit.
+  const HOT_PUNISH = 2.5;
   // Seconds before a shot gives up, however it is moving. Short, and short on
   // purpose: a bullet that outlives the exchange that threw it is scenery the
   // fighter still has to solve, and with two men throwing at once the sand silted
@@ -1737,6 +1784,102 @@
     startGame("level", 0);
   }
 
+  // ---- At the gate ----
+  //
+  // A crown gets a beat before the gate lifts: his name, his colour, and
+  // whatever lines.js has him saying, one at a time, with the arena stopped
+  // dead behind it. The freeze is the Ludus card's — see frame() — because it
+  // is the same problem and it was already solved once.
+  //
+  // Everything here survives an empty lines[] and an unknown form: a crown with
+  // nothing written for it simply opens onto the sand, which is what every
+  // other form in the game does.
+  let gate = null;
+  const gateEl = document.getElementById("gate");
+  const gateNameEl = document.getElementById("gateName");
+  const gateSubEl = document.getElementById("gateSub");
+  const gateLineEl = document.getElementById("gateLine");
+  const gateDotsEl = document.getElementById("gateDots");
+  const gateKeyEl = document.getElementById("gateKey");
+  function gateHolding() { return !!gate; }
+
+  // The colour a crown is announced in — the accent of whoever he belongs to.
+  function crownColor(key) {
+    for (const c of Object.values(CAMPAIGNS)) {
+      if (c.stages.some((st) => st.key === key && st.final)) return c.accent;
+    }
+    return COLORS.gold;
+  }
+
+  function raiseGate(key) {
+    const talk = GATE_TALK[key];
+    if (!talk) return false;
+    // Full the first time you stand in front of him; his one line every time
+    // after. Per career, so a second gladiator meets him properly.
+    const first = !hasMet(key);
+    const lines = first ? (talk.lines || []).slice() : (talk.short ? [talk.short] : []);
+    if (!lines.length) return false;
+    markMet(key);
+    gate = { key, lines, i: 0, color: crownColor(key) };
+    // Nobody walks in mid-sentence, and nothing is held down while he talks.
+    for (const k in MOVE_KEYS) keys[k] = false;
+    padRelease();
+    stickRelease();
+    shake = 0;
+    freeze = 0;
+    gateNameEl.textContent = talk.name || "";
+    gateNameEl.style.color = gate.color;
+    gateSubEl.textContent = talk.sub || "";
+    gateKeyEl.textContent = padMode ? "DOUBLE-TAP TO GO ON" : "PRESS SPACE";
+    paintGate();
+    gateEl.classList.remove("hidden");
+    sfx("phase");
+    return true;
+  }
+
+  function paintGate() {
+    gateLineEl.textContent = gate.lines[gate.i];
+    gateDotsEl.innerHTML = "";
+    gate.lines.forEach((_, i) => {
+      const d = document.createElement("i");
+      if (i <= gate.i) d.className = "on";
+      gateDotsEl.appendChild(d);
+    });
+  }
+
+  function gateAdvance() {
+    if (!gate) return;
+    gate.i++;
+    if (gate.i >= gate.lines.length) return closeGate();
+    paintGate();
+    sfx("talk");
+  }
+
+  function closeGate() {
+    gate = null;
+    gateTap = 0;
+    gateEl.classList.add("hidden");
+  }
+
+  // Same rule as a Ludus card: one press of Space, or two taps.
+  const GATE_TAP_MS = 450;
+  let gateTap = 0;
+  function gateTapAdvance() {
+    if (!gate) return;
+    const now = performance.now();
+    if (gateTap && now - gateTap < GATE_TAP_MS) { gateTap = 0; gateAdvance(); return; }
+    gateTap = now;
+    gateKeyEl.textContent = "AGAIN TO GO ON";
+    setTimeout(() => {
+      if (!gate || performance.now() - gateTap < GATE_TAP_MS) return;
+      gateTap = 0;
+      gateKeyEl.textContent = padMode ? "DOUBLE-TAP TO GO ON" : "PRESS SPACE";
+    }, GATE_TAP_MS + 30);
+  }
+  document.getElementById("gateSkip").addEventListener("click", (e) => { e.stopPropagation(); closeGate(); });
+  gateEl.addEventListener("click", gateTapAdvance);
+  gateEl.addEventListener("touchstart", (e) => { e.preventDefault(); gateTapAdvance(); }, { passive: false });
+
   // ---- The Ludus ----
   //
   // The training school. It is not a separate mode with its own rules: it is one
@@ -1751,16 +1894,10 @@
   // just happened on the sand and points at the thing on the sand that did it.
   // A wall of text before the gates open teaches nothing, because there is
   // nothing on the floor to attach it to yet.
-  const TUT_KEY = "dodger_tutorial_done";
-  // Not scoped to an account, unlike everything in progress.js. A second career
-  // is a second gladiator, not a second person — whoever is at the keyboard has
-  // already been through the school and should not be walked through it again.
-  function tutorialDone() {
-    try { return localStorage.getItem(TUT_KEY) === "1"; } catch (e) { return true; }
-  }
-  function markTutorialDone() {
-    try { localStorage.setItem(TUT_KEY, "1"); } catch (e) { /* full disk */ }
-  }
+  // Whether this man has been through the school lives with the rest of his
+  // career now — see progress.js. It used to be one flag for the whole browser,
+  // which meant the second gladiator in a house was assumed to know everything
+  // the first one had been taught, and a wipe left him still knowing it.
 
   const tutEl = document.getElementById("tutorial");
   const tutKicker = document.getElementById("tutKicker");
@@ -1848,6 +1985,7 @@
 
   function startTutorial() {
     if (tut) return;          // already in session; never borrow the contract twice
+    doc = null;               // the doctore has done his round; you are in the school now
     // The school teaches the standard bout, whatever contract is set on the
     // menu: three lives, the terms almost everything else in the building is
     // fought under. Not the Ludus contract, despite the name — wooden swords
@@ -2561,6 +2699,10 @@
     placeZone();
     updateHudStage();
     startMusic(STAGES[idx].key, STAGES[idx].arm);
+    // A crown says his piece before the gate lifts. Not in the reel and not in
+    // a duel: nobody out there is you, and a card over somebody else's fight is
+    // a card nobody asked for.
+    if (!trailer && !duel) raiseGate(STAGES[idx].key);
   }
 
   // Put the damage zone somewhere reachable, away from the boss and not on top of you.
@@ -2630,6 +2772,7 @@
 
   function winGame() {
     state = GS.OVER;
+    closeGate();
     stopMusic();
     // Say what this button does before working out what kind of win it was.
     // The level branch below never set it, so every ordinary win wore whatever
@@ -2763,6 +2906,7 @@
 
   function loseGame() {
     state = GS.OVER;
+    closeGate();
     stopMusic();
     sfx("defeat");
     // Let go of the controls. The end screen hides the HUD, and the pad is
@@ -2870,6 +3014,14 @@
       e.preventDefault();
       if (e.key === "Escape") { skipTutorial(); return; }
       if (e.code === "Space" || e.key === " " || e.key === "Enter") tutDismiss();
+      return;
+    }
+    // A crown at the gate takes every key, and gives back only the two that
+    // mean something: one to go on, one to cut him off.
+    if (gateHolding()) {
+      e.preventDefault();
+      if (e.key === "Escape") { closeGate(); return; }
+      if (e.code === "Space" || e.key === " " || e.key === "Enter") gateAdvance();
       return;
     }
     if (duel && slip && (e.key === "1" || e.key === "2")) {
@@ -3746,7 +3898,6 @@
     planCache = null;
     breakAsked = false;
     sittingDays = 0;
-    try { localStorage.removeItem("dodger_tutorial_done"); } catch (e) { /* full disk */ }
     disarmWipe();
     wipeHint.textContent = "Cleared. Everything this man did is off the books, and his next day is the Ludus again.";
     disarmWipe();
@@ -4155,6 +4306,7 @@
   // band stops, and anything the last fight left flying is dropped.
   function enterHub(fromTab) {
     state = GS.HUB;
+    closeGate();
     // Not silence. The building has music of its own down here, and the games
     // are on somewhere above you — startMusic crossfades out of whatever the
     // bout was playing, so walking off the sand is a change of piece rather
@@ -4175,9 +4327,15 @@
     // between stalls without walking, would leave the man somewhere he never went.
     const at = fromTab && STALL_BY_TAB[fromTab];
     if (at) { hub.x = at.x; hub.y = at.y + STALL_R * 0.85; }
+    // ...except on the first morning of a career, when somebody is waiting to
+    // walk you round and cannot do it if you are already standing at the end.
+    if (!tutorialDone() && !docDone) { hub.x = W / 2; hub.y = H * 0.62; }
     hub.near = nearestStall();
     hub.hover = null;         // whatever the mouse was over, it was a room ago
     hub.enterT = 0;
+    // A career's first morning, and only that: he shows you round before the
+    // school rather than after it, and once he has finished he is finished.
+    if (!tutorialDone() && !doc && !docDone) { docDone = true; startDoctore(); }
     menuEl.classList.add("hidden");
     endEl.classList.add("hidden");
     hudEl.classList.add("hidden");
@@ -4247,6 +4405,128 @@
     const was = hub.near;
     hub.near = nearestStall();
     if (hub.near && hub.near !== was) sfx("tick");   // the stall notices you
+    updateDoctore(dt);
+  }
+
+  // ---- The doctore ----
+  //
+  // On a new career's first morning there is a green man in the passage who
+  // knows the building and does not think much of you. He walks: crosses to a
+  // gate, waits for you to catch up, says his piece about that one, and moves
+  // on. You are never held in place — walk off and he follows at his own pace
+  // and keeps talking, because a tutorial you cannot leave is a cage with
+  // captions.
+  //
+  // He appears BEFORE the school, hands you to it, and is gone for good after.
+  // Per career, so the second man in the house gets shown round too.
+  const DOCTORE_STOPS = [
+    { tab: null,      say: "New man. Keep up, I have four of you this morning." },
+    { tab: "munera",  say: "The card. You do not pick your fights; somebody upstairs picks them and you walk down the list. Today there is one thing on it." },
+    { tab: "offcard", say: "Through there is practice. It pays nothing. That is how you know it is practice." },
+    { tab: "horreum", say: "Your money, when you have any. Do not spend it on the desk that takes bets." },
+    { tab: "munera",  say: "That is the building. Go and stand at the card. The school is first, and it is the only fight today that cannot kill you." },
+  ];
+  const DOCTORE_SPEED = 250;     // he is in no hurry and has done this before
+  const DOCTORE_NEAR = 96;       // how close you have to be before he goes on
+
+  let doc = null;
+  // He does his round once a session. Beating the school is what actually
+  // retires him — a man who has been taught does not get taught again.
+  let docDone = false;
+
+  function startDoctore() {
+    doc = { i: 0, x: W / 2 - 90, y: H * 0.62, tx: W / 2 - 90, ty: H * 0.62, said: false, t: 0, wait: 0.9 };
+  }
+
+  // Where he is heading for this stop: a pace to the side of the gate, so he
+  // never stands on the counter he is pointing at.
+  function doctoreGoal() {
+    const stop = DOCTORE_STOPS[doc.i];
+    const g = stop && stop.tab && STALL_BY_TAB[stop.tab];
+    if (!g) return { x: W / 2, y: H * 0.56 };
+    // A gate in the middle of the passage throws its description card straight
+    // down the middle with it, so he stands well off to one side of those. The
+    // ones on the walls he can stand beside.
+    const middle = Math.abs(g.x - W / 2) < 80;
+    return middle
+      ? { x: g.x - 168, y: g.y + 34 }
+      : { x: g.x + (g.x < W / 2 ? 104 : -104), y: g.y + 62 };
+  }
+
+  function updateDoctore(dt) {
+    if (!doc) return;
+    doc.t += dt;
+    const goal = doctoreGoal();
+    const dx = goal.x - doc.x, dy = goal.y - doc.y;
+    const d = Math.hypot(dx, dy);
+    if (d > 4) {
+      const sp = Math.min(DOCTORE_SPEED, d * 3) * dt;
+      doc.x += (dx / d) * sp;
+      doc.y += (dy / d) * sp;
+      return;
+    }
+    // He is in position. He says his piece once, then waits for you to come
+    // within earshot before moving off — waiting, not blocking.
+    if (!doc.said) {
+      doc.said = true;
+      doc.wait = 0;
+      sfx("talk");
+      return;
+    }
+    doc.wait += dt;
+    // The last thing he says is said at the card, and he stays there saying it.
+    // He is not on a timer at that point — he is waiting for you to go and do
+    // the thing he brought you here for. startTutorial is what dismisses him.
+    if (doc.i >= DOCTORE_STOPS.length - 1) return;
+    const close = Math.hypot(hub.x - doc.x, hub.y - doc.y) < DOCTORE_NEAR;
+    // Long enough to actually read him, scaled to what he just said, and only
+    // then does catching up move him on. Ignore him long enough and he goes
+    // anyway — he is not standing in a corridor all morning for a novice.
+    const words = (DOCTORE_STOPS[doc.i].say || "").split(" ").length;
+    const dwell = Math.max(3.4, words * 0.3);
+    if ((close && doc.wait > dwell) || doc.wait > dwell + 9) {
+      doc.i++;
+      doc.said = false;
+    }
+  }
+
+  function drawDoctore() {
+    if (!doc) return;
+    const bob = Math.sin(doc.t * 4) * 1.6;
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.34)";
+    ctx.beginPath(); ctx.ellipse(doc.x, doc.y + 15, 12, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowColor = "#3ddc84"; ctx.shadowBlur = 16;
+    circle(doc.x, doc.y + bob, 13, "#3ddc84", "#dcffe9", 2);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // What he is saying, over his head, in his own green.
+    const stop = DOCTORE_STOPS[doc.i];
+    if (!doc.said || !stop) return;
+    ctx.save();
+    ctx.font = `500 13px ${FONT}`;
+    const words = stop.say.split(" ");
+    const lines = [];
+    let line = "";
+    for (const w of words) {
+      const test = line ? line + " " + w : w;
+      if (ctx.measureText(test).width > 250 && line) { lines.push(line); line = w; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    const bw = 274, bh = 18 + lines.length * 17;
+    let bx = Math.max(10, Math.min(W - bw - 10, doc.x - bw / 2));
+    let by = doc.y - 26 - bh;
+    if (by < 10) by = doc.y + 30;
+    ctx.fillStyle = "rgba(8,16,10,0.94)";
+    roundRect(bx, by, bw, bh, 6); ctx.fill();
+    ctx.strokeStyle = "rgba(61,220,132,0.7)"; ctx.lineWidth = 1.5;
+    roundRect(bx, by, bw, bh, 6); ctx.stroke();
+    ctx.fillStyle = "#d8ffe8";
+    ctx.textAlign = "left";
+    lines.forEach((l, i) => ctx.fillText(l, bx + 12, by + 22 + i * 17));
+    ctx.restore();
   }
 
   // ---- The day's card ----
@@ -5851,6 +6131,26 @@
     // top of the function on purpose: the mercy window swallows touches that
     // cost nothing, and a card claiming otherwise would teach the wrong thing.
     if (tut) tut.hurt = true;
+
+    // ...and the ×III circle goes out with it.
+    //
+    // The burn belongs to a fighter nobody is touching. Without that rule the
+    // best play on the sanctioned contract was to ignore the whole game: walk
+    // into the worst ground on the floor, spend a mark, spend the second, and
+    // burn him down at forty-five a second through a mercy window you were
+    // never meant to be able to spend. Three lives converted straight into
+    // damage, and the wide blue eye — the thing the bout is actually about —
+    // may as well not have existed.
+    //
+    // So a wound puts it out, wherever you were standing when you took it. It
+    // relights on a short count — see HOT_PUNISH — so what you lose is the
+    // window you were in, not your afternoon. You may still cross the sand for
+    // it and still stand in it; what you may no longer do is pay for it in blood.
+    if (hotZone && hotZone.on) {
+      hotZone.on = false;
+      hotZone.t = HOT_PUNISH;
+      pickupFlash = { label: "THE BURN IS OUT", color: "#7f9dff", t: 0 };
+    }
     if (bossSpeaker) { bossSpeaker.quiet = 0; say(bossSpeaker, "drew"); }
     shockwaves.push({ x: player.x, y: player.y, t: 0, dur: 0.35 });
     // A death gets a bigger, slower spray than a survivable hit.
@@ -7771,6 +8071,10 @@
     // looked at or stood at.
     if (shown) drawStallCard(shown);
 
+    // Over the card, not under it. A man talking to you is worth more than the
+    // paragraph about the counter he is standing next to.
+    drawDoctore();
+
     // What taking this stall would do, said under his feet rather than up in a
     // corner — it belongs to where he is standing.
     if (hub.near) {
@@ -8783,7 +9087,7 @@
       // The clock above is still read and thrown away, so the bout resumes on
       // the frame it left off rather than jumping the length of the reading.
       // Nothing below this runs: no shots, no drain, no wounds, no timer.
-      if (tutHolding()) { render(); return; }
+      if (tutHolding() || gateHolding()) { render(); return; }
       if (shake > 0) shake = Math.max(0, shake - dt * 34);
       if (freeze > 0) { freeze -= dt; totalTime += dt; }   // hit-stop: hold the frame
       else if (state === GS.PLAYING) { updatePlaying(dt); if (state === GS.PLAYING) updateHud(); }
