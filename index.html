@@ -1602,6 +1602,10 @@
     endEl.classList.add("hidden");
     hudEl.classList.remove("hidden");
     clearConfetti();
+    // Belt and braces: a bout never inherits a push from whatever came before.
+    padRelease();
+    stickRelease();
+    for (const k in MOVE_KEYS) keys[k] = false;
   }
 
   // Out of the bout and back into the building. The building is the concourse
@@ -2535,6 +2539,14 @@
   function winGame() {
     state = GS.OVER;
     stopMusic();
+    // Let go of the controls. The end screen hides the HUD, and the pad is
+    // bound to the HUD — so a thumb still down when the bout ends never gets
+    // its pointerup, the capture is lost on an element that is now display:none,
+    // and padId stays set for the rest of the session. That kills every later
+    // press, and the stick keeps whatever push it had, so the next bout starts
+    // with a man walking on his own into fire nobody can steer him out of.
+    padRelease();
+    stickRelease();
     endBonus.textContent = "";      // last bout's ovation is not this bout's
     clearConfetti();
     hudEl.classList.add("hidden");
@@ -2662,6 +2674,14 @@
   function loseGame() {
     state = GS.OVER;
     stopMusic();
+    // Let go of the controls. The end screen hides the HUD, and the pad is
+    // bound to the HUD — so a thumb still down when the bout ends never gets
+    // its pointerup, the capture is lost on an element that is now display:none,
+    // and padId stays set for the rest of the session. That kills every later
+    // press, and the stick keeps whatever push it had, so the next bout starts
+    // with a man walking on his own into fire nobody can steer him out of.
+    padRelease();
+    stickRelease();
     endBonus.textContent = "";      // nobody throws paper at a man who was put down
     clearConfetti();
     hudEl.classList.add("hidden");
@@ -2912,6 +2932,11 @@
       padRelease();
     });
   }
+  // Hiding a element that holds a pointer capture does not always send a
+  // pointerup, but it does lose the capture. That is the same news.
+  padEl.addEventListener("lostpointercapture", (e) => {
+    if (e.pointerId === padId) padRelease();
+  });
 
   // A stall can be taken by pointing at it, from any distance and by any kind of
   // pointer. Walking to it and pressing Space is the way it is meant to be done;
@@ -8502,7 +8527,15 @@
 
   // ---- Loop ----
   let lastTs = null;
-  function frame(ts) {
+  // Whether the loop has already complained about a bad frame. Once is enough:
+  // a fault that happens every frame would otherwise fill the console faster
+  // than anybody could read the first line of it.
+  let frameFaulted = false;
+
+  // One frame's work, and nothing about keeping the loop going. Everything that
+  // can throw lives in here; the scheduling lives outside it, which is the whole
+  // point — see frame().
+  function step(ts) {
     if (state === GS.PLAYING || state === GS.TRANSITION) {
       if (lastTs == null) lastTs = ts;
       let dt = (ts - lastTs) / 1000;
@@ -8512,7 +8545,7 @@
       // The clock above is still read and thrown away, so the bout resumes on
       // the frame it left off rather than jumping the length of the reading.
       // Nothing below this runs: no shots, no drain, no wounds, no timer.
-      if (tutHolding()) { render(); requestAnimationFrame(frame); return; }
+      if (tutHolding()) { render(); return; }
       if (shake > 0) shake = Math.max(0, shake - dt * 34);
       if (freeze > 0) { freeze -= dt; totalTime += dt; }   // hit-stop: hold the frame
       else if (state === GS.PLAYING) { updatePlaying(dt); if (state === GS.PLAYING) updateHud(); }
@@ -8543,7 +8576,33 @@
       lastTs = null;
     }
     render();
-    requestAnimationFrame(frame);
+  }
+
+  // The loop, and the one job it must never fail at: asking for another frame.
+  //
+  // requestAnimationFrame used to be the last statement of the work, so any
+  // exception anywhere — one undefined field in one pattern, one bad frame in
+  // the middle of a bout — took the scheduling with it and the game stopped
+  // dead and stayed dead. A canvas game has no other heartbeat: when this
+  // stops, everything stops, and the arena freezes with the fight still on it.
+  //
+  // So the next frame is booked in a finally, before anything is allowed to go
+  // wrong, and a bad frame costs a frame instead of the session. If something
+  // is genuinely broken it now says so in the console once and keeps playing,
+  // which is how you find out what it was.
+  function frame(ts) {
+    try {
+      step(ts);
+    } catch (e) {
+      if (!frameFaulted) {
+        frameFaulted = true;
+        try { console.error("A frame went wrong. The loop keeps going:", e); } catch (e2) { /* no console */ }
+      }
+      // Don't let a half-finished frame poison the next one's clock.
+      lastTs = null;
+    } finally {
+      requestAnimationFrame(frame);
+    }
   }
 
   // ---- The intro ----
