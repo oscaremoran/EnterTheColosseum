@@ -323,6 +323,19 @@
       });
     },
     // Dialogue: a soft tick per advance, and a countdown blip before play resumes.
+    // Beaten. The mirror of win(): the same triad walked downwards, flattened,
+    // with the horn under it. The arena had a sound for clearing a stage and
+    // none at all for being cleared off it.
+    defeat(t0) {
+      [12, 7, 3, 0].forEach((st, i) => {
+        const f = 392 * Math.pow(2, (st - 12) / 12);
+        tone({ t0: t0 + i * 0.13, type: "triangle", from: f, to: f, dur: 0.5, gain: 0.14,
+               filter: "lowpass", fFrom: 1800, fTo: 700 });
+      });
+      tone({ t0: t0 + 0.1, type: "sawtooth", from: 98, to: 92, dur: 1.5, gain: 0.13, atk: 0.25,
+             filter: "lowpass", fFrom: 700, fTo: 260 });
+      noise({ t0, filter: "lowpass", fFrom: 500, fTo: 90, dur: 1.0, gain: 0.1 });
+    },
     talk(t0) {
       tone({ t0, type: "sine", from: rnd(760, 900), to: rnd(500, 600), dur: 0.07, gain: 0.07 });
     },
@@ -355,8 +368,11 @@
   const THEMES = {
     // --- Act I: the furnace. Rooted, driving, warm sawtooth. ---
     ember: {
-      // the forge gets a horn over it and a frame drum under it
-      callVoice: "cornu", perc: "tympanum",
+      // the forge gets a horn over it, a frame drum under it, a tuba on the
+      // bottom line and the scabellum — the sandal the pipers kept time with —
+      // on the offbeats. It plays for six of the fourteen forms, so it is worth
+      // more than a filtered oscillator and a kick.
+      callVoice: "cornu", perc: "tympanum", bassVoice: "tuba", hatVoice: "scabellum",
       call: [0, null, null, null, null, null, null, null, null, null, 3, null, null, null, null, null],
       bpm: 132, root: 55, scale: SCALE.minor, gain: 0.5,
       bass: [0, null, 0, null, 3, null, 0, null, 5, null, 3, null, 0, null, -2, null],
@@ -365,10 +381,28 @@
       hat:  [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1],
       bassType: "sawtooth", arpType: "square", arpGain: 0.055, warm: true,
     },
+    // --- The concourse. Not a fight, so not a fight's music: no kick, no
+    // urgency, a lyra turning over the same few notes while a hydraulis holds
+    // the room up underneath. It is the sound of a building with the games
+    // going on somewhere above you, which is exactly where you are standing.
+    // Slow enough that walking to a gate never feels chased. ---
+    concourse: {
+      bassVoice: "hydraulis", arpVoice: "lyra",
+      bpm: 74, root: 45, scale: SCALE.dorian, gain: 0.34,
+      bass: [0, null, null, null, null, null, null, null, -5, null, null, null, null, null, null, null],
+      arp:  [12, null, null, 14, null, 15, null, null, 14, null, null, 12, null, 10, null, null],
+      kick: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      hat:  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      bassType: "sine", arpType: "triangle", arpGain: 0.05,
+      bassLong: true, arpLong: true, pad: true,
+    },
     // --- Act II: the gap. No kick, detuned pads, arp thins out. ---
     gap: {
-      // a single reed in the empty places between acts
-      arpVoice: "tibia",
+      // a single reed in the empty places between acts — with the hydraulis
+      // holding the floor under it, and one horn call a bar, far off, so the
+      // empty places sound like somewhere rather than nowhere.
+      arpVoice: "tibia", bassVoice: "hydraulis", callVoice: "cornu",
+      call: [null, null, null, null, null, null, null, null, -5, null, null, null, null, null, null, null],
       bpm: 96, root: 49, scale: SCALE.phryg, gain: 0.5,
       bass: [0, null, null, null, -5, null, null, null, -2, null, null, null, -7, null, null, null],
       arp:  [12, null, 15, null, 14, null, 12, null, 10, null, 12, null, 15, null, 17, null],
@@ -390,6 +424,13 @@
     },
     // --- Bespoke: the Void. Whole-tone, no root movement, everything drifts. ---
     void: {
+      // Nox's crown, and until now the only boss in the building whose theme was
+      // two bare oscillators. The organ underneath it and the lyra over the top
+      // are both cold and both sustained; the tuba speaks once a bar, low, as
+      // the thing announcing itself. Whole-tone throughout, so nothing in it
+      // ever resolves — that is the joke the scale is telling.
+      bassVoice: "hydraulis", arpVoice: "lyra", callVoice: "tuba",
+      call: [-12, null, null, null, null, null, null, null, null, null, null, null, -14, null, null, null],
       bpm: 84, root: 37, scale: SCALE.whole, gain: 0.66,
       bass: [0, null, null, null, null, null, null, null, 0, null, null, null, null, null, null, null],
       arp:  [12, null, 18, null, 12, null, 6, null, 12, null, 18, null, 24, null, 18, null],
@@ -399,8 +440,9 @@
     },
     // --- Bespoke: Mirror. The arp is answered by its own inversion, half a bar late. ---
     mirror: {
-      // plucked, so the canon reads as two players and not one patch
-      arpVoice: "lyra",
+      // plucked, so the canon reads as two players and not one patch, over an
+      // organ that holds still while they chase each other
+      arpVoice: "lyra", bassVoice: "hydraulis", hatVoice: "scabellum",
       bpm: 104, root: 49, scale: SCALE.phryg, gain: 0.52,
       bass: [0, null, null, null, 0, null, null, null, -5, null, null, null, -5, null, null, null],
       arp:  [12, 14, 15, 17, 19, 17, 15, 14, 12, 14, 15, 17, 19, 17, 15, 14],
@@ -569,6 +611,8 @@
 
   // Which theme each of the 14 forms plays. The plain forms reuse their act's tier.
   const THEME_BY_KEY = {
+    // The building itself, when nobody is fighting in it.
+    concourse: "concourse",
     pursuer: "ember", nova: "ember", charger: "ember", spiral: "ember",
     gatling: "ember", lattice: "ember", hades: "hades",
     weaver: "gap", serpent: "gap", cross: "gap", swarm: "gap",

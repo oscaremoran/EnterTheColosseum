@@ -24,7 +24,7 @@
         { name: "Taurus",  key: "charger", hp: 55, desc: "telegraphs, then dashes" },
         { name: "Vortex",  key: "spiral",  hp: 50, desc: "a whirlwind that reverses its spin" },
         { name: "Ballista",key: "gatling", hp: 50, desc: "orbits, then locks on & focus-fires" },
-        { name: "Testudo", key: "lattice", hp: 85, desc: "spinning ranks of darts" },
+        { name: "Testudo", key: "lattice", hp: 70, desc: "spinning ranks of darts" },
         { name: "Vulcan",  key: "hades",   hp: 95, desc: "final boss: curling forge-flames + volleys", final: true },
       ],
     },

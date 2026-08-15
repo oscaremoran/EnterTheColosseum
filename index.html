@@ -307,6 +307,34 @@
   .subpane.hidden { display: none; }
   .subpane { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
 
+  /* ---- Credits ---- */
+  .creditcard { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .credtitle {
+    font-family: var(--serif); font-weight: 700; letter-spacing: 5px;
+    font-size: clamp(20px, 4.4vw, 30px); line-height: 1.2; text-transform: uppercase;
+    color: #f6ecd6; text-align: center;
+  }
+  .credtitle .accent {
+    background: linear-gradient(180deg, #f6dc9a 0%, #d9a441 55%, #a97a24 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .credline { width: 120px; height: 1px; background: var(--bronze); }
+  .credits {
+    display: flex; flex-direction: column; align-items: center;
+    width: 100%; max-width: 460px; gap: 2px; text-align: center;
+  }
+  .credrole {
+    margin-top: 14px; font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .credname {
+    font-family: var(--serif); font-weight: 700; color: var(--gold);
+    font-size: clamp(14px, 2.8vw, 17px); letter-spacing: 1.5px;
+  }
+  /* A line waiting for a name. Marked, so it reads as room rather than an error. */
+  .credname.credempty { color: #4a3c2a; }
+  .crednote { color: var(--muted); font-size: 12.5px; line-height: 1.55; margin-top: 4px; }
+
   /* The head of an open stall: the way out, and which counter this is. */
   .stallhead {
     display: flex; align-items: center; gap: 14px;
@@ -972,7 +1000,7 @@
       <div class="tutcard">
         <p class="tut-kicker">THE THIRD DAY</p>
         <p class="tut-head">TAKE A BREAK?</p>
-        <p class="tut-body">You've played a lot today. You might want to take a break? If you keep going, the games carry on — but nothing pays. No denarii until the next sitting.</p>
+        <p class="tut-body">You've played a lot today. You might want to take a break? Three days is a long sitting. Nothing is taken from you either way — the games carry on and the purse carries on with them.</p>
         <div class="tut-foot">
           <button class="primary" id="breakYes">Yes</button>
           <button id="breakNo">No, deal the next day</button>
@@ -1220,6 +1248,51 @@
           <button class="primary" id="loadBtn">Load</button>
         </div>
         <p id="saveMsg"></p>
+      </div>
+
+      <!-- Credits: the stone by the door. Sections rather than a paragraph, so
+           a name can be added to one without rewriting the rest. -->
+      <div class="tabpanel hidden" data-panel="credits">
+        <div class="creditcard">
+          <div class="credtitle">ENTER THE<br><span class="accent">COLOSSEUM</span></div>
+          <div class="credline"></div>
+        </div>
+
+        <div class="credits">
+          <div class="credrole">Made by</div>
+          <div class="credname">Oscar Moran</div>
+
+          <div class="credrole">Design &amp; direction</div>
+          <div class="credname">Oscar Moran</div>
+
+          <div class="credrole">Code</div>
+          <div class="credname">Oscar Moran</div>
+
+          <div class="credrole">Words</div>
+          <div class="credname">Oscar Moran</div>
+
+          <div class="credrole">Music &amp; sound</div>
+          <div class="credname">Oscar Moran</div>
+          <div class="crednote">Every note in this game is generated as it plays — there are no audio files. The band is a step sequencer and a handful of oscillators.</div>
+
+          <div class="credrole">Playtesting</div>
+          <div class="credname credempty">—</div>
+
+          <div class="credrole">Thanks</div>
+          <div class="credname credempty">—</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="credits">
+          <div class="credrole">The men on the board</div>
+          <div class="crednote">The twenty-four names on the Ladder are real. They come off surviving inscriptions and graffiti, and where a record survives — how many times a man fought, how many he won, how many times he was beaten and allowed to walk off — it is his own, not invented. Glauco's stone was paid for by his wife Aurelia. Bato was a Dacian who fought three men in one day and won the first two. They were people before they were opponents.</div>
+
+          <div class="credrole">The Latin</div>
+          <div class="crednote">The contracts, the armaturae, the sparsiones and the rest are the real terms as far as the sources have them. Where the game had to invent a word for something Rome never had to name, it says so in its own comments rather than pretending.</div>
+        </div>
+
+        <p class="hint" style="margin-top:6px">Everything here runs off a disk with no server, no account and nothing sent anywhere. Whatever this game knows about you, it knows only on this machine.</p>
       </div>
 
       <!-- How to play -->
@@ -2558,6 +2631,11 @@
   function winGame() {
     state = GS.OVER;
     stopMusic();
+    // Say what this button does before working out what kind of win it was.
+    // The level branch below never set it, so every ordinary win wore whatever
+    // the last screen had left on it — which, right after the school, was
+    // "Enter the Colosseum" on a button that re-fights a battle.
+    againBtn.textContent = "Replay";
     // Let go of the controls. The end screen hides the HUD, and the pad is
     // bound to the HUD — so a thumb still down when the bout ends never gets
     // its pointerup, the capture is lost on an element that is now display:none,
@@ -2599,13 +2677,14 @@
     planSettle(true);
 
     // The purse: a clear pays out its peril, scaled by the contract you fought
-    // under and again by how bad the thing was. The Ludus pays nothing, a bout
-    // taken from under the card pays nothing, and a sitting that ran past the
-    // third day pays nothing either — all three for the same reason, which is
-    // that the purse is for work the building asked you to do.
+    // under and again by how bad the thing was. The Ludus pays nothing and a
+    // bout taken from under the card pays nothing, for the same reason: the
+    // purse is for work the building asked you to do. Playing a long sitting is
+    // not one of those reasons — the building says its piece about the hour and
+    // then keeps paying you like anybody else.
     const mult = PAY_MULT[difficulty] != null ? PAY_MULT[difficulty] : 1;
     const peril = perilPay(activePeril);
-    const dry = !mult || practice || offPlan || !onCard || unpaidSitting;
+    const dry = !mult || practice || offPlan || !onCard;
     const base = dry ? 0 : Math.max(1, Math.round(Math.max(1, activeRating | 0) * mult * peril));
 
     // Marks the surgeon gave you that nothing ever took off you again. Each is
@@ -2625,7 +2704,6 @@
     const note = bits.length ? ` (${bits.join(" · ")})` : "";
     const purse = paid ? ` +${paid} denarii${note} · purse ${denarii()}`
                 : offPlan ? " Off the card — nothing earned, nothing recorded."
-                : unpaidSitting ? " Past the third day — nothing paid."
                 : "";
 
     // The spare marks get their own line, in the surgeon's green, because it is
@@ -2643,20 +2721,11 @@
       endBest.textContent = practice
         ? "Fought in the Ludus — the board is unchanged."
         : moved || "";
-      // A settled rung is not a thing to re-fight, so the button looks up who is
-      // standing above you now and offers HIM by name. It used to say "Next
-      // Challenge" and hand you the man you had just beaten, which is neither
-      // next nor a challenge.
-      const nx = nextChallenger();
-      if (nx) {
-        againBtn.textContent = `Call Out ${nx.name}`;
-        endBest.textContent = (endBest.textContent ? endBest.textContent + " " : "")
-          + `Above you now: ${nx.name}, rank ${roman(loadLadder().board[nx.id])}.`;
-        endHint.textContent = `Space to call out ${nx.name}`;
-      } else {
-        againBtn.textContent = "Back to the Card";
-        endHint.textContent = "Space to go back to the card";
-      }
+      // One ladder bout a day, and this was one. The man above you now is
+      // tomorrow's business, not a button on this screen — chaining challenges
+      // off the end of a win was a second ladder fight the day never posted.
+      againBtn.textContent = "Back to the Card";
+      endHint.textContent = "Space to go back to the card";
       return;
     }
 
@@ -2666,10 +2735,12 @@
       // and above all no form unsealed — the campaign is walked one day at a
       // time or not at all.
       if (offPlan) {
+        againBtn.textContent = "Replay";
         endStat.textContent = `Cleared in ${totalTime.toFixed(1)}s.${purse}`;
         endBest.textContent = "Practice, off the card. Nothing recorded.";
         return;
       }
+      againBtn.textContent = "Replay";
       markCleared(activeLevel.id);
       // Winning the battle itself is what opens the next link in the chain.
       if (activeLevel.id.startsWith("battle:")) markFormId(activeLevel.id);
@@ -2685,7 +2756,7 @@
       }
       return;
     }
-    againBtn.textContent = "Play Again";
+    againBtn.textContent = "Replay";
     endStat.textContent = `All ${STAGES.length} stages cleared in ${totalTime.toFixed(1)}s.${purse}`;
     endBest.textContent = "";
   }
@@ -2693,6 +2764,7 @@
   function loseGame() {
     state = GS.OVER;
     stopMusic();
+    sfx("defeat");
     // Let go of the controls. The end screen hides the HUD, and the pad is
     // bound to the HUD — so a thumb still down when the bout ends never gets
     // its pointerup, the capture is lost on an element that is now display:none,
@@ -3057,21 +3129,7 @@
         const same = LADDER_BY_ID[lastCardBout.ref];
         if (same) { activePlanBout = lastCardBout; return fightLadder(same); }
       }
-      // A win means whoever the swap has left standing above you. He goes onto
-      // today's card as his own bout before he is fought, because the card is
-      // what keeps the count — a rung taken outside it would settle nothing.
-      const nx = nextChallenger();
-      if (nx) {
-        const p = plan();
-        if (p) {
-          const rank = loadLadder().board[nx.id];
-          const b = planBout("ladder", nx.id, nx.name, ladderRating(rank));
-          p.bouts.push(b);
-          planSave();
-          activePlanBout = b;
-        }
-        return fightLadder(nx);
-      }
+      // And that is the day's ladder bout spent, however it went.
       return openLadder();
     }
     // A duel is settled the moment it ends — there is nothing to re-fight. Either
@@ -3686,7 +3744,7 @@
     // The card on the wall goes with everything else, and the man is a novice
     // again — which means his next day is the school, the same as any newcomer.
     planCache = null;
-    unpaidSitting = false;
+    breakAsked = false;
     sittingDays = 0;
     try { localStorage.removeItem("dodger_tutorial_done"); } catch (e) { /* full disk */ }
     disarmWipe();
@@ -4000,7 +4058,7 @@
   const STALLS = [
     {
       tab: "munera", name: "Munera", sub: "the day's card",
-      x: 360, y: 112, color: "#ff5a2b",
+      x: 360, y: 96,  color: "#ff5a2b",
       what: "Where you are told what you are fighting. A gladiator did not choose his afternoon out of a list — the day's card was posted and he fought his way down it. One man off the ladder, two bouts out of the record office, a day's games, and the next form down each of the two campaign paths. Finish the card and the next day is dealt.",
       now: () => {
         const p = plan();
@@ -4012,13 +4070,13 @@
     },
     {
       tab: "horreum", name: "Horreum", sub: "the granary, and the desk beside it",
-      x: 132, y: 268, color: "#f0b429",
+      x: 128, y: 236, color: "#f0b429",
       what: "The granary under the stands, where the prize codes are kept and sold for what you have won. The Sponsio desk shares the counter: three bouts go up on a board with drifting prices, you lay money on men who are not you, and then you watch from the stands like everyone else — with the editor reachable, for a price, if the fight goes the wrong way.",
       now: () => `✦ ${denarii()} in the purse`,
     },
     {
       tab: "vault", name: "Vault", sub: "the strongbox",
-      x: 588, y: 268, color: "#ff66c4",
+      x: 592, y: 236, color: "#ff66c4",
       what: "The iron-bound box the codes go into. Whatever you bought at the granary is typed in here to take effect. Nothing else lives in it any more — a career is emptied out from Settings now, where a thing that dangerous belongs.",
       now: () => {
         const waiting = boughtCodes().length;
@@ -4028,7 +4086,7 @@
     },
     {
       tab: "tessera", name: "Tessera", sub: "whose career this is",
-      x: 132, y: 442, color: "#dbe6f2",
+      x: 128, y: 396, color: "#dbe6f2",
       what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on both boards, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped and struck off here.",
       now: () => {
         const rec = loadRecord();
@@ -4037,7 +4095,7 @@
     },
     {
       tab: "settings", name: "Settings", sub: "the sound, the terms, the wipe",
-      x: 588, y: 442, color: "#8fa3b8",
+      x: 592, y: 396, color: "#8fa3b8",
       what: "The two switches for what the building sounds like, and the three contracts a bout can be booked under. Ludus is wooden swords — nobody can be wounded, nothing is paid. Munus Legitimum is the sanctioned bout, three lives. Sine Missione is one life, no appeal, and triple the purse. Emptying a career out is done down here too, behind two questions.",
       now: () => {
         const d = DIFF_BY_KEY[difficulty] || DIFFS[1];
@@ -4046,7 +4104,7 @@
     },
     {
       tab: "offcard", name: "Off the Card", sub: "open practice, worth nothing",
-      x: 360, y: 560, color: "#7b5cff",
+      x: 360, y: 664, color: "#7b5cff",
       what: "The same fourteen forms, the same record office, the same board and the same school — reachable any time, and worth nothing at all. Nothing here pays, records a time, unseals a form or moves a rung. It is where you go to learn a man before the day puts him in front of you, or because you feel like fighting and nobody asked you to.",
       now: () => {
         const done = loadCleared();
@@ -4055,8 +4113,14 @@
       },
     },
     {
+      tab: "credits", name: "Credits", sub: "whose hands this passed through",
+      x: 128, y: 556, color: "#c9a227",
+      what: "The stone by the door with the names cut into it. Somebody built this — the sand, the men on the board, the words in your ear, the noise the crowd makes — and the Romans would have put that on the wall where you come in, because a building without a name on it belongs to nobody.",
+      now: () => "one name, and room for more",
+    },
+    {
       tab: "help", name: "How to Play", sub: "the trainer, if you ask him",
-      x: 360, y: 664, color: "#a08f76",
+      x: 592, y: 556, color: "#a08f76",
       what: "The man who trains the school. He will go over the whole of it: the emperor's eye and why you have to stand in it, the hot circle that burns three times as fast and only some of the time, what the crowd throws into the sand, and every armatura you are likely to meet across from you.",
       now: () => "he has time for you",
     },
@@ -4091,7 +4155,12 @@
   // band stops, and anything the last fight left flying is dropped.
   function enterHub(fromTab) {
     state = GS.HUB;
-    stopMusic(true);
+    // Not silence. The building has music of its own down here, and the games
+    // are on somewhere above you — startMusic crossfades out of whatever the
+    // bout was playing, so walking off the sand is a change of piece rather
+    // than a cut to nothing.
+    startMusic("concourse");
+    setCrowd(0.16);
     duel = null;
     duelSide = null;
     forfeitSlip();                // a bout you had money on is walked out on
@@ -4129,6 +4198,10 @@
     endEl.classList.add("hidden");
     hudEl.classList.add("hidden");
     setTab(tabName);
+    // The concourse theme plays on through an open stall — you have not left
+    // the building, you are standing at a counter in it. startMusic is a no-op
+    // when the theme is already the one playing.
+    startMusic("concourse");
     disarmWipe();             // never leave the wipe armed behind you
     if (tabName === "munera") renderPlan();
     if (tabName === "offcard") { renderLadder(true); renderLibrary(); renderBattles(); renderMunera(); }
@@ -4158,6 +4231,19 @@
     }
     hub.x = Math.max(26, Math.min(W - 26, hub.x));
     hub.y = Math.max(26, Math.min(H - 26, hub.y));
+
+    // A footfall every so many paces, wherever the foot actually landed.
+    if (hub.walk - (hub.lastStep || 0) > 46) {
+      hub.lastStep = hub.walk;
+      hubSteps.push({ x: hub.x, y: hub.y + 13, t: 0, max: 0.75 });
+      if (hubSteps.length > 14) hubSteps.shift();
+    }
+    // The dust rises, wraps, and never runs out.
+    for (const d of HUB_DUST) {
+      d.x += d.vx * dt; d.y += d.vy * dt;
+      if (d.y < -6) { d.y = H + 6; d.x = Math.random() * W; }
+      if (d.x < -6) d.x = W + 6; else if (d.x > W + 6) d.x = -6;
+    }
     const was = hub.near;
     hub.near = nearestStall();
     if (hub.near && hub.near !== was) sfx("tick");   // the stall notices you
@@ -4183,11 +4269,13 @@
   // let go of it — resolveLadder needs to know how many times you have now lost
   // to this man to say the right thing about it.
   let lastCardBout = null;
-  // How many days have been dealt this sitting, and whether the building has
-  // stopped paying because of it. Session-only, both of them: closing the tab is
+  // How many days have been dealt this sitting. Session-only: closing the tab is
   // the break it was asking you to take.
   let sittingDays = 0;
-  let unpaidSitting = false;
+  // Whether the building has already said its piece about the hour. It says it
+  // once and then leaves you alone: there is no penalty behind it, and a warning
+  // repeated every day is a warning nobody reads.
+  let breakAsked = false;
 
   function plan() {
     if (!planCache) planCache = loadPlan();
@@ -4269,14 +4357,6 @@
     return planCache;
   }
 
-  // The man standing directly above you, if there is one and you are still owned
-  // by the school. Null once the rudis has been granted: a discharged fighter
-  // has nobody left to call out.
-  function nextChallenger() {
-    if (hasRudis()) return null;
-    return challengeable(loadLadder());
-  }
-
   // What a rung is worth, as a peril from I to V. Pulled out of fightLadder so
   // the card can price a bout before anybody walks onto the sand.
   function ladderRating(rank) {
@@ -4300,7 +4380,7 @@
   // says something about it.
   function rollDay() {
     if (!planFinished()) return;
-    if (sittingDays >= DAYS_PER_SITTING && !unpaidSitting) { askBreak(); return; }
+    if (sittingDays >= DAYS_PER_SITTING && !breakAsked) { askBreak(); return; }
     const p = plan();
     CONDICIO.advanceDay();
     dealPlan(p.day + 1);
@@ -4320,9 +4400,10 @@
     enterHub("munera");
   });
   document.getElementById("breakNo").addEventListener("click", () => {
-    // Staying. The building does not stop you and does not pay you.
+    // Staying. The building asked once and then got out of the way — it does
+    // not stop you, and it does not fine you for the hour either.
     breakEl.classList.add("hidden");
-    unpaidSitting = true;
+    breakAsked = true;
     rollDay();
   });
 
@@ -4438,11 +4519,9 @@
     planLeftEl.textContent = left
       ? `${roman(left)} of ${roman(p.bouts.length)} still standing`
       : "the card is finished";
-    planNoteEl.textContent = planMsg || (unpaidSitting
-      ? "You stayed past the third day. Nothing pays until the next sitting."
-      : left
-        ? "Fight them in any order. Buying your way past one costs by its peril — the easier it is, the dearer it is to avoid."
-        : "Nothing left on it. Call the next day when you are ready.");
+    planNoteEl.textContent = planMsg || (left
+      ? "Fight them in any order. Buying your way past one costs by its peril — the easier it is, the dearer it is to avoid."
+      : "Nothing left on it. Call the next day when you are ready.");
     planMsg = "";
 
     for (const b of p.bouts) {
@@ -5984,17 +6063,27 @@
         //
         // Everything scales off one number, so the shallow version is untouched.
         const deep = Math.min(1, stageDepth() / 5);
-        moveToward(W / 2, H * 0.30, (45 + 25 * deep) * m, dt);
-        boss.spin += dt * (0.32 + 0.30 * deep);
+        moveToward(W / 2, H * 0.30, (45 + 18 * deep) * m, dt);
+        boss.spin += dt * (0.32 + 0.16 * deep);
         if (boss.fire <= 0) {
-          boss.fire = (0.22 - 0.06 * deep) / m;
-          const spokes = 3 + Math.round(2 * deep);
-          radial(spokes, boss.spin, (120 + 34 * deep) * m, 6);
-          // The second rank. It turns against the first, which is the whole
-          // difference: a gap in one rank is only a gap while the other rank is
-          // not standing in it, so the safe ground moves and keeps moving.
-          if (deep >= 0.5) {
-            radial(spokes, -boss.spin * 1.3 + 0.5, (104 + 26 * deep) * m, 6);
+          boss.fire = (0.22 - 0.025 * deep) / m;
+          // Four spokes at the bottom of the boss rather than five. Five closed
+          // the gaps to 72°, and with a second rank scissoring through them the
+          // floor stopped having a right answer on it — which is not difficulty,
+          // it is a coin toss with extra steps.
+          const spokes = 3 + Math.round(deep);
+          radial(spokes, boss.spin, (120 + 18 * deep) * m, 6);
+          // The second rank, and only for the very deepest — Testudo himself and
+          // the top of the board. It turns against the first, so a gap is only a
+          // gap while the other rank is not standing in it. One spoke lighter
+          // than the front rank, so there is always more air in it.
+          // ...and it comes in bursts rather than continuously. Held down, the
+          // scissor never opens and the floor has no right answer on it; every
+          // other volley, it is a rhythm you can read and step through, which
+          // is the thing a rank of shields is supposed to be.
+          boss.alt = !boss.alt;
+          if (deep >= 0.75 && boss.alt) {
+            radial(Math.max(2, spokes - 2), -boss.spin * 1.15 + 0.5, (96 + 12 * deep) * m, 6);
           }
         }
         // Closing ranks. Past half health a deep lattice throws a wall with one
@@ -6006,10 +6095,12 @@
           boss.fire2 -= dt * stageRate;
           if (!phase2 && boss.hp <= boss.maxhp * 0.5) phase2 = true;
           if (phase2 && boss.fire2 <= 0) {
-            boss.fire2 = 3.4 / m;
+            // Slower, and with a door in it you can actually walk through: this
+            // is meant to be the beat in the fight, not the thing that ends it.
+            boss.fire2 = 4.6 / m;
             const gap = boss.spin * 2.1;
-            telegraph(0.7, "ring", { x: boss.x, y: boss.y, gap, half: 0.5 },
-              () => ringGap(22, boss.spin, 118 * m, 6, gap, 0.5));
+            telegraph(0.8, "ring", { x: boss.x, y: boss.y, gap, half: 0.7 },
+              () => ringGap(20, boss.spin, 112 * m, 6, gap, 0.7));
           }
         }
         break;
@@ -7374,11 +7465,29 @@
   // raked sand, arches down both walls, and a stall in each of them. Everything
   // is drawn from the STALLS table, so a stall can never end up somewhere the
   // walking code does not think it is.
+  // The furniture of the passage, worked out once. Torches sit between the
+  // arches, banners hang over them, and the dust has been in the air since
+  // before you walked in — none of it is decided per frame.
+  const TORCHES = [];
+  for (const cy of [236, 396, 556]) { TORCHES.push({ x: 48, y: cy - 78 }, { x: W - 48, y: cy - 78 }); }
+  const HUB_DUST = [];
+  for (let i = 0; i < 40; i++) {
+    HUB_DUST.push({
+      x: Math.random() * W, y: Math.random() * H,
+      r: 0.7 + Math.random() * 1.4,
+      vx: (Math.random() - 0.5) * 5, vy: -3 - Math.random() * 7,
+      ph: Math.random() * Math.PI * 2, a: 0.10 + Math.random() * 0.22,
+    });
+  }
+  // Dust kicked up where a man's foot lands, which is the only thing in here
+  // that knows you exist.
+  const hubSteps = [];
+
   function drawHubFloor() {
     const g = ctx.createRadialGradient(W / 2, H * 0.42, 60, W / 2, H / 2, W * 0.8);
-    g.addColorStop(0, "#332618");
-    g.addColorStop(0.6, "#241b10");
-    g.addColorStop(1, "#120d07");
+    g.addColorStop(0, "#3a2c1a");
+    g.addColorStop(0.55, "#241b10");
+    g.addColorStop(1, "#0e0a06");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
@@ -7393,30 +7502,82 @@
     ctx.stroke();
     ctx.restore();
 
-    // The two walls, and the arches cut into them. Purely scenery: the whole
-    // floor is walkable, and the stalls sit in front of the arches rather than
-    // inside them, so nothing you can walk into is hidden behind stonework.
+    // The two walls, and the arches cut into them.
     for (const side of [0, 1]) {
       const x = side ? W - 34 : 0;
-      const grad = ctx.createLinearGradient(x, 0, x + (side ? 34 : 34), 0);
-      grad.addColorStop(side ? 1 : 0, "#0e0a06");
-      grad.addColorStop(side ? 0 : 1, "#1d1610");
+      const grad = ctx.createLinearGradient(x, 0, x + 34, 0);
+      grad.addColorStop(side ? 1 : 0, "#0b0805");
+      grad.addColorStop(side ? 0 : 1, "#1f1811");
       ctx.fillStyle = grad;
       ctx.fillRect(x, 0, 34, H);
     }
-    ctx.save();
-    ctx.strokeStyle = "rgba(107,79,42,0.5)";
-    ctx.lineWidth = 2;
-    // One arch behind each stall in the two columns, so the stonework and the
-    // stalls are laid out by the same numbers rather than by two guesses.
-    for (const cy of [268, 442]) {
+    // Daylight off the sand, coming through the arches. The games are happening
+    // out there whether you go back or not, and this is the only way you can see
+    // that from in here.
+    for (const cy of [236, 396, 556]) {
       for (const cx of [34, W - 34]) {
+        const dir = cx < W / 2 ? 1 : -1;
+        const lg = ctx.createLinearGradient(cx, cy, cx + dir * 120, cy);
+        lg.addColorStop(0, "rgba(240,200,120,0.10)");
+        lg.addColorStop(1, "rgba(240,200,120,0)");
+        ctx.fillStyle = lg;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 54);
+        ctx.lineTo(cx + dir * 130, cy - 96);
+        ctx.lineTo(cx + dir * 130, cy + 96);
+        ctx.lineTo(cx, cy + 54);
+        ctx.closePath();
+        ctx.fill();
+        ctx.save();
+        ctx.strokeStyle = "rgba(107,79,42,0.55)";
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(cx, cy, 54, -Math.PI / 2, Math.PI / 2, cx > W / 2);
         ctx.stroke();
+        ctx.restore();
       }
     }
-    ctx.restore();
+
+    // Banners between the arches, breathing on whatever air is down here.
+    for (const t of TORCHES) {
+      const dir = t.x < W / 2 ? 1 : -1;
+      const sway = Math.sin(hub.t * 0.7 + t.y) * 3;
+      ctx.save();
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = t.x < W / 2 ? "#5a1f16" : "#1d2f4a";
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y - 44);
+      ctx.lineTo(t.x + dir * 30, t.y - 40 + sway);
+      ctx.lineTo(t.x + dir * 30, t.y + 34 + sway);
+      ctx.lineTo(t.x + dir * 15, t.y + 22);
+      ctx.lineTo(t.x, t.y + 26);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Torches. Two flickers of different speeds multiplied together, so the
+    // light never finds a rhythm — a torch on a sine wave reads as a pulse,
+    // and a pulse reads as machinery.
+    for (const t of TORCHES) {
+      const f = 0.72 + 0.28 * Math.sin(hub.t * 9.3 + t.y) * Math.sin(hub.t * 3.1 + t.x);
+      const pool = ctx.createRadialGradient(t.x, t.y, 4, t.x, t.y, 150 * f);
+      pool.addColorStop(0, `rgba(255,190,90,${0.20 * f})`);
+      pool.addColorStop(0.5, `rgba(220,130,50,${0.07 * f})`);
+      pool.addColorStop(1, "rgba(220,130,50,0)");
+      ctx.fillStyle = pool;
+      ctx.beginPath(); ctx.arc(t.x, t.y, 150 * f, 0, Math.PI * 2); ctx.fill();
+      // the bracket, and the flame in it
+      ctx.fillStyle = "#2a2016";
+      ctx.fillRect(t.x - 3, t.y, 6, 20);
+      ctx.save();
+      ctx.shadowColor = "#ffb44a"; ctx.shadowBlur = 22 * f;
+      ctx.fillStyle = `rgba(255,206,120,${0.85 * f})`;
+      ctx.beginPath();
+      ctx.ellipse(t.x, t.y - 6 - f * 2, 4.5 * f, 9 * f, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
   }
 
   // One stall. Awning, counter, sign — brighter and raised when you are standing
@@ -7454,6 +7615,18 @@
       ctx.fillRect(s.x - w / 2 + i * (w / 7), s.y - h / 2 - 11, w / 7, 11);
     }
     ctx.restore();
+
+    // A lantern hung on the post. Dim when nobody is at the counter, up when
+    // somebody is — the stalls are staffed, in the sense that they notice you.
+    const lf = (lit ? 1 : 0.42) * (0.85 + 0.15 * Math.sin(hub.t * 6 + s.y));
+    const lx = s.x - w / 2 - 12, ly = s.y - 4;
+    const lg = ctx.createRadialGradient(lx, ly, 2, lx, ly, 42 * lf);
+    lg.addColorStop(0, `rgba(255,196,110,${0.30 * lf})`);
+    lg.addColorStop(1, "rgba(255,196,110,0)");
+    ctx.fillStyle = lg;
+    ctx.beginPath(); ctx.arc(lx, ly, 42 * lf, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = `rgba(255,214,150,${0.75 * lf})`;
+    ctx.beginPath(); ctx.arc(lx, ly, 2.6, 0, Math.PI * 2); ctx.fill();
 
     // The name, cut on the counter; what it sells, only once you are there.
     ctx.textAlign = "center";
@@ -7549,13 +7722,50 @@
     const shown = hub.hover || hub.near;
     for (const s of STALLS) drawStall(s, shown === s || hub.near === s);
 
-    // The man himself, drawn by the same hand that draws him on the sand.
+    // Dust off his heels. Spawned by distance walked rather than by time, so
+    // standing still leaves the floor alone.
+    for (let i = hubSteps.length - 1; i >= 0; i--) {
+      const p = hubSteps[i];
+      p.t += 1 / 60;
+      if (p.t > p.max) { hubSteps.splice(i, 1); continue; }
+      const k = 1 - p.t / p.max;
+      ctx.fillStyle = `rgba(190,160,110,${0.16 * k})`;
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, 5 + (1 - k) * 12, 2 + (1 - k) * 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // The man himself, drawn by the same hand that draws him on the sand — with
+    // a shadow under him, because everything else down here throws one.
     const bob = Math.sin(hub.walk / 26) * 1.8;
     ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.34)";
+    ctx.beginPath();
+    ctx.ellipse(hub.x, hub.y + 15, 12, 4.5, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.shadowColor = COLORS.safe; ctx.shadowBlur = 14;
     circle(hub.x, hub.y + bob, 13, COLORS.safe, "#eafcff", 2);
     ctx.shadowBlur = 0;
     ctx.restore();
+
+    // Dust in the torchlight. It has been in the air the whole time; it only
+    // becomes visible where something is burning.
+    ctx.save();
+    for (const d of HUB_DUST) {
+      const drift = Math.sin(hub.t * 0.6 + d.ph) * 6;
+      ctx.fillStyle = `rgba(240,214,170,${d.a})`;
+      ctx.beginPath();
+      ctx.arc(d.x + drift, d.y, d.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // The passage is deep and the light is in the middle of it.
+    const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.78);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(1, "rgba(0,0,0,0.42)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, W, H);
 
     // What the place actually is, at length, for whichever stall is being
     // looked at or stood at.
@@ -7565,11 +7775,20 @@
     // corner — it belongs to where he is standing.
     if (hub.near) {
       const label = padMode ? "TAP THE GATE" : "SPACE";
+      const text = `${label} — ${hub.near.name.toUpperCase()}`;
+      // On whichever side of the counter he is actually standing. Walk up to a
+      // gate from above and the prompt used to be written across its sign.
+      const above = hub.y < hub.near.y;
+      const py = above ? hub.y - 26 : hub.y + 38;
       ctx.save();
       ctx.textAlign = "center";
-      ctx.fillStyle = COLORS.gold;
       ctx.font = `700 13px ${FONT}`;
-      ctx.fillText(`${label} — ${hub.near.name.toUpperCase()}`, hub.x, hub.y + 34);
+      const tw = ctx.measureText(text).width;
+      ctx.fillStyle = "rgba(10,7,4,0.82)";
+      roundRect(hub.x - tw / 2 - 9, py - 12, tw + 18, 20, 4);
+      ctx.fill();
+      ctx.fillStyle = COLORS.gold;
+      ctx.fillText(text, hub.x, py + 3);
       ctx.restore();
     } else if (hub.enterT < 7) {
       // Only while it is new. Nobody needs to be told how to walk twice.
