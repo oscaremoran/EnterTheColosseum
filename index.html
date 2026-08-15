@@ -1349,7 +1349,7 @@
 
         <div class="subpane" data-helppane="eye">
           <p class="sub"><b style="color:var(--text)">Arrow keys</b> to move. Stand inside the <b style="color:var(--safe)">Emperor's Eye</b>, the patch of sand he is watching to drain your opponent's life.</p>
-          <p class="sub">The special <b style="color:#5b78ff">×III Eye</b> sits under your opponent's shield and orbits with them, draining three times as fast. But it only burns in bursts: it goes <b>cold</b>, and standing on a cold circle does nothing. Watch the ring spark just before it lights, and be on it when it does. <b>A wound puts it out</b> — the burn is for a fighter nobody is touching, so you cannot buy it with marks.</p>
+          <p class="sub">The special <b style="color:#5b78ff">×III Eye</b> sits under your opponent's shield and orbits with them, draining three times as fast. But it only burns in bursts: it goes <b>cold</b>, and standing on a cold circle does nothing. Watch the ring spark just before it lights, and be on it when it does. <b>Take a hit while you are standing in it and it goes out</b>, and stays cold a few seconds longer than usual. The ×III is for a fighter nobody is laying a hand on — you cannot stand in the fire and pay for it with marks. A wound anywhere else on the sand leaves it burning.</p>
           <p class="sub"><b style="color:var(--warn)">Go to the eye.</b> If an eye opens and you never set foot in it before it moves on, your opponent gets <b>a chunk of their health back.</b> The eye turns yellow and counts down first, so you'll see it coming. Waiting in a safe corner for the damage to come to you is not a plan. The ×III Eye never vanishes, it just goes cold with no punishment for not coming.</p>
         </div>
 
@@ -6146,10 +6146,15 @@
     // relights on a short count — see HOT_PUNISH — so what you lose is the
     // window you were in, not your afternoon. You may still cross the sand for
     // it and still stand in it; what you may no longer do is pay for it in blood.
-    if (hotZone && hotZone.on) {
+    // ...and only if you were standing in it. Taking a hit on the far side of
+    // the sand has nothing to do with the circle, and putting it out for that
+    // was punishing the wrong thing — it made every wound anywhere cost you a
+    // window you were nowhere near.
+    if (hotZone && hotZone.on &&
+        Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r) {
       hotZone.on = false;
       hotZone.t = HOT_PUNISH;
-      pickupFlash = { label: "THE BURN IS OUT", color: "#7f9dff", t: 0 };
+      pickupFlash = { label: "HIT IN THE BURN — IT GOES OUT", color: "#7f9dff", t: 0 };
     }
     if (bossSpeaker) { bossSpeaker.quiet = 0; say(bossSpeaker, "drew"); }
     shockwaves.push({ x: player.x, y: player.y, t: 0, dur: 0.35 });
