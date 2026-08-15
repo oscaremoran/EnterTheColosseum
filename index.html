@@ -6945,12 +6945,23 @@
       // met one form at a time they are earned in Battles like everything else.
       // Anyone else running these patterns — a ladder fighter, a built level —
       // is a person with a name, and gets told they are not finished yet.
+      //
+      // Named from the campaign rather than from the pattern key. "hades" and
+      // "void" are what the engine calls these two shapes; the men wearing them
+      // are Vulcan and Nox, and the player has never been told otherwise. The
+      // internal name was leaking onto the screen at the loudest moment of the
+      // hardest fight in the game.
       const mythic = !!STAGES[stageIdx].final && mode === "level" &&
                      !!activeLevel && String(activeLevel.id).startsWith("battle:");
+      // The man on the sand, not the bout he is in. On a Library run that
+      // chains both crowns, activeCamp is the level's title — "DUAE CORONAE
+      // RELIGHTS" names the programme rather than the thing that just changed
+      // gear in front of you.
+      const who = ((STAGES[stageIdx] && STAGES[stageIdx].name) || activeCamp.name || "your opponent").toUpperCase();
       pickupFlash = {
         label: mythic
-          ? (key === "void" ? "THE VOID OPENS" : "HADES RELIGHTS")
-          : `${(activeCamp.name || "YOUR OPPONENT").toUpperCase()} FIGHTS ON`,
+          ? (key === "void" ? `${who} TAKES THE LIGHT` : `${who} RELIGHTS`)
+          : `${who} FIGHTS ON`,
         color: COLORS.warn, t: 0,
       };
       sfx("phase");
