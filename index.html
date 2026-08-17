@@ -507,6 +507,20 @@
     letter-spacing: 4px; font-size: clamp(16px, 3.2vw, 21px); text-transform: uppercase;
   }
   #planLeft { color: var(--muted); font-size: 12px; letter-spacing: 1.5px; }
+  #planClimb {
+    max-width: 520px; width: 100%; color: #d9a441; font-size: 13px;
+    letter-spacing: 0.5px; margin: 2px 0 0;
+  }
+  /* The rung bout is the main event and dresses like it: framed in the board's
+     gold, standing slightly proud of the supporting card. */
+  .planrow.main {
+    border: 1px solid rgba(217,164,65,0.55);
+    background: rgba(217,164,65,0.07);
+    box-shadow: 0 0 12px rgba(217,164,65,0.10);
+  }
+  .planrow.main .nm { font-size: 15px; }
+  .planrow.main .kindtag { color: var(--gold); }
+  .planrow.main.done { opacity: 0.6; }
   #planList { max-width: 520px; }
   /* A bout that is finished stops shouting: it keeps its place on the card so
      the day still reads as a day, but it steps back out of the way. */
@@ -1107,6 +1121,11 @@
           <div id="planDay">DAY —</div>
           <div id="planLeft">—</div>
         </div>
+        <!-- The career, stated over the card every morning: where you stand on
+             the board and how far the rudis still is. The climb IS the story;
+             everything else on the card is what a fighting man does on the way
+             up it. -->
+        <div id="planClimb">—</div>
         <p class="sub" id="planNote"></p>
         <div id="planList" class="liblist"></div>
         <div class="btnrow hidden" id="planDoneRow">
@@ -1176,7 +1195,7 @@
               <div id="ladderList" class="liblist"></div>
             </div>
             <div class="subpane hidden" id="ladderNotePane">
-              <p class="sub" id="ladderNote">Twenty-four fighters hold the board. The man standing directly above you is put on the day's card, and he is the only one you may fight for a rung — beat him and you take it. One defeat costs you nothing; lose to him <i>three times running</i> and you drop a rung and he is struck off the card for the day.</p>
+              <p class="sub" id="ladderNote"><b style="color:var(--gold)">This is the career.</b> Twenty-four fighters hold the board, the rudis waits above rank I, and taking it is what this building is asking of you — everything else in the place is training, purse, or spectacle on the way up. The man standing directly above you is put at the top of the day's card as its main event, and he is the only one you may fight for a rung — beat him and you take it. One defeat costs you nothing; lose to him <i>three times running</i> and you drop a rung and he is struck off the card for the day. The rung cannot be paid off the card: the board does not take money.</p>
               <p class="sub">Men above you sometimes ask for a bout of their own. Those settle no rung either way and pay like the rung they are standing on, which makes an invitation from near the top the best-paid afternoon available to somebody who has no business being up there yet. You can decline one on the card, and it costs nothing to say no.</p>
               <p class="sub">Take rank <b>I</b> and the <b>munerarius</b> — the magistrate paying for the games — grants you the <b>rudis</b>, the wooden sword that means discharge.</p>
               <p class="sub">The board belongs to <b style="color:#4dd7ff">Munus Legitimum</b> and to nothing else. Under the Ludus there is no rung to win — wooden swords settle nothing — and under Sine Missione there is no climb to have, because one loss would be the end of the career holding it. Take another contract and the board is still here to read; it just has nothing on the day's card and nobody on it you can call out.</p>
@@ -4286,13 +4305,18 @@
     {
       tab: "munera", name: "Munera", sub: "the day's card",
       x: 360, y: 96,  color: "#ff5a2b",
-      what: "Where you are told what you are fighting. A gladiator did not choose his afternoon out of a list — the day's card was posted and he fought his way down it. One man off the ladder, a bout out of the record office, a day's games, and the next form down whichever campaign path you are on — Vulcan's run first, then Nox's. Finish the card and the next day is dealt.",
+      what: "Where the career happens. Twenty-four men hold the board, the rudis — discharge, freedom — waits above rank I, and the day's card opens with the one man you can currently reach: that climb is the story of this building, and this gate is where it is told. Under the main event the card fills out with the day's work — a campaign form, a bout from the record office, a day's games — the things a fighting man does on the way up.",
       now: () => {
         const p = plan();
-        if (!p) return "no card dealt yet";
-        const left = p.bouts.filter((b) => b.state === "pending").length;
-        return left ? `day ${roman(p.day)} · ${roman(left)} still to fight`
-                    : `day ${roman(p.day)} · the card is finished`;
+        const left = p ? p.bouts.filter((b) => b.state === "pending").length : 0;
+        const climb = hasRudis() ? "rudiarius"
+          : !ladderOpen() ? "the climb waits"
+          : (() => { const st = loadLadder();
+                     return st.rank >= UNRANKED ? "unranked — the climb starts here"
+                                                : `rank ${roman(st.rank)} of ${roman(LADDER.length)}`; })();
+        if (!p) return climb;
+        return left ? `${climb} · ${roman(left)} still to fight`
+                    : `${climb} · the card is finished`;
       },
     },
     {
@@ -4508,7 +4532,7 @@
   // in the house gets shown round even if the first one could not stand him.
   const DOCTORE_STOPS = [
     { tab: null,      say: "New man. Keep up, I have four of you this morning." },
-    { tab: "munera",  say: "The card. You do not pick your fights; somebody upstairs picks them and you walk down the list. Today there is one thing on it." },
+    { tab: "munera",  say: "The card. The board has twenty-four men on it and the rudis above the last of them — that climb is your career, and the card opens with it every morning. Today there is one thing on it." },
     { tab: "offcard", say: "Through there is practice. It pays nothing. That is how you know it is practice." },
     { tab: "horreum", say: "Your money, when you have any. Do not spend it on the desk that takes bets." },
     { tab: "munera",  say: "That is the building. Go and stand at the card. The school is first, and it is the only fight today that cannot kill you." },
@@ -4701,30 +4725,13 @@
       planSave();
       return planCache;
     }
-    // One campaign bout a day, and the two runs are walked in order rather than
-    // side by side. A card carrying the next man down both paths was two boss
-    // forms every morning on top of everything else, and it meant you learned
-    // both halves of the game a slice at a time and neither of them properly.
-    // Vulcan's seven first; when the last of them is down, Nox's. With both
-    // runs finished there is nothing left to advance, so the day alternates
-    // between them for the practice and the purse.
-    {
-      const infernoDone = campaignCleared("inferno");
-      const key = !infernoDone ? "inferno"
-                : !campaignCleared("void") ? "void"
-                : (day % 2 ? "inferno" : "void");
-      const b = nextForm(key);
-      if (b) bouts.push(planBout("battle", b.id, b.stage.name, b.rating));
-    }
-    for (const lv of pickSome(LEVELS.filter((l) => levelUnlocked(l)), PLAN.library)) {
-      bouts.push(planBout("level", lv.id, lv.name, lv.rating));
-    }
-    for (const m of pickSome(MUNERA.filter((x) => munusUnlocked(x)), PLAN.munera)) {
-      bouts.push(planBout("munus", m.id, m.name, m.rating));
-    }
-    // The ladder, unless the board is shut to the contract you are fighting
-    // under, or the rudis has already been granted and there is nothing left up
-    // there to want.
+    // The rung, at the top of the card. The climb to the rudis is what a
+    // career IS — twenty-four men between you and the wooden sword, one of
+    // them reachable at a time — and everything else the day deals is what a
+    // fighting man does on the way up: the campaigns to learn the forms, the
+    // Library and the games for the purse. The card says so by dealing the
+    // main event first and dressing it apart. (Unless the board is shut to
+    // the contract, or the rudis is already yours.)
     if (ladderOpen() && !hasRudis()) {
       const st = loadLadder();
       const foe = challengeable(st);
@@ -4738,6 +4745,24 @@
         const inv = LADDER_BY_ID[st.invite];
         bouts.push(planBout("invite", inv.id, inv.name, ladderRating(st.board[inv.id])));
       }
+    }
+    // One campaign bout a day, and the two runs are walked in order rather than
+    // side by side. Vulcan's seven first; when the last of them is down, Nox's.
+    // With both runs finished there is nothing left to advance, so the day
+    // alternates between them for the practice and the purse.
+    {
+      const infernoDone = campaignCleared("inferno");
+      const key = !infernoDone ? "inferno"
+                : !campaignCleared("void") ? "void"
+                : (day % 2 ? "inferno" : "void");
+      const b = nextForm(key);
+      if (b) bouts.push(planBout("battle", b.id, b.stage.name, b.rating));
+    }
+    for (const lv of pickSome(LEVELS.filter((l) => levelUnlocked(l)), PLAN.library)) {
+      bouts.push(planBout("level", lv.id, lv.name, lv.rating));
+    }
+    for (const m of pickSome(MUNERA.filter((x) => munusUnlocked(x)), PLAN.munera)) {
+      bouts.push(planBout("munus", m.id, m.name, m.rating));
     }
     planCache = { day: day, bouts: bouts };
     planSave();
@@ -4819,6 +4844,7 @@
   // nothing else happens: no clear, no purse, no form unsealed. You did not
   // fight it — you simply are not going to.
   function skipPlanBout(b) {
+    if (b.kind === "ladder") return;   // the rung is not for sale — see renderPlan
     if (b.state !== "pending") return;
     const cost = skipCost(b.rating);
     // Ask the purse before taking from it. spendDenarii floors at empty and
@@ -4888,6 +4914,7 @@
   const planListEl = document.getElementById("planList");
   const planDayEl = document.getElementById("planDay");
   const planLeftEl = document.getElementById("planLeft");
+  const planClimbEl = document.getElementById("planClimb");
   const planNoteEl = document.getElementById("planNote");
   const planDoneRow = document.getElementById("planDoneRow");
   let planMsg = "";
@@ -4895,13 +4922,35 @@
 
   const KIND_TAG = {
     ludus: "THE SCHOOL", battle: "CAMPAIGN", level: "LIBRARY",
-    munus: "A DAY OF GAMES", ladder: "THE LADDER", invite: "INVITATION",
+    munus: "A DAY OF GAMES", ladder: "THE MAIN EVENT · A RUNG OF THE BOARD",
+    invite: "INVITATION",
   };
+
+  // The career, said in one line over the card. The climb is the story of this
+  // game and the card is where the story is read, so every morning opens with
+  // where you stand on it.
+  function climbLine() {
+    if (hasRudis()) {
+      return "Rudiarius — the climb is finished and the rudis is yours. Every fight from here is because you want it.";
+    }
+    if (!ladderOpen()) {
+      return "The board is shut to this contract — the climb waits for Munus Legitimum. See Settings.";
+    }
+    const st = loadLadder();
+    if (st.rank >= UNRANKED) {
+      return `Unranked — ${roman(LADDER.length)} men between you and the rudis. The climb starts at the bottom rung.`;
+    }
+    const above = st.rank - 1;
+    return above === 0
+      ? "Rank I — there is nobody left above you."
+      : `${tierOf(st.rank).name}, rank ${roman(st.rank)} — ${roman(above)} ${above === 1 ? "man" : "men"} between you and the rudis.`;
+  }
 
   function renderPlan() {
     const p = ensurePlan();
     planListEl.innerHTML = "";
     planDayEl.textContent = `Day ${roman(p.day)}`;
+    planClimbEl.textContent = climbLine();
     const left = planPending().length;
     planLeftEl.textContent = left
       ? `${roman(left)} of ${roman(p.bouts.length)} still standing`
@@ -4913,7 +4962,8 @@
 
     for (const b of p.bouts) {
       const row = document.createElement("div");
-      row.className = "libitem planrow" + (b.state === "pending" ? "" : " done");
+      row.className = "libitem planrow" + (b.state === "pending" ? "" : " done")
+        + (b.kind === "ladder" ? " main" : "");
 
       const dot = document.createElement("span");
       dot.className = "dot";
@@ -4969,7 +5019,11 @@
           no.title = `Refuse ${b.name}. It costs nothing — he asked you.`;
           no.addEventListener("click", (e) => { e.stopPropagation(); declineInvite(b); });
           row.appendChild(no);
-        } else {
+        } else if (b.kind !== "ladder") {
+          // The rung cannot be bought past. Everything else on the card is
+          // work, and work can be paid off; the rung is the story, and the
+          // board does not take money. (Losing to him three times still
+          // strikes him off for the day — that door stays open.)
           const skip = document.createElement("button");
           skip.className = "skip";
           skip.textContent = `skip ✦${skipCost(b.rating)}`;
