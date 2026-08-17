@@ -1,7 +1,7 @@
 // What the arena remembers
 //
 // Every piece of the game that survives a reload: the forms you have put down,
-// the levels you have cleared and how fast, your standing on both ladder boards,
+// the levels you have cleared and how fast, your standing on the ladder board,
 // your purse, the codes you have bought and redeemed, and the levels you built
 // yourself. All of it goes through localStorage under one prefix, and all of it
 // is written defensively — a save this file cannot parse is a save it rebuilds
@@ -16,9 +16,9 @@
 // in progress. It needs exactly two things from the engine, and both are pushed
 // in rather than reached for:
 //
-//   setContract(key)  — which contract you are fighting under, because Sine
-//                       Missione keeps a separate ladder board from the
-//                       sanctioned one and must never write to the other.
+//   setContract(key)  — which contract you are fighting under, because the
+//                       Ludus records nothing and only the sanctioned bout
+//                       writes to the ladder board.
 //   loadMine/saveMine — the levels you built are passed by value in and out,
 //                       so the engine keeps ownership of its own array.
 (() => {
@@ -48,9 +48,12 @@
   // browser's: the second gladiator in the house has not been taught anything
   // just because the first one was, and a wipe puts him back in the Ludus.
   const TUTORIAL_KEY = "dodger_tutorial_done";
-  // Who this man has stood in front of. Only the two crowns are written here,
-  // and only so the gate scene plays in full the first time and shortens after.
-  const MET_KEY = "dodger_met";
+  // Whether the doctore has been sent away. He is the green man who walks a new
+  // man round the passage on his first morning, and there is a switch in
+  // Settings that gets rid of him for good — a career's fact like the rest, so
+  // one man in the house dismissing him does not dismiss him for his brother,
+  // and a wipe hires him back.
+  const DOCTORE_KEY = "dodger_doctore_gone";
   // The school's book on who is fit to fight. Owned by condicio.js, which asks
   // this file to scope it — the name lives here because this file is what knows
   // the full list of a career's keys, and a save that forgot one is not a save.
@@ -82,7 +85,7 @@
   function careerKeys() {
     return [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
             LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY,
-            CONDICIO_KEY, PLAN_KEY, TUTORIAL_KEY, MET_KEY];
+            CONDICIO_KEY, PLAN_KEY, TUTORIAL_KEY, DOCTORE_KEY];
   }
   // The levels you built, which belong to you rather than to a career.
   function isGlobal(key) { return key === MINE_KEY; }
@@ -212,7 +215,7 @@
   }
 
   // Which contract is being fought under. The engine pushes this in whenever it
-  // changes; only the ladder cares, but it cares a great deal — see onSine().
+  // changes; the recording rules below read it — see recordable().
   let contract = "normal";
   // The Ludus is the training school: wooden swords, so nothing that happens
   // there is written down. Every recording function below opens by asking this.
@@ -318,9 +321,12 @@
   const RUDIS_KEY = "dodger_rudis";
   const RUDIS_SINE_KEY = "dodger_rudis_sine";
   // Which board the contract you're on plays for.
-  function onSine() { return contract === "sine"; }
-  function ladderKey() { return onSine() ? LADDER_SINE_KEY : LADDER_KEY; }
-  function rudisKey() { return onSine() ? RUDIS_SINE_KEY : RUDIS_KEY; }
+  // One board, and it belongs to the sanctioned bout — the engine will not let a
+  // rung be fought for under any other contract, so there is nothing to switch
+  // between and no second climb to keep. The two sine keys stay named above so
+  // a wipe and an export still reach the old ones on a disk that has them.
+  function ladderKey() { return LADDER_KEY; }
+  function rudisKey() { return RUDIS_KEY; }
   // How many straight losses to the same fighter costs you an extra rung.
   const TILT = 3;
 
@@ -337,12 +343,6 @@
   // The Ladder tab shows all of them side by side, and it must be able to read
   // a board without pretending to be standing on it — every write in this file
   // still goes to the active contract's board and only that one.
-  function loadLadderFor(key) {
-    const was = contract;
-    contract = key === "sine" ? "sine" : "normal";
-    try { return loadLadder(); } finally { contract = was; }
-  }
-
   function loadLadder() {
     const raw = readJSON(ladderKey(), null);
     let board = defaultBoard();
@@ -398,12 +398,6 @@
       rank: st.rank, board: st.board, tiltId: st.tiltId, tilt: st.tilt, felled: st.felled,
       invite: st.invite || null,
     }));
-  }
-  // Sine Missione has no memory. Lose once and the whole climb is gone — which is
-  // what "without reprieve" means when it's applied to a career and not a bout.
-  function wipeSineLadder() {
-    del(LADDER_SINE_KEY);
-    del(RUDIS_SINE_KEY);
   }
   // Move the player down `steps` rungs, one swap at a time so the board stays
   // whole. Returns the fighters who stepped over you, in order.
@@ -479,16 +473,14 @@
   // how one is dealt, only that the engine handed it an object and wants the
   // same object back tomorrow. A card the parser cannot read is a card that
   // never existed, and the engine deals a fresh one.
-  function hasMet(key) { return (readJSON(MET_KEY, []) || []).includes(key); }
-  function markMet(key) {
-    const seen = readJSON(MET_KEY, []) || [];
-    if (seen.includes(key)) return;
-    seen.push(key);
-    set(MET_KEY, JSON.stringify(seen));
-  }
-
   function tutorialDone() { return get(TUTORIAL_KEY) === "1"; }
   function markTutorialDone() { set(TUTORIAL_KEY, "1"); }
+
+  // The doctore, sent away or not. Sending him away is one-way from the switch
+  // in Settings; hiring him back is what a wipe does, along with everything
+  // else it does.
+  function doctoreGone() { return get(DOCTORE_KEY) === "1"; }
+  function dismissDoctore() { set(DOCTORE_KEY, "1"); }
 
   function loadPlan() {
     const p = readJSON(PLAN_KEY, null);
@@ -612,15 +604,16 @@
     // Clears, times, forms.
     bestTimes, recordTime, loadCleared, markCleared,
     loadForms, markFormId, formUnlocked, formBeaten, formsKnown,
-    loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone, hasMet, markMet,
+    loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone,
+    doctoreGone, dismissDoctore,
 
-    // Ladder standing, on whichever board the contract plays for. onSine and
-    // TILT go out too: the Ladder tab has to say which board you are looking at
-    // and how close to the drop you are, and both are this file's rules to state.
-    loadLadder, loadLadderFor, saveLadder, wipeSineLadder, dropPlayer,
+    // Ladder standing. There is one board and the engine keeps it shut to every
+    // contract but the sanctioned one; TILT goes out because the Ladder tab has
+    // to say how close to the drop you are, and that is this file's rule.
+    loadLadder, saveLadder, dropPlayer,
     loadRecord, saveRecord, hasRudis, grantRudis,
     fighterAt, challengeable, friendlyable, rollInvite,
-    onSine, TILT,
+    TILT,
 
     // What is open to you.
     keyBeaten, levelUnlocked, campaignCleared, editorUnlocked,

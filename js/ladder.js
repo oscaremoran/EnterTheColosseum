@@ -86,23 +86,38 @@
     { id: "crescens", name: "Crescens", arm: "secutor", key: "pursuer", hp: 60,
       blurb: "Pompeii's walls call him \"lord of the girls.\" He fights like it's owed to him.",
       pugn: 22, vic: 16, miss: 3 },
-    { id: "pugnax", name: "Pugnax", arm: "scissor", key: "cross", hp: 66,
+    // ---- Secundus Palus, ranks II to VI ----
+    // The five men below the top, and they were fought like five more crowns.
+    // Each of them carries a late-run form at close to a boss's health, at a
+    // depth their rung hands them for free, and the board reached them long
+    // before a career has the tools for that. Every one of them now carries a
+    // `rate` handicap — the same lever Triumphus is on, and for the same reason:
+    // it widens the gaps in what he throws rather than just thinning the wall,
+    // and it is the only handicap that does. Health comes down with it, because
+    // a rung near the top was also simply a longer fight than the one below it.
+    // Ladder bouts only; what they are worth at the Sponsio desk is priced apart.
+    { id: "pugnax", name: "Pugnax", arm: "scissor", key: "cross", hp: 60, rate: 0.9,
       blurb: "Nero's man out of the Neronian school. Three fights on the board, three wins.",
       pugn: 21, vic: 17, miss: 1 },
-    { id: "carpophorus", name: "Carpophorus", arm: "bestiarius", key: "swarm", hp: 70,
+    { id: "carpophorus", name: "Carpophorus", arm: "bestiarius", key: "swarm", hp: 62, rate: 0.86,
       blurb: "Killed twenty beasts in one morning. The sand has never fully dried out.",
       pugn: 26, vic: 21, miss: 2 },
-    { id: "tetraites", name: "Tetraites", arm: "thraex", key: "spiral", hp: 68,
+    { id: "tetraites", name: "Tetraites", arm: "thraex", key: "spiral", hp: 62, rate: 0.9,
       blurb: "Famous enough that they sell cups with his fight painted on them in Gaul.",
       pugn: 27, vic: 22, miss: 3 },
-    { id: "verus", name: "Verus", arm: "murmillo", key: "hades", hp: 78,
+    { id: "verus", name: "Verus", arm: "murmillo", key: "hades", hp: 68, rate: 0.85,
       blurb: "Fought Priscus at the opening of this building until neither could lift a shield.",
       pugn: 30, vic: 24, miss: 5 },
-    { id: "priscus", name: "Priscus", arm: "murmillo", key: "void", hp: 82,
+    { id: "priscus", name: "Priscus", arm: "murmillo", key: "void", hp: 70, rate: 0.85,
       blurb: "The other man in that fight. Titus freed them both rather than choose.",
       pugn: 30, vic: 24, miss: 5 },
-    // rank 1 — the top of the ladder
-    { id: "flamma", name: "Flamma", arm: "secutor", key: "hades", hp: 92,
+    // rank 1 — the top of the ladder.
+    // He is the last fight in the building and he should feel like it, but he
+    // was ninety-two health of forge-fire behind a secutor's tempo at the
+    // deepest pressure the board can hand a man, and that is not a hard fight,
+    // it is a wall. Slowed and shortened; still the longest afternoon on the
+    // board, and still the only man who gets you the rudis.
+    { id: "flamma", name: "Flamma", arm: "secutor", key: "hades", hp: 78, rate: 0.8,
       blurb: "Offered the rudis four times and refused it four times. Died on the sand at thirty, Syrian, and still here.",
       pugn: 34, vic: 21, miss: 9 },
   ];
@@ -126,5 +141,5 @@
     return { name: "Tiro", note: "never yet on the sand" };
   }
 
-  Object.assign(C, { LADDER, LADDER_BY_ID, UNRANKED, tierOf });
+  Object.assign(C, { LADDER, LADDER_BY_ID, UNRANKED, TIERS, tierOf });
 })();

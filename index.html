@@ -1075,11 +1075,18 @@
         <p class="hint" id="diffHint"></p>
 
         <div class="divider"></div>
+        <p class="sub"><b style="color:var(--text)">The doctore</b> — the green man who walks a new man round the passage.</p>
+        <div class="btnrow">
+          <button id="docBtn">Send the Doctore Away</button>
+        </div>
+        <p class="hint" id="docHint"></p>
+
+        <div class="divider"></div>
         <p class="sub"><b style="color:var(--text)">Strike the record</b> — everything this man has done, undone.</p>
         <div class="btnrow">
           <button id="wipeBtn">Clear All Progress</button>
         </div>
-        <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms, the day's card and your standing on both Ladder boards. Levels you built stay put, and so does every other man in the house — a wipe is scoped to whoever is holding the tessera.</p>
+        <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms, the day's card and your standing on the Ladder. Levels you built stay put, and so does every other man in the house — a wipe is scoped to whoever is holding the tessera.</p>
       </div>
 
       
@@ -1150,10 +1157,11 @@
             <!-- One board per contract, and the rules on a page of their own.
                  The boards are genuinely separate careers, so being able to look
                  at the other one without agreeing to fight on it matters. -->
+            <!-- One board. The ladder is the sanctioned bout's and nobody
+                 else's, so there is nothing to switch between any more. -->
             <div class="subtabs" id="ladderTabs">
-              <button data-lad="normal">Munus Legitimum</button>
-              <button data-lad="sine">Sine Missione</button>
-              <button data-lad="ludus">Ludus</button>
+              <button data-lad="normal">The Board</button>
+              <button data-lad="tiers">Tiers</button>
               <button data-lad="note">How it works</button>
             </div>
             <div class="subpane" id="ladderBoardPane">
@@ -1170,7 +1178,8 @@
             <div class="subpane hidden" id="ladderNotePane">
               <p class="sub" id="ladderNote">Twenty-four fighters hold the board. The man standing directly above you is put on the day's card, and he is the only one you may fight for a rung — beat him and you take it. One defeat costs you nothing; lose to him <i>three times running</i> and you drop a rung and he is struck off the card for the day.</p>
               <p class="sub">Men above you sometimes ask for a bout of their own. Those settle no rung either way and pay like the rung they are standing on, which makes an invitation from near the top the best-paid afternoon available to somebody who has no business being up there yet. You can decline one on the card, and it costs nothing to say no.</p>
-              <p class="sub">Take rank <b>I</b> and the <b>munerarius</b> — the magistrate paying for the games — grants you the <b>rudis</b>, the wooden sword that means discharge. Each contract keeps its own board, and a rung taken on one of them is worth nothing on the other.</p>
+              <p class="sub">Take rank <b>I</b> and the <b>munerarius</b> — the magistrate paying for the games — grants you the <b>rudis</b>, the wooden sword that means discharge.</p>
+              <p class="sub">The board belongs to <b style="color:#4dd7ff">Munus Legitimum</b> and to nothing else. Under the Ludus there is no rung to win — wooden swords settle nothing — and under Sine Missione there is no climb to have, because one loss would be the end of the career holding it. Take another contract and the board is still here to read; it just has nothing on the day's card and nobody on it you can call out.</p>
             </div>
           </div>
         </details>
@@ -1349,8 +1358,10 @@
 
         <div class="subpane" data-helppane="eye">
           <p class="sub"><b style="color:var(--text)">Arrow keys</b> to move. Stand inside the <b style="color:var(--safe)">Emperor's Eye</b>, the patch of sand he is watching to drain your opponent's life.</p>
-          <p class="sub">The special <b style="color:#5b78ff">×III Eye</b> sits under your opponent's shield and orbits with them, draining three times as fast. But it only burns in bursts: it goes <b>cold</b>, and standing on a cold circle does nothing. Watch the ring spark just before it lights, and be on it when it does. <b>Take a hit while you are standing in it and it goes out</b>, and stays cold a few seconds longer than usual. The ×III is for a fighter nobody is laying a hand on — you cannot stand in the fire and pay for it with marks. A wound anywhere else on the sand leaves it burning.</p>
-          <p class="sub"><b style="color:var(--warn)">Go to the eye.</b> If an eye opens and you never set foot in it before it moves on, your opponent gets <b>a chunk of their health back.</b> The eye turns yellow and counts down first, so you'll see it coming. Waiting in a safe corner for the damage to come to you is not a plan. The ×III Eye never vanishes, it just goes cold with no punishment for not coming.</p>
+          <p class="sub">The special <b style="color:#5b78ff">×III Eye</b> rides a wide circle around your opponent, draining three times as fast. But it only burns in bursts: it goes <b>cold</b>, and standing on a cold circle does nothing. What lights it is you not being touched — the ring around it <b>fills as you survive</b>, and <b>a wound empties it back to nothing</b>, wherever on the sand you took it. The ×III is for a fighter nobody is laying a hand on.</p>
+          <p class="sub">Once the ring fills the circle <b>lights, and it is yours</b>: it burns its window down and being hit cannot take it off you. So a mistake costs you the <i>wait</i> for the next burn, never the one you are standing in. Watch the ring spark just before it lights, and be on it when it does.</p>
+          <p class="sub"><b style="color:var(--warn)">Go to the eye — at a run.</b> Cross into it at speed and the first moments of the drain are half again as fast, fading as you stand. And do not make a chair of it: sit in one eye for three seconds and it moves on early. The paying style is to arrive fast, take the fat of the window, and go.</p>
+          <p class="sub">If an eye opens and you never set foot in it before it moves on, your opponent gets <b>a piece of their health back.</b> The eye turns yellow and counts down first, so you'll see it coming. Waiting in a safe corner for the damage to come to you is not a plan. The ×III Eye never vanishes, it just goes cold with no punishment for not coming.</p>
         </div>
 
         <div class="subpane hidden" data-helppane="wounds">
@@ -1500,7 +1511,7 @@
     POWERUPS, SWIFT_MULT, PU_KEYS, PU_SPAWN, PU_LIFE, SLOW_FACTOR,
     CAMPAIGNS, PATTERNS, PATTERN_BY_KEY,
     ARMATURAE, armOf,
-    LADDER, LADDER_BY_ID, UNRANKED, tierOf,
+    LADDER, LADDER_BY_ID, UNRANKED, TIERS, tierOf,
     CONDICIO,
     LEVEL_COLORS, LEVELS, BATTLES, MUNERA, formValue, chainPayout, stageForms,
     GATE_TALK,
@@ -1530,10 +1541,11 @@
     loadMine, saveMine,
     bestTimes, recordTime, loadCleared, markCleared,
     markFormId, formUnlocked, formBeaten,
-    loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone, hasMet, markMet,
-    loadLadder, loadLadderFor, saveLadder, wipeSineLadder, dropPlayer,
+    loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone,
+    doctoreGone, dismissDoctore,
+    loadLadder, saveLadder, dropPlayer,
     loadRecord, saveRecord, hasRudis, grantRudis,
-    fighterAt, challengeable, friendlyable, rollInvite, onSine, TILT,
+    fighterAt, challengeable, friendlyable, rollInvite, TILT,
     keyBeaten, levelUnlocked, campaignCleared, editorUnlocked,
     denarii, addDenarii, spendDenarii, boughtCodes, buy, redeem, claimedCodes, CODES, SHOP,
     accountList, activeAccount, createAccount, switchAccount, renameAccount, deleteAccount,
@@ -1639,24 +1651,36 @@
   let practice = false;
 
   const ZONE_DRAIN = 15;     // boss HP drained per second while you stand in the blue zone
+  // How often Nox pulls the arena in. One event, well apart from the last one —
+  // see the void case in runStage for why it is a number and not a rhythm.
+  const VOID_IMPLODE = 15;   // seconds between implosions
   const ZONE_MOVE = 4.5;     // seconds before the zone relocates
   const HOT_MULT = 3;        // the hot zone hurts three times as fast
-  const HOT_ORBIT = 96;      // how far the hot zone rides from the boss
+  // Half again further out than it used to ride. At arm's length from the boss
+  // the ×III was only ever reachable through everything he throws, which made
+  // the reward for a clean stretch a wound waiting to happen; at this distance
+  // there is honest ground to stand on while you spend what you charged.
+  const HOT_ORBIT = 144;     // how far the hot zone rides from the boss
   // The hot zone burns in bursts rather than continuously. Lit the whole bout it
   // was simply the better eye — you walked to it, stood on it, and the wide blue
   // one may as well not have been there. Made intermittent it becomes a window
   // instead of a place: worth crossing the sand for while it burns, worth nothing
   // the rest of the time, and the choice of whether the trip is worth making is
   // the decision that circle should have been asking for all along.
-  const HOT_ON = 5.0;        // seconds it burns
-  const HOT_OFF = 6.5;       // seconds it is cold
-  const HOT_WARN = 1.3;      // how long it glows before it lights, so the trip can be started early
-  // What a wound costs the burn. It goes out — that is the rule that stops you
-  // buying the ×III with marks — but it comes back on a short count rather than
-  // the full cold cycle. Losing the window you were standing in is the penalty;
-  // losing the next two as well was the punishment, and that is a different
-  // thing to be doing to somebody who has just been hit.
-  const HOT_PUNISH = 2.5;
+  //
+  // What lights it is not a clock. The circle heats while nobody is laying a
+  // hand on you, and a wound puts the heat back to nothing — so the burn is
+  // something a clean stretch of fighting earns rather than something the bout
+  // hands out every few seconds regardless.
+  //
+  // Once it is full it lights, and from that moment it is yours: it burns its
+  // window down and a hit cannot take it off you. That is the whole of the nerf
+  // to the old rule, which put the fire out from under a man the instant he was
+  // touched — punishing him twice for one mistake, in the one place on the sand
+  // he had crossed the floor to reach.
+  const HOT_ON = 5.0;        // seconds it burns once lit, hit or not
+  const HOT_CHARGE = 7.0;    // seconds of not being touched to fill it from cold
+  const HOT_WARN = 1.3;      // the last of the charge, glowing, so the trip can be started early
   // Seconds before a shot gives up, however it is moving. Short, and short on
   // purpose: a bullet that outlives the exchange that threw it is scenery the
   // fighter still has to solve, and with two men throwing at once the sand silted
@@ -1664,7 +1688,20 @@
   // bent trajectory can circle inside the arena indefinitely without ever
   // crossing an edge to be culled.
   const BULLET_LIFE = 3;
-  const ZONE_HEAL = 1 / 8;   // health returned if you ignore an eye for its whole stay
+  // An eighth was tuned for a player who was expected to reach every eye. Some
+  // eyes are not worth dying on the way to, and declining one of those is
+  // judgement, not cowardice — so the fine for it is smaller now.
+  const ZONE_HEAL = 1 / 12;  // health returned if you ignore an eye for its whole stay
+  // Arriving at a run pays. Enter the eye moving at better than half sprint and
+  // the first moments of the drain are half again as fast, decaying as you
+  // stand — so the paying style is to cross the sand for it, take the fat of
+  // the window, and go, rather than to squat.
+  const ZONE_RUSH = 1.6;     // seconds the entry bonus lasts, fading the whole way
+  const ZONE_RUSH_MULT = 0.5;   // how much extra, at the moment of entry
+  const ZONE_RUSH_SPEED = 320;  // how fast "at a run" is, in px/s
+  // ...and squatting is over. Sit in one eye for this long and it has seen
+  // enough of you: it moves on early, un-ignored, and you cross the floor again.
+  const ZONE_SQUAT = 3.0;    // seconds standing in one eye before it leaves
   // The net. It takes your legs rather than your blood, and for a while it took
   // rather too many of them: at a third of your speed you were slower than the
   // bullets coming at you, so against the one man who throws a net over an
@@ -1690,16 +1727,20 @@
     hurtFlash = 0;
     boss = {
       x: W / 2, y: H * 0.22, r: 34,
-      fire: 0, fire2: 0, spin: 0, hp: 1, maxhp: 1, hitFlash: 0,
+      fire: 0, fire2: 0, fire3: 0, spin: 0, hp: 1, maxhp: 1, hitFlash: 0,
       dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
     };
     bullets = [];
-    zone = { x: W / 2, y: H / 2, r: 46, moveT: ZONE_MOVE, pulse: 0, touched: false };
+    zone = { x: W / 2, y: H / 2, r: 46, moveT: ZONE_MOVE, pulse: 0, touched: false,
+             standT: 0, rushT: 0, wasIn: false };
     // The hot zone: small, three times the drain, and it orbits the boss — safe
     // ground and fast damage are never in the same place.
     // Opens cold, and lights a couple of seconds in — so the bout starts on the
     // ordinary eye and the first burn arrives as something that happened.
-    hotZone = { x: W / 2, y: H * 0.22, r: 27, ang: Math.random() * Math.PI * 2, on: false, t: 2.2 };
+    // Started part-heated, so the first window of a bout comes early enough to
+    // be worth learning from rather than seven clean seconds into it.
+    hotZone = { x: W / 2, y: H * 0.22, r: 27, ang: Math.random() * Math.PI * 2,
+                on: false, t: 0, charge: 0.62 };
     minions = [];
     minionTimer = 2.0;
     stageIdx = 0;
@@ -1811,16 +1852,20 @@
     return COLORS.gold;
   }
 
-  function raiseGate(key) {
-    const talk = GATE_TALK[key];
+  // The stage, not the key. A crown is a particular man, and the thing that
+  // makes him that man is `crown` on his stage in campaigns.js — the pattern he
+  // throws is lent out to half the building and proves nothing. Verus fights
+  // hades off the ladder and a Library level can chain it; neither of them is
+  // Vulcan, and neither gets his card.
+  function raiseGate(stage) {
+    const talk = stage && stage.crown && GATE_TALK[stage.crown];
     if (!talk) return false;
-    // Full the first time you stand in front of him; his one line every time
-    // after. Per career, so a second gladiator meets him properly.
-    const first = !hasMet(key);
-    const lines = first ? (talk.lines || []).slice() : (talk.short ? [talk.short] : []);
+    // In full, every time. He is the last man on a boss's card and there are
+    // three sentences in it — anybody who has heard them can put them away with
+    // Space, and a fight that big should not open on a shrug.
+    const lines = (talk.lines || []).slice();
     if (!lines.length) return false;
-    markMet(key);
-    gate = { key, lines, i: 0, color: crownColor(key) };
+    gate = { key: stage.crown, lines, i: 0, color: crownColor(stage.crown) };
     // Nobody walks in mid-sentence, and nothing is held down while he talks.
     for (const k in MOVE_KEYS) keys[k] = false;
     padRelease();
@@ -1942,7 +1987,7 @@
     {
       id: "hot", seq: true,
       kicker: "THE HOT EYE", head: "THREE TIMES THE DRAIN",
-      body: "The small circle rides with him and burns in bursts. Lit, it takes his health three times as fast — and it is never anywhere safe, because it is orbiting the man throwing at you. That is the whole trade.",
+      body: "The small circle rides with him and burns in bursts. The ring around it fills while nobody is touching you, and a wound empties it; full, it lights and takes his health three times as fast for as long as the window lasts — and once lit, nothing he does puts it out. It is never anywhere safe, because it is orbiting the man throwing at you. That is the whole trade.",
       focus: () => ({ x: hotZone.x, y: hotZone.y, r: hotZone.r + 10 }),
       at: () => hotZone.on,
     },
@@ -2198,6 +2243,10 @@
   let activeLadderFoe = null;
   let ladderFriendly = false;    // a prolusio: fought properly, settles nothing
   function fightLadder(f, friendly) {
+    // Shut to everything but the sanctioned bout. Nothing should be able to
+    // reach this under another contract, but the board is a career's whole
+    // standing and the guard is one line — see ladderOpen.
+    if (!ladderOpen()) return;
     offPlan = false;                // the board is only ever reachable via the card
     const st = loadLadder();
     const foe = challengeable(st);
@@ -2220,19 +2269,17 @@
     // for — and it is priced off HIS rung, not yours. A man near the top of the
     // board asking you for a bout is the best-paid afternoon available to
     // somebody who has no business being up there yet.
-    // On the Sine Missione board these are the same people fighting like they
-    // expect to die: more health, and the pressure of a form several stages
-    // deeper into a run than its rung would normally earn.
-    const sine = onSine();
-    const depth = Math.max(0, Math.min(6,
-      Math.round((LADDER.length - rank) / 3.6) + (sine ? 2 : 0)));
+    // The board is the sanctioned bout's alone now — see ladderOpen — so there
+    // is no heavier version of these men to fight any more. They are who they
+    // are, at the pressure their rung earns.
+    const depth = Math.max(0, Math.min(6, Math.round((LADDER.length - rank) / 3.6)));
     activeCamp = {
       name: f.name,
       accent: armOf(f.arm).color,
       stages: [{
         name: f.name,
         key: f.key,
-        hp: Math.round(f.hp * (sine ? 1.35 : 1)),
+        hp: f.hp,
         arm: f.arm,
         // A ladder fight is stage 0, so carry the pressure its rung deserves:
         // the top of the board fights like the last of a boss's forms.
@@ -2242,7 +2289,7 @@
         // it is the only thing that widens the gaps in what he throws — see the
         // note on his entry in ladder.js. Almost everyone leaves this alone.
         rate: f.rate || 1,
-        minions: sine || rank <= LADDER.length - 8,
+        minions: rank <= LADDER.length - 8,
         final: rank === 1,
       }],
     };
@@ -2553,17 +2600,6 @@
       // counted separately from a win and separately from a death.
       rec.miss++;
 
-      // Sine Missione is not a ladder you slip down. Lose once and the climb is
-      // gone: the contract said no reprieve, and it meant the career too.
-      if (onSine()) {
-        const lost = mine >= UNRANKED ? 0 : UNRANKED - mine;
-        wipeSineLadder();
-        saveRecord(rec);
-        return lost
-          ? `${f.name} holds rank ${roman(theirRank)}. Sine missione: no reprieve, and none for the climb either — ${roman(lost)} ${lost === 1 ? "rung" : "rungs"} gone. You start again from below the board.`
-          : `${f.name} holds rank ${roman(theirRank)}. You were never on the board to lose it.`;
-      }
-
       // Under the sanctioned contract one defeat costs you nothing on the board.
       // The bout stays on the day's card and you may take him as many times as
       // you like — but the card is counting, and the third loss in a row is
@@ -2633,7 +2669,7 @@
       key: def.key, arm: a, armKey: def.arm || null, def: def,
       body: {
         x: W * (0.18 + t * 0.64), y: H * 0.22, r: 34,
-        fire: 0.6, fire2: 1.4, spin: 0, hp: maxhp, maxhp: maxhp, hitFlash: 0,
+        fire: 0.6, fire2: 1.4, fire3: 0, spin: 0, hp: maxhp, maxhp: maxhp, hitFlash: 0,
         dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
         netT: a && a.net ? a.net * 0.6 : 0, fouled: 0, shieldAng: -Math.PI / 2,
       },
@@ -2702,7 +2738,7 @@
     // A crown says his piece before the gate lifts. Not in the reel and not in
     // a duel: nobody out there is you, and a card over somebody else's fight is
     // a card nobody asked for.
-    if (!trailer && !duel) raiseGate(STAGES[idx].key);
+    if (!trailer && !duel) raiseGate(STAGES[idx]);
   }
 
   // Put the damage zone somewhere reachable, away from the boss and not on top of you.
@@ -2717,6 +2753,9 @@
     zone.x = x; zone.y = y;
     zone.moveT = ZONE_MOVE;
     zone.touched = false;   // nobody has stood in this one yet
+    zone.standT = 0;        // and nobody has been squatting in it either
+    zone.rushT = 0;         // an entry bonus belongs to the eye it was earned at
+    zone.wasIn = false;
   }
 
   // The eye moved on and you never went to it. Waiting in a safe corner for the
@@ -3353,6 +3392,8 @@
   const redeemBtn = document.getElementById("redeemBtn");
   const wipeBtn = document.getElementById("wipeBtn");
   const wipeHint = document.getElementById("wipeHint");
+  const docBtn = document.getElementById("docBtn");
+  const docHint = document.getElementById("docHint");
 
   function renderPrizes() {
     prizeList.innerHTML = "";
@@ -3528,8 +3569,14 @@
   // here is worth its ordinary one.
   const FORM_WEIGHT = {
     pursuer: 0.85, nova: 0.95, charger: 0.92, spiral: 1.00, gatling: 1.15,
-    lattice: 1.20, hades: 1.28, weaver: 0.95, serpent: 1.32, cross: 1.05,
-    swarm: 1.10, mirror: 1.00, pulsar: 1.05, void: 1.30,
+    lattice: 1.20, hades: 1.14, weaver: 0.95, serpent: 1.32, cross: 1.05,
+    // Both crown forms came down when the two crowns were thinned out: the void
+    // because the floor now closes once every fifteen seconds instead of every
+    // few, hades because the arms turn slower and the ring has a door in it you
+    // can walk through. Still above the room, neither of them the hardest thing
+    // on the board any more — the serpent is. See VOID_IMPLODE and the hades
+    // and void cases in runStage.
+    swarm: 1.10, mirror: 1.00, pulsar: 1.05, void: 1.10,
   };
 
   // Two men were free money, for opposite halves of the same reason: they were
@@ -3871,6 +3918,28 @@
     if (e.key === "Enter") { e.preventDefault(); doRedeem(); }
   });
 
+  // ---- Sending the doctore away ----
+  // One tap, and it does not need two: the worst it can do is leave a man
+  // walking round a building nobody explained to him, and How to Play is three
+  // gates over saying the same things at more length. Only a wipe hires him
+  // back, which is the same rule every other thing this career remembers is on.
+  function renderDoctoreRow() {
+    const gone = doctoreGone();
+    docBtn.disabled = gone;
+    docBtn.textContent = gone ? "Sent Away" : "Send the Doctore Away";
+    docHint.textContent = gone
+      ? "He is not in the passage any more. The trainer at How to Play will go over all of it, at more length and without the walking."
+      : "He comes out on a morning your purse is empty and walks you round the passage once. Win anything at all and he stops coming; send him away here and he stops for good.";
+  }
+  docBtn.addEventListener("click", () => {
+    if (doctoreGone()) return;
+    dismissDoctore();
+    doc = null;               // whatever he was mid-sentence about, he is done
+    docDone = true;
+    renderDoctoreRow();
+    sfx("tick");
+  });
+
   // Two taps to wipe — no dialog, but no accidents either.
   let wipeArmed = false;
   function disarmWipe() {
@@ -3903,6 +3972,9 @@
     disarmWipe();
     renderPrizes();
     renderTutorialRow();
+    // A wipe hires him back, so the switch has to un-press itself with it.
+    docDone = false;
+    renderDoctoreRow();
     syncMenu();
   });
 
@@ -4114,9 +4186,13 @@
     b.title = note;
     b.addEventListener("click", () => {
       setDifficulty(key);
-      // The contract picks which ladder board you're playing for, so the Ladder
-      // has to redraw. Only on click — at boot the tab isn't built yet.
+      // The board is open to one contract, so changing contract opens or shuts
+      // it — and a card holding a bout the board can no longer sell has to give
+      // it back. Only on click: at boot the tab isn't built yet and there is no
+      // card in memory to tidy.
+      dropShutLadderBouts();
       renderLadder(tab === "ladder");
+      renderPlan();
     });
     diffRow.appendChild(b);
   });
@@ -4210,7 +4286,7 @@
     {
       tab: "munera", name: "Munera", sub: "the day's card",
       x: 360, y: 96,  color: "#ff5a2b",
-      what: "Where you are told what you are fighting. A gladiator did not choose his afternoon out of a list — the day's card was posted and he fought his way down it. One man off the ladder, two bouts out of the record office, a day's games, and the next form down each of the two campaign paths. Finish the card and the next day is dealt.",
+      what: "Where you are told what you are fighting. A gladiator did not choose his afternoon out of a list — the day's card was posted and he fought his way down it. One man off the ladder, a bout out of the record office, a day's games, and the next form down whichever campaign path you are on — Vulcan's run first, then Nox's. Finish the card and the next day is dealt.",
       now: () => {
         const p = plan();
         if (!p) return "no card dealt yet";
@@ -4238,7 +4314,7 @@
     {
       tab: "tessera", name: "Tessera", sub: "whose career this is",
       x: 128, y: 396, color: "#dbe6f2",
-      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on both boards, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped and struck off here.",
+      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on the board, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped and struck off here.",
       now: () => {
         const rec = loadRecord();
         return `${activeAccount().name} · ${roman(rec.vic)} won of ${roman(rec.pugn)} taken`;
@@ -4327,15 +4403,14 @@
     // between stalls without walking, would leave the man somewhere he never went.
     const at = fromTab && STALL_BY_TAB[fromTab];
     if (at) { hub.x = at.x; hub.y = at.y + STALL_R * 0.85; }
-    // ...except on the first morning of a career, when somebody is waiting to
-    // walk you round and cannot do it if you are already standing at the end.
-    if (!tutorialDone() && !docDone) { hub.x = W / 2; hub.y = H * 0.62; }
+    // ...except on a morning the doctore is working, when he is waiting to walk
+    // you round and cannot do it if you are already standing at the end.
+    if (doctoreDue()) { hub.x = W / 2; hub.y = H * 0.62; }
     hub.near = nearestStall();
     hub.hover = null;         // whatever the mouse was over, it was a room ago
     hub.enterT = 0;
-    // A career's first morning, and only that: he shows you round before the
-    // school rather than after it, and once he has finished he is finished.
-    if (!tutorialDone() && !doc && !docDone) { docDone = true; startDoctore(); }
+    maybeDropCoin();          // once a day, somebody has been careless
+    if (doctoreDue()) { docDone = true; startDoctore(); }
     menuEl.classList.add("hidden");
     endEl.classList.add("hidden");
     hudEl.classList.add("hidden");
@@ -4387,6 +4462,9 @@
       hub.y += dy * HUB_SPEED * throttle * dt;
       hub.walk += HUB_SPEED * throttle * dt;
     }
+    // How fast he is going, for the furniture that cares whether he is walking
+    // into it or standing at it.
+    hub.moving = (dx || dy) ? HUB_SPEED * throttle : 0;
     hub.x = Math.max(26, Math.min(W - 26, hub.x));
     hub.y = Math.max(26, Math.min(H - 26, hub.y));
 
@@ -4405,6 +4483,7 @@
     const was = hub.near;
     hub.near = nearestStall();
     if (hub.near && hub.near !== was) sfx("tick");   // the stall notices you
+    updateHubProps(dt);
     updateDoctore(dt);
   }
 
@@ -4417,8 +4496,16 @@
   // and keeps talking, because a tutorial you cannot leave is a cage with
   // captions.
   //
-  // He appears BEFORE the school, hands you to it, and is gone for good after.
-  // Per career, so the second man in the house gets shown round too.
+  // What brings him out is an empty purse and nothing else. A man with no
+  // denarii to his name has either just walked in or has nothing to show for
+  // being here, and either way he is the man the school pays a doctore for; the
+  // first coin you win is what buys you out of being followed round. He does
+  // his round once per visit to the passage regardless, so earning your first
+  // purse and walking back down is the last you see of him.
+  //
+  // And if he is still too much, the switch in Settings sends him away for
+  // good. Per career, like everything else a career remembers — the second man
+  // in the house gets shown round even if the first one could not stand him.
   const DOCTORE_STOPS = [
     { tab: null,      say: "New man. Keep up, I have four of you this morning." },
     { tab: "munera",  say: "The card. You do not pick your fights; somebody upstairs picks them and you walk down the list. Today there is one thing on it." },
@@ -4430,9 +4517,16 @@
   const DOCTORE_NEAR = 96;       // how close you have to be before he goes on
 
   let doc = null;
-  // He does his round once a session. Beating the school is what actually
-  // retires him — a man who has been taught does not get taught again.
+  // He does his round once a session. What retires him for real is the first
+  // coin in the purse, or the switch in Settings.
   let docDone = false;
+
+  // Whether there is a doctore in the passage this morning. Asked twice by
+  // enterHub — once to decide where to stand you, once to send him out — so it
+  // is one function rather than one condition written down twice and drifting.
+  function doctoreDue() {
+    return !doc && !docDone && !doctoreGone() && denarii() === 0;
+  }
 
   function startDoctore() {
     doc = { i: 0, x: W / 2 - 90, y: H * 0.62, tx: W / 2 - 90, ty: H * 0.62, said: false, t: 0, wait: 0.9 };
@@ -4533,8 +4627,9 @@
   //
   // Nobody in this building chose their afternoon. A card was posted with your
   // name on it and you fought down it, and that is the loop now: one man off the
-  // ladder, two out of the record office, one day of games, and the next form
-  // down each of the two campaign paths. Finish it and the next day is dealt.
+  // ladder, one out of the record office, one day of games, and the next form
+  // down whichever campaign run is still standing. Finish it and the next day
+  // is dealt.
   //
   // A card is dealt once and written to the disk immediately, so it cannot be
   // re-rolled by reloading until the Library offers something soft. Everything
@@ -4606,7 +4701,18 @@
       planSave();
       return planCache;
     }
-    for (const key of ["inferno", "void"]) {
+    // One campaign bout a day, and the two runs are walked in order rather than
+    // side by side. A card carrying the next man down both paths was two boss
+    // forms every morning on top of everything else, and it meant you learned
+    // both halves of the game a slice at a time and neither of them properly.
+    // Vulcan's seven first; when the last of them is down, Nox's. With both
+    // runs finished there is nothing left to advance, so the day alternates
+    // between them for the practice and the purse.
+    {
+      const infernoDone = campaignCleared("inferno");
+      const key = !infernoDone ? "inferno"
+                : !campaignCleared("void") ? "void"
+                : (day % 2 ? "inferno" : "void");
       const b = nextForm(key);
       if (b) bouts.push(planBout("battle", b.id, b.stage.name, b.rating));
     }
@@ -4616,9 +4722,10 @@
     for (const m of pickSome(MUNERA.filter((x) => munusUnlocked(x)), PLAN.munera)) {
       bouts.push(planBout("munus", m.id, m.name, m.rating));
     }
-    // The ladder, unless the rudis has already been granted and there is nothing
-    // left up there to want.
-    if (!hasRudis()) {
+    // The ladder, unless the board is shut to the contract you are fighting
+    // under, or the rudis has already been granted and there is nothing left up
+    // there to want.
+    if (ladderOpen() && !hasRudis()) {
       const st = loadLadder();
       const foe = challengeable(st);
       if (foe) {
@@ -4916,7 +5023,30 @@
   // Which board the Ladder is showing. Not which one you are fighting on — that
   // is the contract, set in Settings. You may look at any of them.
   let ladderView = null;
-  function activeBoardKey() { return practice ? "ludus" : onSine() ? "sine" : "normal"; }
+  // ---- Who the board is open to ----
+  // One contract, and only one. A ladder is a record of who has beaten whom,
+  // and it only means anything if every bout on it was fought under the same
+  // terms: wooden swords settle nothing, and a contract where one loss ends the
+  // climb is not a climb, it is a coin. So the board belongs to the sanctioned
+  // bout, and under the other two it is shut — nothing on the card, nothing to
+  // challenge, and the list is there to be read rather than fought.
+  function ladderOpen() { return difficulty === "normal"; }
+
+  // Taking another contract mid-day strikes any rung bout off today's card.
+  // Leaving it there would be a bout nobody could fight and a card that could
+  // never be finished — and a day that cannot finish is a day that cannot roll.
+  // Pending ones only: a bout already fought is a fact, and stays on the card
+  // as the fact it is.
+  function dropShutLadderBouts() {
+    if (ladderOpen()) return;
+    const p = plan();
+    if (!p) return;
+    const keep = p.bouts.filter(
+      (b) => !((b.kind === "ladder" || b.kind === "invite") && b.state === "pending"));
+    if (keep.length === p.bouts.length) return;
+    p.bouts = keep;
+    planSave();
+  }
   const ladderTabsEl = document.getElementById("ladderTabs");
   const ladderBoardPane = document.getElementById("ladderBoardPane");
   const ladderNotePane = document.getElementById("ladderNotePane");
@@ -4926,22 +5056,23 @@
 
   function renderLadder(scroll) {
     // Default to the board you would actually be risking something on.
-    if (!ladderView) ladderView = activeBoardKey();
+    // "sine" and "ludus" were board tabs once; a session that still remembers
+    // one of them lands on the only board there is.
+    if (ladderView !== "note" && ladderView !== "tiers") ladderView = "normal";
     ladderTabsEl.querySelectorAll("button").forEach((b) => {
       b.classList.toggle("on", b.dataset.lad === ladderView);
     });
     const showingNote = ladderView === "note";
+    const showingTiers = ladderView === "tiers";
     ladderBoardPane.classList.toggle("hidden", showingNote);
     ladderNotePane.classList.toggle("hidden", !showingNote);
     if (showingNote) return;
 
-    // The Ludus keeps no board of its own — wooden swords are not recorded
-    // anywhere — so its tab shows the sanctioned board and says as much.
-    const boardKey = ladderView === "sine" ? "sine" : "normal";
-    // Whether this is the board you are standing on. Anything that WRITES below
-    // is behind this: looking at the other career must never edit it.
-    const live = ladderView === activeBoardKey();
-    const st = loadLadderFor(boardKey);
+    // There is one board and it belongs to the sanctioned bout. Under the other
+    // two contracts it is still here to be read — the names, the records, where
+    // you stand — but nothing on it can be fought and nothing writes to it.
+    const live = ladderOpen();
+    const st = loadLadder();
     const rec = loadRecord();
     const foe = challengeable(st);
     const tier = tierOf(st.rank);
@@ -4953,22 +5084,16 @@
         ? `unranked · ${tier.note}`
         : `rank ${roman(st.rank)} of ${roman(LADDER.length)} · ${tier.note}`;
 
-    // Which board this is, and what it costs. The two are entirely separate
-    // careers, and it has to be obvious which one you're about to risk.
-    const c = DIFF_BY_KEY[ladderView === "ludus" ? "ludus" : boardKey] || DIFFS[1];
-    ladderBoard.textContent = ladderView === "sine"
-      ? `${c[1]} board — the same fighters, heavier, and one loss wipes this climb to nothing.`
-      : ladderView === "ludus"
-        ? `${c[1]} — wooden swords, and no board of its own. This is the sanctioned board; nothing fought in the school is ever written to it.`
-        : `${c[1]} board. Sine Missione keeps a separate board of its own.`;
-    ladderBoard.style.color = diffColor(ladderView === "ludus" ? "ludus" : boardKey);
-    if (!live) {
-      ladderBoard.textContent += "  You are not fighting under this contract — change it in Settings.";
-    }
+    // What the board is, and whether it is open to you this morning.
+    const c = DIFF_BY_KEY.normal || DIFFS[1];
+    ladderBoard.textContent = live
+      ? `${c[1]} board — the one ladder in the building, and every rung on it was won under these terms.`
+      : `${c[1]} only. The board is shut to the contract you are fighting under: wooden swords settle no rung, and a bout with no reprieve in it settles nothing you could climb from. Read it here, then take the sanctioned bout in Settings if you want a rung off it.`;
+    ladderBoard.style.color = live ? diffColor("normal") : "#a08f76";
 
     // Warn before the third loss, not after it.
     const t = st.tiltId && LADDER_BY_ID[st.tiltId];
-    if (live && t && st.tilt > 0 && boardKey !== "sine") {
+    if (live && t && st.tilt > 0) {
       ladderTilt.textContent = st.tilt >= TILT - 1
         ? `You have lost to ${t.name} ${roman(st.tilt)} times running. One more and you drop two rungs.`
         : `Lost to ${t.name} ${roman(st.tilt)}× running — ${TILT} costs you two rungs.`;
@@ -4988,14 +5113,26 @@
     else ladderInvite.innerHTML = "";
 
     ladderList.innerHTML = "";
+    if (showingTiers) { renderTierList(st); return; }
+
+    // Your own tier, and nothing else by name. A board of twenty-four strangers
+    // was a wall of text to scroll, and most of it was men you will not meet
+    // for a week — the rest of the ladder is counted heads on the Tiers tab.
+    // The one exception is the man you can actually call out: if he stands in
+    // the tier above, he is shown anyway, under his own heading, because the
+    // fight the board is offering should never be hidden by the furniture.
+    const myTier = st.rank >= UNRANKED ? "Unranked" : tierOf(st.rank).name;
     let selfRow = null, lastTier = null;
     for (let r = 1; r <= UNRANKED; r++) {
-      // A heading whenever the tier changes going down the board.
       const name = r >= UNRANKED ? "Unranked" : tierOf(r).name;
+      const f = r === st.rank ? null : fighterAt(r, st);
+      const isNext = live && foe && f && foe.id === f.id;
+      if (name !== myTier && !isNext && r !== st.rank) continue;
+      // A heading whenever the tier changes going down what is shown.
       if (name !== lastTier) {
         lastTier = name;
         const h = document.createElement("div");
-        h.className = "tierhead" + (name === tier.name ? " here" : "") + (r === 1 ? " top" : "");
+        h.className = "tierhead" + (name === myTier ? " here" : "") + (r === 1 ? " top" : "");
         h.textContent = r === 1 ? name + " — the first stake" : name;
         ladderList.appendChild(h);
       }
@@ -5004,14 +5141,50 @@
         ladderList.appendChild(selfRow);
         continue;
       }
-      const f = fighterAt(r, st);
       // Kills are per board, so this is what you've done on THIS one.
-      if (f) ladderList.appendChild(foeRung(f, r, foe, st.felled, st));
+      if (f) ladderList.appendChild(foeRung(f, r, live ? foe : null, st.felled, st));
     }
 
     // Put your own rung on screen rather than making you hunt for it.
     if (scroll && selfRow && typeof selfRow.scrollIntoView === "function") {
       try { selfRow.scrollIntoView({ block: "center" }); } catch (e) { /* older engines */ }
+    }
+  }
+
+  // The Tiers tab: the shape of the whole board with no names on it. How many
+  // men hold each band, which band is yours, and nothing you could scout — who
+  // they are stays unknown until you are close enough to fight them, same as
+  // the board itself has always ruled.
+  function renderTierList(st) {
+    const myTier = st.rank >= UNRANKED ? "Unranked" : tierOf(st.rank).name;
+    const bands = TIERS.map(([lo, hi, name, note]) => ({ lo, hi, name, note }))
+      .concat([{ lo: UNRANKED, hi: UNRANKED, name: "Unranked", note: "below the board, looking up" }]);
+    for (const band of bands) {
+      const here = band.name === myTier;
+      let men = 0;
+      for (let r = band.lo; r <= Math.min(band.hi, LADDER.length + 1); r++) {
+        if (r !== st.rank && fighterAt(r, st)) men++;
+      }
+      const row = document.createElement("div");
+      row.className = "rung" + (here ? " next" : "");
+      const num = document.createElement("span");
+      num.className = "num";
+      num.textContent = band.lo === band.hi ? (band.lo >= UNRANKED ? "—" : roman(band.lo))
+                                            : `${roman(band.lo)}–${roman(band.hi)}`;
+      row.appendChild(num);
+      const meta = document.createElement("div");
+      meta.className = "rmeta";
+      const nm = document.createElement("div");
+      nm.className = "rname";
+      nm.textContent = band.name + (here ? " — you fight here" : "");
+      meta.appendChild(nm);
+      const sub = document.createElement("div");
+      sub.className = "rrec";
+      sub.textContent =
+        `${men === 0 ? "no men" : men === 1 ? "one man" : roman(men) + " men"} hold${men === 1 ? "s" : ""} this ground · ${band.note}`;
+      meta.appendChild(sub);
+      row.appendChild(meta);
+      ladderList.appendChild(row);
     }
   }
 
@@ -6132,7 +6305,7 @@
     // cost nothing, and a card claiming otherwise would teach the wrong thing.
     if (tut) tut.hurt = true;
 
-    // ...and the ×III circle goes out with it.
+    // ...and the ×III circle loses its heat.
     //
     // The burn belongs to a fighter nobody is touching. Without that rule the
     // best play on the sanctioned contract was to ignore the whole game: walk
@@ -6142,19 +6315,20 @@
     // damage, and the wide blue eye — the thing the bout is actually about —
     // may as well not have existed.
     //
-    // So a wound puts it out, wherever you were standing when you took it. It
-    // relights on a short count — see HOT_PUNISH — so what you lose is the
-    // window you were in, not your afternoon. You may still cross the sand for
-    // it and still stand in it; what you may no longer do is pay for it in blood.
-    // ...and only if you were standing in it. Taking a hit on the far side of
-    // the sand has nothing to do with the circle, and putting it out for that
-    // was punishing the wrong thing — it made every wound anywhere cost you a
-    // window you were nowhere near.
-    if (hotZone && hotZone.on &&
-        Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r) {
-      hotZone.on = false;
-      hotZone.t = HOT_PUNISH;
-      pickupFlash = { label: "HIT IN THE BURN — IT GOES OUT", color: "#7f9dff", t: 0 };
+    // The rule still holds, and it now costs the window rather than takes one
+    // away: a wound empties the charge, so the next burn is the length of a
+    // clean stretch further off. Nothing is snatched out from under you — a
+    // circle already lit stays lit, wherever you are standing and however many
+    // times you are hit while it burns. You cannot buy the ×III with marks
+    // because marks no longer buy it; they only ever delay it.
+    if (hotZone && !hotZone.on) {
+      const lost = hotZone.charge;
+      hotZone.charge = 0;
+      // Only worth saying when there was something to lose. A hit taken two
+      // seconds after the last one is not news.
+      if (lost > 0.25) {
+        pickupFlash = { label: "WOUNDED — THE BURN GOES COLD", color: "#7f9dff", t: 0 };
+      }
     }
     if (bossSpeaker) { bossSpeaker.quiet = 0; say(bossSpeaker, "drew"); }
     shockwaves.push({ x: player.x, y: player.y, t: 0, dur: 0.35 });
@@ -6368,16 +6542,20 @@
         //
         // Everything scales off one number, so the shallow version is untouched.
         const deep = Math.min(1, stageDepth() / 5);
-        moveToward(W / 2, H * 0.30, (45 + 18 * deep) * m, dt);
-        boss.spin += dt * (0.32 + 0.16 * deep);
+        moveToward(W / 2, H * 0.30, (45 + 12 * deep) * m, dt);
+        // Depth used to stoke the spin and the cadence both. It stokes neither
+        // now: the deep version's teeth are the extra spokes and the scissoring
+        // second rank, and those on TOP of a faster wheel was a harder fight
+        // than the crown two stages above him. More ranks, same drummer.
+        boss.spin += dt * (0.32 + 0.08 * deep);
         if (boss.fire <= 0) {
-          boss.fire = (0.22 - 0.025 * deep) / m;
+          boss.fire = 0.24 / m;
           // Four spokes at the bottom of the boss rather than five. Five closed
           // the gaps to 72°, and with a second rank scissoring through them the
           // floor stopped having a right answer on it — which is not difficulty,
           // it is a coin toss with extra steps.
           const spokes = 3 + Math.round(deep);
-          radial(spokes, boss.spin, (120 + 18 * deep) * m, 6);
+          radial(spokes, boss.spin, (120 + 10 * deep) * m, 6);
           // The second rank, and only for the very deepest — Testudo himself and
           // the top of the board. It turns against the first, so a gap is only a
           // gap while the other rank is not standing in it. One spoke lighter
@@ -6388,7 +6566,7 @@
           // is the thing a rank of shields is supposed to be.
           boss.alt = !boss.alt;
           if (deep >= 0.75 && boss.alt) {
-            radial(Math.max(2, spokes - 2), -boss.spin * 1.15 + 0.5, (96 + 12 * deep) * m, 6);
+            radial(Math.max(2, spokes - 2), -boss.spin * 1.15 + 0.5, 90 * m, 6);
           }
         }
         // Closing ranks. Past half health a deep lattice throws a wall with one
@@ -6402,40 +6580,51 @@
           if (phase2 && boss.fire2 <= 0) {
             // Slower, and with a door in it you can actually walk through: this
             // is meant to be the beat in the fight, not the thing that ends it.
-            boss.fire2 = 4.6 / m;
+            boss.fire2 = 5.2 / m;
             const gap = boss.spin * 2.1;
-            telegraph(0.8, "ring", { x: boss.x, y: boss.y, gap, half: 0.7 },
-              () => ringGap(20, boss.spin, 112 * m, 6, gap, 0.7));
+            telegraph(0.8, "ring", { x: boss.x, y: boss.y, gap, half: 0.8 },
+              () => ringGap(18, boss.spin, 106 * m, 6, gap, 0.8));
           }
         }
         break;
       }
       case "hades": {
         // Final boss. Curling "flame" spirals sweep the arena while Hades
-        // periodically hurls an aimed volley straight at you. Fair but relentless.
-        moveToward(W / 2, H * 0.30, (phase2 ? 70 : 45) * m, dt);
-        boss.spin += dt * (phase2 ? 1.05 : 0.7);
+        // periodically hurls an aimed volley straight at you.
+        //
+        // Thinned out, twice over. He was three things at once — a spiral you
+        // cannot outrun, a ring you have to find the door in, and an aimed
+        // volley on top of both — and each of them was tuned as though it were
+        // the only one. What is left is the same three shapes with air between
+        // them: the arms turn slower, the door in the ring is wide enough to
+        // walk rather than thread, and the volley comes when you have finished
+        // dealing with the last thing rather than during it. He is still the
+        // seventh man on his own card; he is no longer four fights at once.
+        moveToward(W / 2, H * 0.30, (phase2 ? 58 : 42) * m, dt);
+        boss.spin += dt * (phase2 ? 0.85 : 0.6);
         // Phase A: curling flame-arms. Phase B: a big ring with a wide moving gap.
         // Past half health he adds a fourth arm and stokes the whole rhythm.
         if (boss.fire <= 0) {
           if (Math.floor(stageTime / 4) % 2 === 0) {
-            boss.fire = (phase2 ? 0.2 : 0.22) / m;
+            boss.fire = (phase2 ? 0.30 : 0.34) / m;
             const arms = phase2 ? 4 : 3;
             for (let k = 0; k < arms; k++) {
-              spawn(boss.x, boss.y, boss.spin + k * (Math.PI * 2 / arms), 135 * m, 6);
+              spawn(boss.x, boss.y, boss.spin + k * (Math.PI * 2 / arms), 128 * m, 6);
             }
           } else {
-            boss.fire = 1.6 / m;
+            boss.fire = 2.2 / m;
             const off = boss.spin, gap = boss.spin * 1.5;
-            telegraph(0.6, "ring", { x: boss.x, y: boss.y, gap, half: 0.65 },
-              () => ringGap(20, off, 125 * m, 6, gap, 0.65));
+            // A door you can walk through at a walk. 0.65 of a radian each side
+            // was a gap you had to already be standing in front of.
+            telegraph(0.6, "ring", { x: boss.x, y: boss.y, gap, half: 0.9 },
+              () => ringGap(18, off, 118 * m, 6, gap, 0.9));
           }
         }
         // Aimed volley on a slower, separate beat so there's a rhythm to read.
         boss.fire2 -= dt * stageRate;
         if (boss.fire2 <= 0) {
-          boss.fire2 = (phase2 ? 2.1 : 3.0) / m;
-          volleyTelegraphed(phase2 ? 5 : 3, Math.PI * 0.4, 195 * m);
+          boss.fire2 = (phase2 ? 2.9 : 3.8) / m;
+          volleyTelegraphed(phase2 ? 4 : 3, Math.PI * 0.4, 182 * m);
         }
         break;
       }
@@ -6562,32 +6751,60 @@
         break;
       }
       case "void": {
-        // Final boss. The arena itself closes in: rings implode from off-screen,
-        // alternating with an outward spiral, plus aimed volleys on a slow beat.
+        // Final boss. The arena itself closes in: a ring implodes from
+        // off-screen now and then, over a spiral that never stops, plus aimed
+        // volleys on a slow beat.
         moveToward(CENTER.x, CENTER.y, 40 * m, dt);
-        boss.spin += dt * 0.8;
+        // The turn sets how tightly the spiral coils, and the coil is how much
+        // room she gives you. Slow enough to read, quick enough that standing
+        // in one wedge and waiting is not an answer for long.
+        boss.spin += dt * 0.74;
+        // The spiral, always turning. It used to run in alternating blocks with
+        // the implosion and share the same timer; with the implosion on a long
+        // count of its own there is nothing to alternate with, so it simply runs.
+        //
+        // Three arms rather than four. Vulcan throws his arms from the top of
+        // the sand, so there is always a floor behind you that is not his; she
+        // sits dead centre and sweeps the whole room, which makes the same
+        // number of bullets a much worse floor to stand on. Four arms from the
+        // middle left ninety-degree wedges turning at you with nowhere to let
+        // them pass; three leaves a wedge you can stand in — but the arms come
+        // fast enough in it that standing there is a place to think, not a
+        // place to wait the fight out.
         if (boss.fire <= 0) {
-          if (Math.floor(stageTime / 4.5) % 2 === 0) {
-            boss.fire = 2.3 / m;
-            const off = boss.spin;
-            telegraph(0.7, "implode", { R: 380, offset: off },
-              () => {
-                implode(22, off, 105 * m, 6);        // collapse inward
-                // Past half health a second, offset ring follows the first in.
-                if (phase2) telegraph(0.55, "implode", { R: 380, offset: off + 0.14 },
-                  () => implode(22, off + 0.14, 95 * m, 6));
-              });
-          } else {
-            boss.fire = 0.2 / m;
-            for (let k = 0; k < 4; k++) {
-              spawn(boss.x, boss.y, -boss.spin * 2 + k * (Math.PI / 2), 140 * m, 6);
-            }
+          boss.fire = 0.46 / m;
+          for (let k = 0; k < 3; k++) {
+            spawn(boss.x, boss.y, -boss.spin * 2 + k * (Math.PI * 2 / 3), 128 * m, 6);
           }
+        }
+        // The implosion, on a count of its own and a long one. The whole floor
+        // closing inward is the biggest single thing in the game, and it was
+        // arriving in pairs every four and a half seconds — which made it the
+        // weather rather than an event, and made the fight about surviving the
+        // room instead of the goddess in it. Once every VOID_IMPLODE it lands
+        // like something happening; the gap is where the bout actually gets
+        // fought. Past half health a second ring still follows the first in —
+        // thinner than the first and far enough behind it to be read as its own
+        // thing, rather than a follow-through that closes the gap you just
+        // stepped into.
+        boss.fire3 -= dt * stageRate;
+        if (boss.fire3 <= 0) {
+          boss.fire3 = VOID_IMPLODE / m;
+          const off = boss.spin;
+          // Sixteen to the ring rather than twenty-two, and slower coming in:
+          // the floor still closes, but there is room between the strands to be
+          // standing in and time to find it.
+          telegraph(0.7, "implode", { R: 380, offset: off },
+            () => {
+              implode(16, off, 92 * m, 6);         // collapse inward
+              if (phase2) telegraph(0.78, "implode", { R: 380, offset: off + 0.2 },
+                () => implode(13, off + 0.2, 84 * m, 6));
+            });
         }
         boss.fire2 -= dt * stageRate;
         if (boss.fire2 <= 0) {
-          boss.fire2 = (phase2 ? 2.2 : 3.1) / m;
-          volleyTelegraphed(phase2 ? 5 : 3, Math.PI * 0.35, 190 * m);
+          boss.fire2 = (phase2 ? 3.0 : 4.0) / m;
+          volleyTelegraphed(phase2 ? 4 : 3, Math.PI * 0.35, 178 * m);
         }
         break;
       }
@@ -6692,7 +6909,7 @@
     // A cold circle is worth nothing, but one about to light is worth setting off
     // for now — the walk is most of the cost, and arriving as it burns is the
     // whole trick. Once it is cold again there is no reason to be standing there.
-    if (!hotBlocked && (hotZone.on || hotZone.t <= HOT_WARN)) {
+    if (!hotBlocked && (hotZone.on || (1 - hotZone.charge) * HOT_CHARGE <= HOT_WARN)) {
       // Take the hot zone if it isn't much further away than the wide eye.
       const dh = Math.hypot(player.x - hotZone.x, player.y - hotZone.y);
       const dz = Math.hypot(player.x - zone.x, player.y - zone.y);
@@ -6887,11 +7104,20 @@
     // It keeps orbiting either way — a circle that vanished and reappeared
     // somewhere else would be a new circle every time, and you could never learn
     // where the next one is coming.
-    hotZone.t -= dt;
-    if (hotZone.t <= 0) {
-      hotZone.on = !hotZone.on;
-      hotZone.t = hotZone.on ? HOT_ON : HOT_OFF;
-      if (hotZone.on) { sfx("phase"); shake = Math.max(shake, 5); }
+    // Lit, it burns its window down and nothing shortens it. Cold, it takes heat
+    // off every second nobody touches you — and hurt() is what puts that back to
+    // nothing. Full is what lights it.
+    if (hotZone.on) {
+      hotZone.t -= dt;
+      if (hotZone.t <= 0) { hotZone.on = false; hotZone.t = 0; hotZone.charge = 0; }
+    } else {
+      hotZone.charge = Math.min(1, hotZone.charge + dt / HOT_CHARGE);
+      if (hotZone.charge >= 1) {
+        hotZone.on = true;
+        hotZone.t = HOT_ON;
+        sfx("phase");
+        shake = Math.max(shake, 5);
+      }
     }
 
     const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
@@ -6900,10 +7126,46 @@
     // Murmillo would heal for holding his guard, which punishes the wrong thing.
     if (inZone || inHot) zone.touched = true;
 
+    // How fast the man is actually moving, smoothed over the last few frames —
+    // the raw frame-to-frame figure jitters too much to gate anything on.
+    const step = Math.hypot(player.x - (zone.lastX ?? player.x),
+                            player.y - (zone.lastY ?? player.y)) / Math.max(dt, 1e-6);
+    zone.lastX = player.x; zone.lastY = player.y;
+    zone.runSpeed = (zone.runSpeed || 0) * 0.85 + step * 0.15;
+
+    // Crossing the line at a run starts the entry bonus; crossing it at a
+    // shuffle starts nothing. Judged once, at the doorway.
+    if (inZone && !zone.wasIn && zone.runSpeed >= ZONE_RUSH_SPEED) {
+      zone.rushT = ZONE_RUSH;
+      pickupFlash = { label: "AT SPEED — THE CROWD LIKES IT", color: COLORS.safe, t: 0 };
+    }
+    zone.wasIn = inZone;
+    if (zone.rushT > 0) zone.rushT = Math.max(0, zone.rushT - dt);
+
+    // The squat clock. It only ticks while you are standing in the wide eye and
+    // it does not forgive stepping out — an eye is a window, not a chair, and
+    // three seconds of it is all one visit buys. Leaving early is what resets
+    // it, because leaving is the thing being asked for.
+    if (inZone) {
+      zone.standT += dt;
+      if (zone.standT >= ZONE_SQUAT) {
+        pickupFlash = { label: "THE EYE HAS SEEN ENOUGH — IT MOVES ON", color: COLORS.warn, t: 0 };
+        sfx("tick");
+        placeZone();          // touched already; no heal rides on this move
+      }
+    } else {
+      zone.standT = 0;
+    }
+
     // A shield is ground you cannot score on: stand behind it and the eye counts
     // nothing. You have to work around to his open side.
     const blocked = shieldBlocks();
-    const mult = blocked ? 0 : (inHot ? HOT_MULT : inZone ? 1 : 0);
+    // The entry bonus fades over its whole stay, so the first instant in the
+    // door is the best one. It belongs to the wide eye only — the ×III already
+    // pays for the trip.
+    const rush = (inZone && !inHot && zone.rushT > 0)
+      ? 1 + ZONE_RUSH_MULT * (zone.rushT / ZONE_RUSH) : 1;
+    const mult = blocked ? 0 : (inHot ? HOT_MULT : inZone ? rush : 0);
     if (mult) {
       boss.hp -= ZONE_DRAIN * mult * dt;
       if (bossSpeaker) {
@@ -7067,7 +7329,8 @@
       // it was would hand you a free drain on somebody who just became the fight.
       placeZone();
       hotZone.on = false;
-      hotZone.t = HOT_OFF;
+      hotZone.t = 0;
+      hotZone.charge = 0;
       freeze = 0.12;
       pickupFlash = { label: "THE EYE TURNS", color: COLORS.warn, t: 0 };
       say(foes[mark].speaker, "open", true);
@@ -7217,7 +7480,7 @@
       crest: A.color,            // what he is trained to, worn on the body
       body: {
         x: x, y: y, r: 34, speed: 620 * (A.spd || 1) * DUEL_SPEED * tempo, hits: 99,
-        fire: 0.6, fire2: 1.4, spin: 0, hitFlash: 0, hp: hp, maxhp: hp,
+        fire: 0.6, fire2: 1.4, fire3: 0, spin: 0, hitFlash: 0, hp: hp, maxhp: hp,
         dash: { phase: "idle", t: 0, tx: 0, ty: 0 },
         netT: A.net ? A.net * 0.6 : 0, fouled: 0, shieldAng: -Math.PI / 2,
       },
@@ -7795,9 +8058,235 @@
       ph: Math.random() * Math.PI * 2, a: 0.10 + Math.random() * 0.22,
     });
   }
-  // Dust kicked up where a man's foot lands, which is the only thing in here
-  // that knows you exist.
+  // Dust kicked up where a man's foot lands.
   const hubSteps = [];
+
+  // ---- The passage itself ----
+  //
+  // A corridor that is only a menu is a menu with a walk bolted on. The things
+  // below are what make it a place: none of them pay more than pocket change,
+  // none of them are on the card, and all of them answer you.
+  //
+  // The palus: the training stake every gladiator in history drilled against.
+  // Walk into it and it takes the hit and leans, springs back, and waits for
+  // the next one, which is the whole of what a palus does.
+  const palus = { x: 468, y: 486, lean: 0, vel: 0, hits: 0, cool: 0 };
+  // Three lines scratched into the walls. Real graffiti, or near it — the walls
+  // of Pompeii are covered in exactly this. Stand close to read one.
+  const GRAFFITI = [
+    { x: 44, y: 312, side: 1,
+      line: "CELADVS · SVSPIRIVM PVELLARVM",
+      gloss: "\u201cCeladus the Thraex — the girls\u2019 sigh.\u201d He scratched it himself." },
+    { x: W - 44, y: 478, side: -1,
+      line: "XX PVGNAE · XIX CORONAE",
+      gloss: "Twenty fights, nineteen crowns. Nobody writes up the twentieth." },
+    { x: 214, y: 688, side: 0,
+      line: "VIVAS — MORITVRVS SCRIPSIT",
+      gloss: "\u201cLive well\u201d — written by a man going out to die. The door to the sand is that way." },
+  ];
+  // A grate in the floor over the hypogeum. Stand on it and the noise of the
+  // building comes up through your feet — the crowd, and whatever is caged
+  // under the sand waiting for the afternoon.
+  const grate = { x: 268, y: 486, w: 58, h: 34 };
+  // The passage cat. Every building of this size has one; nobody owns it, it
+  // cannot be caught, and it has seen a thousand of you come and go.
+  const cat = { x: 540, y: 600, tx: 540, ty: 600, pause: 1.5, t: 0, flee: 0, fx: 1 };
+  // Once a day, somebody has dropped a coin in the dark and not gone back for
+  // it. One denarius: worth bending down for, not worth patrolling for.
+  let hubCoin = null;
+  let hubCoinDay = -1;
+
+  function maybeDropCoin() {
+    const day = (CONDICIO.day && CONDICIO.day()) || 0;
+    if (day === hubCoinDay) return;
+    hubCoinDay = day;
+    if (Math.random() > 0.5) return;
+    for (let tries = 0; tries < 24; tries++) {
+      const x = 90 + Math.random() * (W - 180);
+      const y = 150 + Math.random() * (H - 260);
+      if (STALLS.every((st) => Math.hypot(x - st.x, y - st.y) > 95) &&
+          Math.hypot(x - palus.x, y - palus.y) > 50 &&
+          Math.hypot(x - grate.x, y - grate.y) > 60) {
+        hubCoin = { x, y };
+        return;
+      }
+    }
+  }
+
+  function updateHubProps(dt) {
+    // The palus takes the shoulder. Impulse from walking through it, then a
+    // damped spring back to vertical — and a knock only counts as a knock once
+    // the last one has settled enough to hear.
+    palus.cool = Math.max(0, palus.cool - dt);
+    const pd = Math.hypot(hub.x - palus.x, hub.y - (palus.y + 6));
+    if (pd < 30 && (hub.moving || 0) > 60 && palus.cool <= 0) {
+      palus.cool = 0.34;
+      palus.hits++;
+      palus.vel += (hub.x < palus.x ? 1 : -1) * (2.6 + Math.random() * 1.4);
+      sfx("tick");
+      hubSteps.push({ x: palus.x, y: palus.y + 22, t: 0, max: 0.6 });
+    }
+    palus.vel += -palus.lean * 26 * dt - palus.vel * 4.2 * dt;
+    palus.lean += palus.vel * dt;
+
+    // The grate: the building gets louder the closer you stand to it. The base
+    // level is the one enterHub set; this rides on top and falls away with you.
+    const gd = Math.hypot(hub.x - grate.x, hub.y - grate.y);
+    setCrowd(0.16 + 0.38 * Math.max(0, 1 - gd / 130));
+
+    // The cat. It has somewhere vague to be, no hurry to be there, and a firm
+    // policy about people. It will never let you reach it, and that is the game.
+    cat.t += dt;
+    const cd = Math.hypot(hub.x - cat.x, hub.y - cat.y);
+    if (cd < 95) {
+      cat.flee = 0.6;
+      const a = Math.atan2(cat.y - hub.y, cat.x - hub.x) + (Math.random() - 0.5) * 0.6;
+      cat.tx = cat.x + Math.cos(a) * 160;
+      cat.ty = cat.y + Math.sin(a) * 160;
+      cat.pause = 0;
+    }
+    cat.flee = Math.max(0, cat.flee - dt);
+    cat.tx = Math.max(30, Math.min(W - 30, cat.tx));
+    cat.ty = Math.max(120, Math.min(H - 26, cat.ty));
+    if (cat.pause > 0) {
+      cat.pause -= dt;
+    } else {
+      const dx = cat.tx - cat.x, dy = cat.ty - cat.y, d = Math.hypot(dx, dy);
+      if (d < 6) {
+        cat.pause = 1.2 + Math.random() * 3.4;
+        cat.tx = 60 + Math.random() * (W - 120);
+        cat.ty = 150 + Math.random() * (H - 270);
+      } else {
+        const sp = cat.flee > 0 ? 230 : 62;
+        cat.x += (dx / d) * sp * dt;
+        cat.y += (dy / d) * sp * dt;
+        cat.fx = dx < 0 ? -1 : 1;
+      }
+    }
+
+    // The coin is picked up by walking over it, the way coins are.
+    if (hubCoin && Math.hypot(hub.x - hubCoin.x, hub.y - hubCoin.y) < 22) {
+      hubCoin = null;
+      addDenarii(1);
+      sfx("pickup");
+    }
+  }
+
+  function drawHubProps() {
+    ctx.save();
+
+    // The grate, first, because it is part of the floor. Iron bars over a dark
+    // slot, and a breath of warm light from the hypogeum under them.
+    ctx.fillStyle = "#0a0704";
+    roundRect(grate.x - grate.w / 2, grate.y - grate.h / 2, grate.w, grate.h, 4);
+    ctx.fill();
+    const gg = ctx.createRadialGradient(grate.x, grate.y, 2, grate.x, grate.y, 40);
+    gg.addColorStop(0, "rgba(255,140,60,0.13)");
+    gg.addColorStop(1, "rgba(255,140,60,0)");
+    ctx.fillStyle = gg;
+    ctx.fillRect(grate.x - 44, grate.y - 40, 88, 80);
+    ctx.strokeStyle = "#3a2e1d";
+    ctx.lineWidth = 3;
+    for (let i = 0; i < 5; i++) {
+      const gx = grate.x - grate.w / 2 + 7 + i * (grate.w - 14) / 4;
+      ctx.beginPath(); ctx.moveTo(gx, grate.y - grate.h / 2 + 4); ctx.lineTo(gx, grate.y + grate.h / 2 - 4); ctx.stroke();
+    }
+    roundRect(grate.x - grate.w / 2, grate.y - grate.h / 2, grate.w, grate.h, 4);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#4a3a22";
+    ctx.stroke();
+
+    // Graffiti: a pale scratch on the wall you can see from anywhere, and the
+    // words only once you are standing at them.
+    for (const g of GRAFFITI) {
+      ctx.strokeStyle = "rgba(220,200,160,0.28)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(g.x - 9, g.y - 3); ctx.lineTo(g.x + 9, g.y - 5);
+      ctx.moveTo(g.x - 7, g.y + 2); ctx.lineTo(g.x + 7, g.y + 1);
+      ctx.moveTo(g.x - 8, g.y + 6); ctx.lineTo(g.x + 5, g.y + 6);
+      ctx.stroke();
+    }
+
+    // The palus: a scarred stake in a socket of flagstone, leaning as it is hit.
+    ctx.save();
+    ctx.translate(palus.x, palus.y + 24);
+    ctx.fillStyle = "rgba(0,0,0,0.34)";
+    ctx.beginPath(); ctx.ellipse(0, 2, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.rotate(palus.lean * 0.09);
+    ctx.fillStyle = "#4a3620";
+    ctx.fillRect(-5, -52, 10, 52);
+    ctx.fillStyle = "#5d472b";
+    ctx.fillRect(-5, -52, 4, 52);
+    // The scars. Every man in the building has hit this thing.
+    ctx.strokeStyle = "rgba(28,20,10,0.8)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-5, -14); ctx.lineTo(3, -18);
+    ctx.moveTo(-3, -30); ctx.lineTo(5, -33);
+    ctx.moveTo(-5, -42); ctx.lineTo(2, -44);
+    ctx.stroke();
+    ctx.fillStyle = "#3a2c18";
+    ctx.beginPath(); ctx.ellipse(0, -52, 7, 3.4, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    // The coin, if today dropped one.
+    if (hubCoin) {
+      const p = 0.5 + 0.5 * Math.sin(hub.t * 5);
+      ctx.save();
+      ctx.shadowColor = COLORS.gold; ctx.shadowBlur = 8 + p * 8;
+      ctx.fillStyle = "#e8c25a";
+      ctx.beginPath(); ctx.ellipse(hubCoin.x, hubCoin.y, 4.4, 3.2, 0.4, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    // The cat, over everything on the floor, because it walks over everything
+    // on the floor.
+    ctx.save();
+    ctx.translate(cat.x, cat.y);
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath(); ctx.ellipse(0, 4, 9, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#14100a";
+    ctx.beginPath(); ctx.ellipse(0, 0, 9, 4.6, 0, 0, Math.PI * 2); ctx.fill();       // body
+    ctx.beginPath(); ctx.arc(cat.fx * 8, -2.5, 3.6, 0, Math.PI * 2); ctx.fill();     // head
+    ctx.beginPath();                                                                  // ears
+    ctx.moveTo(cat.fx * 6, -5); ctx.lineTo(cat.fx * 7, -8.5); ctx.lineTo(cat.fx * 8.4, -5.4);
+    ctx.moveTo(cat.fx * 8.6, -5.4); ctx.lineTo(cat.fx * 10, -8); ctx.lineTo(cat.fx * 10.6, -4.6);
+    ctx.fill();
+    ctx.strokeStyle = "#14100a";                                                      // tail
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-cat.fx * 8, 0);
+    ctx.quadraticCurveTo(-cat.fx * 15, -2 + Math.sin(cat.t * 3) * 3, -cat.fx * 16, -9 + Math.sin(cat.t * 2.2) * 2);
+    ctx.stroke();
+    if (cat.flee > 0) {                                                               // eyes, when you got close
+      ctx.fillStyle = "#b7e07a";
+      ctx.fillRect(cat.fx * 7 - 1, -3.4, 1.4, 1.4);
+      ctx.fillRect(cat.fx * 9 - 1, -3.4, 1.4, 1.4);
+    }
+    ctx.restore();
+    ctx.restore();
+  }
+
+  // The one line the passage says about whatever you are standing at, in the
+  // same spot the stall prompt uses. Stalls win — a gate you can open matters
+  // more than furniture you can read.
+  function hubPropCaption() {
+    for (const g of GRAFFITI) {
+      if (Math.hypot(hub.x - g.x, hub.y - g.y) < 60) return `${g.line} — ${g.gloss}`;
+    }
+    if (Math.hypot(hub.x - grate.x, hub.y - grate.y) < 55) {
+      return "The hypogeum. The games are above; what is fed to them is below.";
+    }
+    if (Math.hypot(hub.x - palus.x, hub.y - palus.y) < 52) {
+      return palus.hits >= 12 ? "The palus does not hit back. That is what the card is for."
+                              : "The palus. Every man in this building has hit it.";
+    }
+    if (Math.hypot(hub.x - cat.x, hub.y - cat.y) < 60) {
+      return "The passage cat. It has seen a thousand of you.";
+    }
+    return null;
+  }
 
   function drawHubFloor() {
     const g = ctx.createRadialGradient(W / 2, H * 0.42, 60, W / 2, H / 2, W * 0.8);
@@ -8030,9 +8519,126 @@
     ctx.restore();
   }
 
+  // ---- The mark over the card ----
+  //
+  // Eight gates in a dark passage and only one of them is the day's work. A new
+  // man looks at that and does not know which way to walk, so the card is lit
+  // like a thing being pointed at: rings going out across the floor from under
+  // it, a hand's worth of arrow bobbing under the awning, and a line of dots off
+  // his heels if he has wandered far enough to have lost it.
+  //
+  // It burns while there is a bout still unfought and goes out the moment he is
+  // standing at the counter — a sign you are already at does not need shouting.
+  // Drawn in two passes: what is painted on the floor goes under the gates and
+  // under the man, and the sign itself goes over the top of the passage light,
+  // which would otherwise put a lid on the brightest thing down here.
+  function cardBeaconOn() {
+    const s = STALL_BY_TAB["munera"];
+    // Standing at it or looking at it are both answers to the question the
+    // mark was asking, and it gets out of the way of the card it would
+    // otherwise be drawn straight through.
+    if (!s || hub.near === s || hub.hover === s) return null;
+    return planPending().length ? s : null;
+  }
+
+  function drawCardBeaconFloor() {
+    const s = cardBeaconOn();
+    if (!s) return;
+    const t = hub.t;
+    ctx.save();
+
+    // Rings going out along the floor. Two of them, half a cycle apart, so
+    // there is always one on the way out.
+    for (let i = 0; i < 2; i++) {
+      const k = ((t * 0.62) + i * 0.5) % 1;
+      const r = 46 + k * 96;
+      ctx.globalAlpha = 0.5 * (1 - k) * (1 - k);
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = 4 - k * 2;
+      ctx.beginPath();
+      ctx.ellipse(s.x, s.y + 10, r, r * 0.42, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // And if he is a long way off, the way there — dots off his heels, walking
+    // themselves up the passage so it reads as a direction rather than a rope.
+    const dx = s.x - hub.x, dy = s.y - hub.y;
+    const d = Math.hypot(dx, dy);
+    if (d > 190) {
+      const ux = dx / d, uy = dy / d;
+      const gap = 26;
+      const crawl = (t * 34) % gap;
+      // Stopping well short: the last stretch belongs to the arrow, and a line
+      // of dots running up into it reads as one scribble.
+      for (let m = 40 + crawl; m < d - 150; m += gap) {
+        const k = m / d;
+        ctx.globalAlpha = 0.34 * (1 - k * 0.6);
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(hub.x + ux * m, hub.y + uy * m + 12, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  function drawCardBeaconSign() {
+    const s = cardBeaconOn();
+    if (!s) return;
+    const t = hub.t;
+    ctx.save();
+
+    // The arrow, under the counter and pointing back up at it. Below rather
+    // than above: the card sits at the top of the passage with barely a finger
+    // of room over its awning, and everybody walks up to it from the floor
+    // anyway, so the mark goes where the man coming in is already looking.
+    const bob = Math.sin(t * 3.4) * 7;
+    const ay = s.y + 48 + bob;      // the tip
+    ctx.shadowColor = s.color;
+    ctx.shadowBlur = 22;
+    ctx.fillStyle = s.color;
+    ctx.beginPath();
+    ctx.moveTo(s.x, ay);
+    ctx.lineTo(s.x - 27, ay + 38);
+    ctx.lineTo(s.x - 11, ay + 38);
+    ctx.lineTo(s.x - 11, ay + 60);
+    ctx.lineTo(s.x + 11, ay + 60);
+    ctx.lineTo(s.x + 11, ay + 38);
+    ctx.lineTo(s.x + 27, ay + 38);
+    ctx.closePath();
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // What it is pointing at, said under the arrow.
+    const text = "TODAY'S CARD";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `700 13px ${FONT}`;
+    const tw = ctx.measureText(text).width;
+    const by = ay + 80;
+    ctx.globalAlpha = 0.55 + 0.45 * Math.sin(t * 3.4);
+    ctx.fillStyle = "rgba(10,7,4,0.86)";
+    roundRect(s.x - tw / 2 - 10, by - 10, tw + 20, 20, 4);
+    ctx.fill();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 1.5;
+    roundRect(s.x - tw / 2 - 10, by - 10, tw + 20, 20, 4);
+    ctx.stroke();
+    ctx.fillStyle = s.color;
+    ctx.fillText(text, s.x, by + 1);
+    ctx.restore();
+  }
+
   function drawHub() {
     ctx.clearRect(0, 0, W, H);
     drawHubFloor();
+    // Under the gates and under the man: it is paint on the floor.
+    drawCardBeaconFloor();
+    // The furniture of the passage — the palus, the grate, the walls' graffiti,
+    // the cat, the coin somebody dropped. Under the stalls and the man, because
+    // all of it lives on the floor.
+    drawHubProps();
     // A hovered stall lights the same way a stall you are standing at does —
     // the pointer is a way of looking, and looking is what lights a place up.
     const shown = hub.hover || hub.near;
@@ -8083,6 +8689,10 @@
     ctx.fillStyle = vg;
     ctx.fillRect(0, 0, W, H);
 
+    // Over the passage light. The one thing down here that is allowed to be
+    // brighter than the room it is in.
+    drawCardBeaconSign();
+
     // What the place actually is, at length, for whichever stall is being
     // looked at or stood at.
     if (shown) drawStallCard(shown);
@@ -8109,6 +8719,23 @@
       ctx.fill();
       ctx.fillStyle = COLORS.gold;
       ctx.fillText(text, hub.x, py + 3);
+      ctx.restore();
+    } else if (hubPropCaption()) {
+      // Standing at the furniture instead. Same spot, quieter voice.
+      const cap = hubPropCaption();
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.font = `500 12px ${FONT}`;
+      const lines = wrapText(cap, 300);
+      const cw2 = Math.min(320, Math.max(...lines.map((l) => ctx.measureText(l).width)) + 20);
+      const ch2 = lines.length * 16 + 10;
+      const cy2 = Math.min(H - ch2 - 8, hub.y + 30);
+      const cx2 = Math.max(cw2 / 2 + 8, Math.min(W - cw2 / 2 - 8, hub.x));
+      ctx.fillStyle = "rgba(10,7,4,0.82)";
+      roundRect(cx2 - cw2 / 2, cy2 - 12, cw2, ch2, 4);
+      ctx.fill();
+      ctx.fillStyle = "#c9b896";
+      lines.forEach((l, i) => ctx.fillText(l, cx2, cy2 + 3 + i * 16));
       ctx.restore();
     } else if (hub.enterT < 7) {
       // Only while it is new. Nobody needs to be told how to walk twice.
@@ -8799,11 +9426,14 @@
       // only some of the time. Cold it is a grey ring the boss is still towing
       // around; warming it beats faster the closer it gets to lighting.
       const hotLive = hotZone.on;
-      const hotWarm = !hotLive && hotZone.t <= HOT_WARN;
+      // The last stretch of the charge is the warning: the same tell as before,
+      // measured off how nearly full it is rather than off a clock.
+      const hotWarm = !hotLive && (1 - hotZone.charge) * HOT_CHARGE <= HOT_WARN;
       const inHot = hotLive && Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
       // 0 while cold, rising to 1 as it lights — drives every colour below, so
       // the circle brightens into the burn instead of snapping on.
-      const heat = hotLive ? 1 : hotWarm ? 1 - hotZone.t / HOT_WARN : 0;
+      const heat = hotLive ? 1
+                 : hotWarm ? 1 - ((1 - hotZone.charge) * HOT_CHARGE) / HOT_WARN : 0;
       ctx.save();
       ctx.globalAlpha = hotLive ? 1 : 0.45 + heat * 0.55;
 
@@ -8840,6 +9470,26 @@
       // "can I get there in time" answered without a number on the sand. Gold,
       // because every other colour out here already means something: blue is
       // ground worth standing on, red is what kills you.
+      // Cold, the same ring runs the other way: it fills as the circle heats, so
+      // how close the burn is — and how much a wound just cost you — is readable
+      // off the sand without a bar in the corner. It is the one thing the player
+      // has to be able to see for the charge rule to be a rule rather than a
+      // surprise, so it is drawn in the circle's own steel and not in gold: only
+      // a window you can actually spend is worth torchlight.
+      if (!hotLive && hotZone.charge > 0.02) {
+        ctx.save();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.35 + heat * 0.5;
+        ctx.strokeStyle = hotWarm ? "#7f9dff" : "#5d6a90";
+        ctx.lineWidth = 3;
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.arc(hotZone.x, hotZone.y, hotZone.r + 7, -Math.PI / 2,
+                -Math.PI / 2 + hotZone.charge * Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
       const left = Math.max(0, Math.min(1, hotZone.t / HOT_ON));
       if (hotLive && left > 0) {
         ctx.setLineDash([]);
@@ -8866,7 +9516,8 @@
       ctx.fillText("×3", hotZone.x, hotZone.y - 1);
       ctx.fillStyle = hotLive ? (inHot ? "#cfd9ff" : "rgba(150,175,255,0.9)") : "#8b95b4";
       ctx.font = `700 9px ${FONT}`;
-      ctx.fillText(hotLive ? "DAMAGE" : hotWarm ? "LIGHTING" : "COLD", hotZone.x, hotZone.y + 12);
+      ctx.fillText(hotLive ? "DAMAGE" : hotWarm ? "LIGHTING"
+                 : hotZone.charge > 0.02 ? "HEATING" : "COLD", hotZone.x, hotZone.y + 12);
       ctx.restore();
     }
 
@@ -9077,9 +9728,17 @@
       hudTimer.style.color = "#c9a227";
     } else if (inHot) { hudTimer.textContent = "×3 DAMAGE"; hudTimer.style.color = "#7f9dff"; }
     // Standing on a cold circle scores nothing at all, and that needs saying too
-    // — otherwise it reads exactly like the shield case, which it is not.
-    else if (onHot && !inZone) { hudTimer.textContent = "COLD"; hudTimer.style.color = "#8b95b4"; }
-    else if (inZone) { hudTimer.textContent = "DAMAGING"; hudTimer.style.color = COLORS.safe; }
+    // — otherwise it reads exactly like the shield case, which it is not. How
+    // near it is to lighting goes up here as well, because the answer to "is it
+    // worth waiting on this thing" is a number and the ring is only a shape.
+    else if (onHot && !inZone) {
+      hudTimer.textContent = `HEATING ${Math.round(hotZone.charge * 100)}%`;
+      hudTimer.style.color = "#8b95b4";
+    }
+    else if (inZone) {
+      hudTimer.textContent = zone.rushT > 0 ? "DAMAGING — AT SPEED" : "DAMAGING";
+      hudTimer.style.color = COLORS.safe;
+    }
     else { hudTimer.textContent = "find the eye"; hudTimer.style.color = "#a08f76"; }
   }
 
@@ -9380,6 +10039,7 @@
 
   function refreshMenu() {
     renderTutorialRow();
+    renderDoctoreRow();
     renderBattles();
     renderLibrary();
     renderPrizes();

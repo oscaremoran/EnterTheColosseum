@@ -135,8 +135,11 @@
   //  lines[]  one card each, shown in order, advanced with Space or a
   //           double-tap. Any number works — two, six, one. An empty array
   //           skips the scene entirely.
-  //  short    the single line used on every meeting after the first.
   //  name     what the card is headed with. sub is the small line under it.
+  //
+  //  Keyed by the `crown` on that man's stage in campaigns.js, NOT by his
+  //  attack pattern: the pattern is lent out to the ladder and the Library, and
+  //  the men who borrow it are not him. Played in full every time he is fought.
   //
   //  Nothing else in the game reads these, so there is no length to keep to
   //  and nothing to break by editing them.
@@ -149,7 +152,6 @@
         "Everything they got wrong, they got from me. I kept the rest of it back.",
         "You will see the true fury of Vulcan, GOD OF THE FORGE!",
       ],
-      short: "Back for more?",
     },
     void: {
       name: "NOX", sub: "the goddess of night · the last name on the card",
@@ -158,7 +160,6 @@
         "You are the first to defeat my finest pupil.",
         "I will not let this stand. Nox, GODDESS OF NIGHT, WILL DESTROY YOU!",
       ],
-      short: "You again. Nothing here has moved.",
     },
   };
 

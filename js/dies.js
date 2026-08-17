@@ -56,9 +56,9 @@
   const SPARE_OVATION = 2;
 
   // ---- The day's shape ----
-  // One ladder bout, two out of the Library, one munus, and the next man down
-  // each of the two campaign paths. Anybody above you who has asked for a bout
-  // is added on top of this, so a day can run to seven.
+  // One ladder bout, one out of the Library, one munus, and the next man down
+  // ONE campaign path — Vulcan's run until it is finished, then Nox's. Anybody
+  // above you who has asked for a bout is added on top of this.
   const PLAN = { library: 1, munera: 1, ladder: 1, campaign: 1 };
 
   // ---- Knowing when to stop ----

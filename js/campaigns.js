@@ -24,8 +24,12 @@
         { name: "Taurus",  key: "charger", hp: 55, desc: "telegraphs, then dashes" },
         { name: "Vortex",  key: "spiral",  hp: 50, desc: "a whirlwind that reverses its spin" },
         { name: "Ballista",key: "gatling", hp: 50, desc: "orbits, then locks on & focus-fires" },
-        { name: "Testudo", key: "lattice", hp: 70, desc: "spinning ranks of darts" },
-        { name: "Vulcan",  key: "hades",   hp: 95, desc: "final boss: curling forge-flames + volleys", final: true },
+        { name: "Testudo", key: "lattice", hp: 62, desc: "spinning ranks of darts" },
+        // `crown` is what makes this man Vulcan rather than the hades pattern.
+        // The pattern is lent out all over the building — Verus fights it on the
+        // ladder, a Library level can chain it — and none of those men are the
+        // forge-god, so none of them get his card at the gate. See raiseGate.
+        { name: "Vulcan",  key: "hades",   hp: 84, desc: "final boss: curling forge-flames + volleys", final: true, crown: "hades" },
       ],
     },
     void: {
@@ -39,7 +43,7 @@
         { name: "Serpens", key: "serpent", hp: 55, desc: "a snaking stream that whips side to side" },
         { name: "Crux",    key: "cross",   hp: 55, desc: "two counter-rotating cross beams" },
         { name: "Legio",   key: "swarm",   hp: 60, desc: "light fire, but minions flood in" },
-        { name: "Nox",     key: "void",    hp: 95, desc: "final boss: the arena implodes inward", final: true },
+        { name: "Nox",     key: "void",    hp: 82, desc: "final boss: the arena implodes inward", final: true, crown: "void" },
       ],
     },
   };
