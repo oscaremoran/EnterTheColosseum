@@ -445,6 +445,54 @@
   .exsaverow button { flex: none; padding: 8px 13px; font-size: 12px; }
   .exsavemsg { font-size: 12px; color: var(--ex); min-height: 1.3em; }
   .exsavemsg.bad { color: var(--danger); }
+  /* ---- The roll ----
+     Credits the way a film ends: the names walk up off the bottom of the screen
+     and out of the top, and you watch them or you press Back. A lid over the
+     ending screen rather than a screen of its own, so it is opaque and it is
+     the last child of #wrap, which is what keeps it on top.
+     The pace is not in here — the distance depends on how many names there are,
+     so the duration is worked out from the block's own height. See openRoll. */
+  .roll {
+    justify-content: flex-start; overflow: hidden; padding: 0;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(60,44,23,0.30) 0%, rgba(0,0,0,0) 62%),
+      #0b0805;
+  }
+  .rollinner {
+    position: absolute; left: 50%; top: 0;
+    width: 100%; max-width: 480px; padding: 0 22px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    text-align: center;
+    /* left:50% plus this keeps it centred while translateY does the walking —
+       one transform owns both, or the animation would fight the centring. */
+    transform: translate(-50%, var(--rollY, 100%));
+    will-change: transform;
+  }
+  @keyframes rolling {
+    from { transform: translate(-50%, var(--rollFrom)); }
+    to   { transform: translate(-50%, var(--rollTo)); }
+  }
+  .rollinner .credtitle { color: var(--gold); }
+  .rollinner .credline { background: var(--gold); opacity: .6; }
+  .rollinner .divider { width: 100%; }
+  .rollinner .hint { margin-top: 18px; }
+  .rollend {
+    margin-top: 26px; margin-bottom: 40px;
+    font-family: var(--serif); letter-spacing: 6px; font-size: 13px; color: var(--muted);
+  }
+  /* Pinned, because a button that rolls away with the names is a button you
+     cannot press for most of the time it exists. */
+  .rollfoot {
+    position: absolute; left: 0; right: 0; bottom: 16px;
+    z-index: 2; pointer-events: none;
+  }
+  .rollfoot button { pointer-events: auto; }
+  /* Somebody who has asked not to be moved gets the same names, standing still
+     and scrollable. The animation is never started for them — see openRoll. */
+  @media (prefers-reduced-motion: reduce) {
+    .roll { overflow-y: auto; }
+    .rollinner { position: relative; left: auto; transform: none; margin: 0 auto; padding-top: 26px; }
+  }
   /* A line nobody has written yet. It says so rather than showing blank. */
   .exstub { color: #7a6a55; font-style: italic; }
   .exstub::after {
@@ -1393,56 +1441,6 @@
           </div>
         </details>
 
-        <details class="fold" data-fold="creditsfold">
-          <summary>
-            <span class="foldname">Credits</span>
-            <span class="foldsub">whose hands this passed through</span>
-            <span class="foldmark">&#9656;</span>
-          </summary>
-          <div class="foldbody">
-            <div class="creditcard">
-            <div class="credtitle">ENTER THE<br><span class="accent">COLOSSEUM</span></div>
-            <div class="credline"></div>
-            </div>
-
-            <div class="credits">
-            <div class="credrole">Made by</div>
-            <div class="credname">Oscar Moran</div>
-
-            <div class="credrole">Design &amp; direction</div>
-            <div class="credname">Oscar Moran</div>
-
-            <div class="credrole">Code</div>
-            <div class="credname">Oscar Moran</div>
-
-            <div class="credrole">Words</div>
-            <div class="credname">Oscar Moran</div>
-
-            <div class="credrole">Music &amp; sound</div>
-            <div class="credname">Oscar Moran</div>
-            <div class="crednote">Every note in this game is generated as it plays — there are no audio files. The band is a step sequencer and a handful of oscillators.</div>
-
-            <div class="credrole">Playtesting</div>
-            <div class="credname credempty">—</div>
-
-            <div class="credrole">Thanks</div>
-            <div class="credname credempty">—</div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="credits">
-            <div class="credrole">The men on the board</div>
-            <div class="crednote">The twenty-four names on the Ladder are real. They come off surviving inscriptions and graffiti, and where a record survives — how many times a man fought, how many he won, how many times he was beaten and allowed to walk off — it is his own, not invented. Glauco's stone was paid for by his wife Aurelia. Bato was a Dacian who fought three men in one day and won the first two. They were people before they were opponents.</div>
-
-            <div class="credrole">The Latin</div>
-            <div class="crednote">The contracts, the armaturae, the sparsiones and the rest are the real terms as far as the sources have them. Where the game had to invent a word for something Rome never had to name, it says so in its own comments rather than pretending.</div>
-            </div>
-
-            <p class="hint" style="margin-top:6px">Everything here runs off a disk with no server, no account and nothing sent anywhere. Whatever this game knows about you, it knows only on this machine.</p>
-
-          </div>
-        </details>
       </div>
 
       <!-- How to play -->
@@ -1559,6 +1557,48 @@
       <div id="exList" class="liblist"></div>
       <div class="btnrow" id="exFoot"></div>
       <p class="hint" id="exHint"></p>
+    </div>
+
+    <!-- The roll. The names, read the way names are read at the end of a thing
+         that has finished: from the bottom of the screen to the top, at a pace
+         nobody chose. It is a lid over whichever ending screen opened it rather
+         than a screen of its own — the epilogue is still underneath, and closing
+         this puts you back on it without anything having to be rebuilt.
+         After #exitus in the markup because that is what puts it on top. -->
+    <div id="roll" class="screen roll hidden">
+      <div id="rollInner" class="rollinner">
+        <div class="creditcard">
+        <div class="credtitle">ENTER THE<br><span class="accent">COLOSSEUM</span></div>
+        <div class="credline"></div>
+        </div>
+        <div class="credits">
+        <div class="credrole">Made by</div>
+        <div class="credname">Oscar Moran</div>
+        <div class="credrole">Design &amp; direction</div>
+        <div class="credname">Oscar Moran</div>
+        <div class="credrole">Code</div>
+        <div class="credname">Oscar Moran</div>
+        <div class="credrole">Words</div>
+        <div class="credname">Oscar Moran</div>
+        <div class="credrole">Music &amp; sound</div>
+        <div class="credname">Oscar Moran</div>
+        <div class="crednote">Every note in this game is generated as it plays — there are no audio files. The band is a step sequencer and a handful of oscillators.</div>
+        <div class="credrole">Playtesting</div>
+        <div class="credname credempty">—</div>
+        <div class="credrole">Thanks</div>
+        <div class="credname credempty">—</div>
+        </div>
+        <div class="divider"></div>
+        <div class="credits">
+        <div class="credrole">The men on the board</div>
+        <div class="crednote">The twenty-four names on the Ladder are real. They come off surviving inscriptions and graffiti, and where a record survives — how many times a man fought, how many he won, how many times he was beaten and allowed to walk off — it is his own, not invented. Glauco's stone was paid for by his wife Aurelia. Bato was a Dacian who fought three men in one day and won the first two. They were people before they were opponents.</div>
+        <div class="credrole">The Latin</div>
+        <div class="crednote">The contracts, the armaturae, the sparsiones and the rest are the real terms as far as the sources have them. Where the game had to invent a word for something Rome never had to name, it says so in its own comments rather than pretending.</div>
+        </div>
+        <p class="hint" style="margin-top:6px">Everything here runs off a disk with no server, no account and nothing sent anywhere. Whatever this game knows about you, it knows only on this machine.</p>
+        <div class="rollend">— finis —</div>
+      </div>
+      <div class="btnrow rollfoot"><button id="rollBack">Back</button></div>
     </div>
   </div>
 
@@ -3223,6 +3263,9 @@
       }
       return;
     }
+    // The roll is a lid, and Escape takes a lid off before it does anything
+    // else — otherwise it would reach past the names and out of the building.
+    if (e.key === "Escape" && rollOpen()) { e.preventDefault(); closeRoll(); return; }
     // At a stall, Escape is the way back out into the passage. Not while the
     // builder is open — there Escape belongs to the thing you are building.
     if (e.key === "Escape" && state === GS.MENU && editorEl.classList.contains("hidden")) {
@@ -4467,7 +4510,7 @@
     {
       tab: "tessera", name: "Tessera", sub: "whose career this is, and everything under his name",
       x: 592, y: 268, color: "#dbe6f2",
-      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on the board, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped, saved and struck off here — and folded under the tag are the three rooms that were gates of their own once: the Vault the prize codes go into, the Settings that hold the sound and the contract and the wipe, and the stone by the door with the names on it.",
+      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on the board, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped, saved and struck off here — and folded under the tag are the two rooms that were gates of their own once: the Vault the prize codes go into, and the Settings that hold the sound, the contract and the wipe.",
       now: () => {
         const rec = loadRecord();
         return `${activeAccount().name} · ${roman(rec.vic)} won of ${roman(rec.pugn)} taken`;
@@ -4582,6 +4625,7 @@
     hudEl.classList.add("hidden");
     editorEl.classList.add("hidden");
     padEl.classList.add("hub");    // the thumb still needs its band down here
+    closeRoll();                   // no lid over a room you have just left
     syncMenu();                    // the lists behind the stalls stay current
 
     // Last, because both of these take the screen off the passage again.
@@ -5293,6 +5337,60 @@
   const exFoot = document.getElementById("exFoot");
   const exHint = document.getElementById("exHint");
 
+  // ---- The roll ----
+  //
+  // A lid over the ending screen, not a screen you navigate to: whatever opened
+  // it is still sitting underneath, so closing it is one classList call and
+  // nothing has to be rebuilt.
+  //
+  // The pace cannot be written in the stylesheet, because how far the names have
+  // to walk depends on how many of them there are — one added line would either
+  // speed the whole roll up or leave a gap at the end. So the distance is
+  // measured off the block itself and the duration comes out of it at a fixed
+  // number of pixels a second, which is what keeps a roll reading at the same
+  // speed however long it gets.
+  const rollEl = document.getElementById("roll");
+  const rollInner = document.getElementById("rollInner");
+  const ROLL_SPEED = 46;          // px a second — a reading pace, not a credit crawl
+  const stillPlease = () => {
+    try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch (e) { return false; }
+  };
+
+  function openRoll() {
+    rollEl.classList.remove("hidden");
+    rollEl.scrollTop = 0;
+    rollInner.style.animation = "none";
+    if (stillPlease()) {
+      // No walking. The stylesheet has already made the lid scrollable and put
+      // the names back in the flow; all that is left is to not animate them.
+      rollInner.style.removeProperty("--rollFrom");
+      rollInner.style.removeProperty("--rollTo");
+      return;
+    }
+    // Read the height AFTER the lid is visible — a hidden element measures zero,
+    // and a roll timed off zero is over before it starts.
+    const h = rollInner.offsetHeight;
+    const view = rollEl.clientHeight || H;
+    rollInner.style.setProperty("--rollFrom", view + "px");
+    rollInner.style.setProperty("--rollTo", -(h + 20) + "px");
+    // Force the layout to settle so the browser does not fold the removal and
+    // the reassignment of the animation into one no-op, which would leave the
+    // names frozen wherever the last roll ended.
+    void rollInner.offsetWidth;
+    rollInner.style.animation = `rolling ${((h + view) / ROLL_SPEED).toFixed(1)}s linear forwards`;
+    sfx("tick");
+  }
+  function closeRoll() {
+    rollEl.classList.add("hidden");
+    rollInner.style.animation = "none";
+  }
+  document.getElementById("rollBack").addEventListener("click", closeRoll);
+  // Anywhere on the lid, so a roll you have finished with is one tap away from
+  // being over wherever your hand happens to be.
+  rollEl.addEventListener("click", (e) => { if (e.target !== rollEl) return; closeRoll(); });
+  function rollOpen() { return !rollEl.classList.contains("hidden"); }
+
   // Set when something has happened that the munerarius wants a word about, and
   // read on the way off the sand — an offer must never land on top of a bout
   // that is still being scored. enterHub is where it is spent.
@@ -5351,6 +5449,7 @@
     exFoot.innerHTML = "";
     exHint.textContent = "";
     exSub.className = "exsub";
+    closeRoll();   // no lid survives a change of view underneath it
     exitusEl.classList.remove("hidden");
     exitusEl.scrollTop = 0;
     menuEl.classList.add("hidden");
@@ -5548,6 +5647,7 @@
       exBody.appendChild(exRecordLine(seal));
       exBody.appendChild(exSaveBlock(seal));
       exHint.textContent = "Sealed on an ending this copy of the game cannot read. The line above is still the save from before he chose it.";
+      exButton("Credits", false, openRoll);
       return;
     }
     exReset(f.accent);
@@ -5571,6 +5671,9 @@
     // read, and the only thing under it is the way to have the man back.
     exBody.appendChild(exSaveBlock(seal));
     exHint.textContent = "This career is finished, and this is the last screen it has. The line above is the save from the moment before you chose — paste it back and he is standing at that afternoon again, with every door still open to him.";
+    // The one button an ending gets. It does not leave the screen — it puts a
+    // lid over it — so the epilogue is still the last thing this career has.
+    exButton("Credits", false, openRoll);
   }
 
   // ---- The way out of a finished career ----
@@ -5722,6 +5825,7 @@
     // ending" button any more and there is not meant to be: a sealed career
     // never gets this far, because the epilogue is the only screen it has.
     exButton("Back", true, () => openExitus("walk"));
+    exButton("Credits", false, openRoll);
     exHint.textContent = "An ending is reached by taking it, and a career can only take one.";
   }
 
