@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Exitus — the endings, on a bench</title>
+<!--
+  A bench for the endings.
+
+  index.html reaches the exitus screen the honest way: you climb twenty-four
+  rungs, the magistrate walks out onto the sand, and you answer him. That is a
+  fine thing for a player and a miserable thing for whoever is writing the
+  prose, so this file is the same screen with the climb taken out. Buttons on
+  the left, the screen on the right, and a row of dials for the record the gates
+  are read off.
+
+  It is a bench and nothing else:
+    · It loads js/palette.js and js/exitus.js — the real ones. Every word on the
+      screen is the word the game would show. Edit a W(...) in exitus.js, reload
+      this page, and there it is.
+    · It touches no storage. Nothing you do here can be seen by index.html, and
+      nothing index.html has saved is seen here. The dials below ARE the career.
+    · The screen markup and the CSS for it are copied from index.html. If you
+      restyle the exitus screen over there, the two will drift — this is a
+      preview of the words, not a second implementation of the game.
+
+  Opens by double-clicking, like the rest of it.
+-->
+<style>
+  /* ---- Lifted from index.html, only what the exitus screen actually uses ---- */
+  :root {
+    --bg: #141009;
+    --danger: #e0301f;
+    --text: #f2e7d2;
+    --muted: #a08f76;
+    --stone: #1d1710;
+    --bronze: #6b4f2a;
+    --gold: #d9a441;
+    --serif: "Trajan Pro", Optima, "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #0d0a06; color: var(--text);
+    font-family: Optima, "Palatino Linotype", Palatino, Georgia, serif;
+    -webkit-text-size-adjust: 100%;
+  }
+  .btnrow { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  button {
+    font: inherit; font-weight: 700; color: var(--text);
+    font-family: var(--serif); letter-spacing: 1.4px;
+    background: linear-gradient(180deg, #2a2016 0%, #1c150d 100%);
+    border: 1px solid var(--bronze);
+    padding: 11px 20px; border-radius: 4px; cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(217,164,65,0.14);
+    transition: transform .08s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
+  }
+  button:hover {
+    border-color: var(--gold); background: linear-gradient(180deg, #362818 0%, #241a10 100%);
+    box-shadow: inset 0 1px 0 rgba(217,164,65,0.22), 0 0 14px rgba(217,164,65,0.16);
+  }
+  button:active { transform: translateY(1px); }
+  button.primary {
+    border-color: var(--gold); color: #ffeec2;
+    box-shadow: inset 0 1px 0 rgba(255,220,150,0.28), 0 0 16px rgba(217,164,65,0.18);
+  }
+  .hint { color: var(--muted); font-size: 13px; }
+  .liblist { display: flex; flex-direction: column; gap: 8px; width: 100%; max-width: 460px; }
+  .libitem {
+    display: flex; align-items: center; gap: 10px; text-align: left;
+    background: linear-gradient(180deg, #221a11 0%, #1a140c 100%);
+    border: 1px solid #3a2c1a; border-left: 3px solid var(--bronze);
+    border-radius: 4px; padding: 10px 12px;
+  }
+  .libitem .meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .libitem .nm {
+    font-family: var(--serif); font-weight: 700; font-size: 15px; letter-spacing: 1.2px;
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  }
+  .libitem .tick { color: var(--gold); font-size: 11px; font-weight: 600; }
+  .libitem .blurb { color: var(--text); font-size: 12.5px; line-height: 1.45; }
+  .libitem .sub2 { color: var(--muted); font-size: 11.5px; }
+  .libitem button { padding: 7px 12px; font-size: 12px; align-self: center; flex: none; }
+
+  #exitus { --ex: var(--gold); gap: 14px; }
+  .exhead { max-width: 560px; }
+  .exkicker {
+    font-size: 11px; letter-spacing: 5px; color: var(--ex); opacity: .85;
+    text-transform: uppercase;
+  }
+  .exname {
+    font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: 3px;
+    color: var(--ex); margin: 4px 0 0; text-shadow: 0 0 26px rgba(0,0,0,.6);
+  }
+  .exsub { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 5px; }
+  .exbody { max-width: 560px; display: flex; flex-direction: column; gap: 11px; }
+  .exbody p { font-size: 14px; line-height: 1.65; color: var(--text); text-align: left; margin: 0; }
+  .exbody .exrule { height: 1px; background: linear-gradient(90deg,
+      rgba(0,0,0,0) 0%, var(--ex) 50%, rgba(0,0,0,0) 100%); opacity: .5; }
+  .exbody .exstone {
+    border-left: 3px solid var(--ex); padding: 8px 0 8px 12px;
+    font-family: var(--serif); font-size: 15px; letter-spacing: 1px; line-height: 1.6;
+    text-align: left; color: var(--ex);
+  }
+  .exbody .exrec { color: var(--muted); font-size: 12px; line-height: 1.6; text-align: left; }
+  .exstub { color: #7a6a55; font-style: italic; }
+  .exstub::after {
+    content: " [unwritten]"; font-style: normal; font-size: 10px; letter-spacing: 2px;
+    color: #55483a;
+  }
+  #exList { max-width: 560px; }
+  .exfate { border-left-color: var(--fc, var(--bronze)); align-items: flex-start; }
+  .exfate .nm { color: var(--fc, var(--gold)); }
+  .exfate.veiled { border-left-color: #2e2418; opacity: .55; }
+  .exfate.veiled .nm { color: #6a5b47; letter-spacing: 6px; }
+  .exfate .tick { color: var(--gold); }
+
+  /* ---- The bench itself. None of this exists in the game. ---- */
+  .bench { display: flex; gap: 18px; padding: 18px; align-items: flex-start; max-width: 1180px; margin: 0 auto; }
+  .rail { flex: 0 0 300px; display: flex; flex-direction: column; gap: 14px; }
+  .rail h1 {
+    font-family: var(--serif); font-size: 19px; letter-spacing: 3px; color: var(--gold);
+    margin: 0; font-weight: 700;
+  }
+  .rail p.note { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 0; }
+  .panel {
+    border: 1px solid #2e2418; background: var(--stone); border-radius: 6px; padding: 12px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .panel h2 {
+    font-family: var(--serif); font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--muted); margin: 0; font-weight: 700;
+  }
+  .panel button { padding: 9px 12px; font-size: 13px; text-align: left; }
+  /* Each fate's button wears the fate's own colour, so the rail reads as the
+     same list the endings screen does. */
+  .panel button.fate { border-left: 3px solid var(--fc, var(--bronze)); }
+  .panel button.fate .fname { color: var(--fc, var(--gold)); }
+  .panel button.fate .fwhy { display: block; font-size: 10.5px; letter-spacing: .4px;
+    font-family: inherit; font-weight: 400; color: var(--muted); margin-top: 3px; }
+  /* A dial. The label, then the control, on one line. */
+  .dial { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .dial label { flex: 1 1 auto; }
+  .dial input[type="number"], .dial input[type="text"] {
+    flex: 0 0 84px; font: inherit; font-size: 12px; color: var(--text);
+    background: #100c07; border: 1px solid #3a2c1a; border-radius: 3px; padding: 5px 7px;
+  }
+  .dial input[type="text"] { flex: 0 0 130px; }
+  .dial input[type="checkbox"] { flex: none; width: 16px; height: 16px; accent-color: var(--gold); }
+  .row2 { display: flex; gap: 8px; }
+  .row2 button { flex: 1; text-align: center; }
+  /* Which fates the dials currently open, restated under them so you are never
+     guessing why a button is greyed out. */
+  #gateRead { color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+  #gateRead b { color: var(--gold); font-weight: 700; }
+
+  /* The arena box, standing in for the canvas index.html draws into. */
+  .arena {
+    flex: 1 1 auto; min-width: 0; position: relative; min-height: 660px;
+    border-radius: 10px; background: var(--bg);
+    box-shadow: 0 0 0 2px #3c2c17, 0 0 0 4px #6b4f2a, 0 0 34px rgba(217,164,65,0.12),
+                0 24px 60px rgba(0,0,0,0.6);
+  }
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    text-align: center; padding: 22px 20px; gap: 12px; overflow-y: auto;
+    background: radial-gradient(ellipse at 50% 0%, rgba(60,44,23,0.55) 0%, rgba(0,0,0,0) 60%);
+  }
+  .hidden { display: none !important; }
+  @media (max-width: 900px) {
+    .bench { flex-direction: column; }
+    .rail { flex: none; width: 100%; }
+    .arena { width: 100%; min-height: 560px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bench">
+  <div class="rail">
+    <h1>Exitus, on a bench</h1>
+    <p class="note">
+      The real <code>js/exitus.js</code>, on the real screen, with the climb taken out.
+      Grey italic lines are stubs nobody has written yet. Edit the file, reload the page.
+    </p>
+
+    <div class="panel">
+      <h2>The offer</h2>
+      <button class="primary" data-open="rank1">The Munerarius
+        <span class="fwhy">standing on rank I — he has come down onto the sand</span></button>
+      <button data-open="walk">Leaving The Sand
+        <span class="fwhy">you went looking for the door yourself</span></button>
+      <button data-open="endings">The Endings
+        <span class="fwhy">the collection screen</span></button>
+    </div>
+
+    <div class="panel">
+      <h2>Straight to an epilogue</h2>
+      <div id="fateBtns"></div>
+      <p class="note">Skips the offer and the two-tap. Shows the ending exactly as it reads
+        the afternoon it is taken.</p>
+    </div>
+
+    <div class="panel">
+      <h2>The record</h2>
+      <div class="dial"><label for="dName">Name on the tessera</label>
+        <input type="text" id="dName" value="Verus" /></div>
+      <div class="dial"><label for="dPugn">Fights taken</label>
+        <input type="number" id="dPugn" value="31" min="0" /></div>
+      <div class="dial"><label for="dVic">Won</label>
+        <input type="number" id="dVic" value="22" min="0" /></div>
+      <div class="dial"><label for="dMiss">Walked off from</label>
+        <input type="number" id="dMiss" value="9" min="0" /></div>
+      <div class="dial"><label for="dFelled">Of the twenty-four put down</label>
+        <input type="number" id="dFelled" value="24" min="0" /></div>
+      <div class="dial"><label for="dRank">Rung now (1 top, 25 off)</label>
+        <input type="number" id="dRank" value="1" min="1" max="25" /></div>
+      <div class="dial"><label for="dBest">Highest rung ever</label>
+        <input type="number" id="dBest" value="1" min="1" max="25" /></div>
+      <div class="dial"><label for="dPurse">Purse ✦</label>
+        <input type="number" id="dPurse" value="1840" min="0" /></div>
+      <div class="dial"><label for="dDay">Day of games</label>
+        <input type="number" id="dDay" value="14" min="1" /></div>
+      <div class="dial"><label for="dForms">Forms beaten</label>
+        <input type="number" id="dForms" value="14" min="0" /></div>
+      <div class="dial"><label for="dRef">Times the rudis refused</label>
+        <input type="number" id="dRef" value="0" min="0" /></div>
+      <div class="dial"><label for="dDoc">The doctore is still with him</label>
+        <input type="checkbox" id="dDoc" checked /></div>
+      <div class="dial"><label for="dSine">Has fought with no reprieve</label>
+        <input type="checkbox" id="dSine" /></div>
+      <div class="dial"><label for="dDrop">Has been put down a rung</label>
+        <input type="checkbox" id="dDrop" /></div>
+      <div class="dial"><label for="dSeen">Count every ending as already reached</label>
+        <input type="checkbox" id="dSeen" /></div>
+    </div>
+
+    <div class="panel">
+      <h2>Records worth trying</h2>
+      <div class="row2">
+        <button data-preset="top">At the top</button>
+        <button data-preset="mid">Mid-climb</button>
+      </div>
+      <div class="row2">
+        <button data-preset="flamma">Four refusals</button>
+        <button data-preset="green">Never fought</button>
+      </div>
+      <p id="gateRead"></p>
+    </div>
+  </div>
+
+  <!-- Copied from index.html. Same ids, same classes, so the render code below
+       is the game's render code with the storage calls swapped for the dials. -->
+  <div class="arena">
+    <div id="exitus" class="screen">
+      <div class="exhead">
+        <p class="exkicker" id="exKicker">—</p>
+        <h2 class="exname" id="exName">—</h2>
+        <p class="exsub" id="exSub"></p>
+      </div>
+      <div class="exbody" id="exBody"></div>
+      <div id="exList" class="liblist"></div>
+      <div class="btnrow" id="exFoot"></div>
+      <p class="hint" id="exHint"></p>
+    </div>
+  </div>
+</div>
+
+<script src="js/palette.js"></script>
+<script src="js/exitus.js"></script>
+<script>
+(() => {
+  "use strict";
+  const EXITUS = window.COLOSSEUM.EXITUS;
+  const roman = window.COLOSSEUM.roman;
+  const UNRANKED = 25;              // the same sentinel the game uses for "off the board"
+
+  const $ = (id) => document.getElementById(id);
+  const exitusEl = $("exitus"), exKicker = $("exKicker"), exName = $("exName"),
+        exSub = $("exSub"), exBody = $("exBody"), exList = $("exList"),
+        exFoot = $("exFoot"), exHint = $("exHint");
+
+  // ---- The career, read off the dials ----
+  // In the game this is assembled from the ladder, the record and the annals.
+  // Here it is thirteen inputs, which is the whole point of the bench: every
+  // gate in exitus.js can be walked up to and knocked on without earning it.
+  const num = (id) => Number($(id).value) || 0;
+  const on = (id) => $(id).checked;
+  function ctx(atTop) {
+    const rank = Math.min(UNRANKED, Math.max(1, num("dRank")));
+    return {
+      atTop: !!atTop,
+      rank,
+      best: Math.min(UNRANKED, Math.max(1, num("dBest"))),
+      ranked: rank < UNRANKED,
+      pugn: num("dPugn"), vic: num("dVic"), miss: num("dMiss"),
+      felled: num("dFelled"), purse: num("dPurse"), day: Math.max(1, num("dDay")),
+      forms: num("dForms"), refusals: num("dRef"),
+      doctore: on("dDoc"), sine: on("dSine"), dropped: on("dDrop"),
+      name: $("dName").value.trim() || "The Man",
+    };
+  }
+  // The endings-seen list is a checkbox here rather than a saved set — it exists
+  // so you can see what a row looks like with the tick on it.
+  function endingsSeen() { return on("dSeen") ? EXITUS.FATES.map((f) => f.id) : []; }
+  // What the game freezes onto a sealed tessera, faked from the same dials.
+  function seal(f, c) {
+    return {
+      fate: f.id, rank: c.rank, best: c.best, pugn: c.pugn, vic: c.vic, miss: c.miss,
+      felled: c.felled, purse: c.purse, day: c.day, refusals: c.refusals,
+      name: c.name, after: f.after || "",
+    };
+  }
+
+  // ---- Rendering. Lifted from index.html, with the sound and state gone. ----
+  function exLine(cls, v) {
+    const el = document.createElement("p");
+    el.className = cls + (EXITUS.isStub(v) ? " exstub" : "");
+    el.textContent = EXITUS.isStub(v) ? v.hint : String(v == null ? "" : v);
+    return el;
+  }
+  function exSet(el, v) {
+    el.classList.toggle("exstub", EXITUS.isStub(v));
+    el.textContent = EXITUS.isStub(v) ? v.hint : String(v == null ? "" : v);
+  }
+  function exReset(accent) {
+    exitusEl.style.setProperty("--ex", accent || "var(--gold)");
+    exBody.innerHTML = ""; exList.innerHTML = ""; exFoot.innerHTML = "";
+    exHint.textContent = "";
+    exitusEl.scrollTop = 0;
+  }
+  function exButton(label, primary, fn) {
+    const b = document.createElement("button");
+    if (primary) b.className = "primary";
+    b.textContent = label;
+    b.addEventListener("click", fn);
+    exFoot.appendChild(b);
+    return b;
+  }
+  function exRecordLine(s) {
+    const el = document.createElement("p");
+    el.className = "exrec";
+    el.textContent = [
+      s.name || "—",
+      s.after || null,
+      `${roman(s.vic | 0)} won of ${roman(s.pugn | 0)} taken`,
+      (s.miss | 0) ? `${roman(s.miss)} walked off from` : null,
+      (s.best != null && s.best < UNRANKED) ? `highest rung ${roman(s.best)}` : "never on the board",
+      `${roman(s.felled | 0)} of the twenty-four put down`,
+      `✦${s.purse | 0} in hand`,
+      `day ${roman(s.day || 1)}`,
+      (s.refusals | 0) ? `the rudis refused ${roman(s.refusals)} times` : null,
+    ].filter(Boolean).join(" · ");
+    return el;
+  }
+
+  // ---- The offer ----
+  function openExitus(why) {
+    const atTop = why === "rank1";
+    const c = ctx(atTop);
+    const earned = EXITUS.offered(c);
+    exReset("var(--gold)");
+
+    exSet(exKicker, atTop ? `RANK I · DAY ${roman(c.day)}` : "OFF THE CARD");
+    exSet(exName, atTop ? "The Munerarius" : "Leaving The Sand");
+    exSet(exSub, atTop
+      ? `There is nobody above you. The magistrate paying for these games has come down onto the sand himself, and what he is holding out is the end of your career — one way or another. ${c.name} has fought ${roman(c.pugn)} and won ${roman(c.vic)}.`
+      : `Nobody has asked you to stop and nobody will stop you. ${c.name} stands at ${c.rank >= UNRANKED ? "no rank at all" : "rank " + roman(c.rank)}, ${roman(c.vic)} won of ${roman(c.pugn)} taken, with ✦${c.purse} in the purse. What is open to you is what that record has earned.`);
+
+    const shown = EXITUS.FATES.filter((f) => !f.hidden || earned.includes(f));
+    const seen = endingsSeen();
+    for (const f of shown) {
+      const open = earned.includes(f);
+      const row = document.createElement("div");
+      row.className = "libitem exfate" + (open ? "" : " veiled");
+      row.style.setProperty("--fc", f.accent);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      nm.textContent = f.name;
+      if (seen.includes(f.id)) {
+        const t = document.createElement("span");
+        t.className = "tick"; t.textContent = "✓ reached before";
+        nm.appendChild(t);
+      }
+      meta.appendChild(nm);
+      meta.appendChild(exLine("sub2", f.sub));
+      if (open) meta.appendChild(exLine("blurb", f.offer));
+      else {
+        const no = document.createElement("div");
+        no.className = "sub2";
+        no.textContent = "Not open to this record.";
+        meta.appendChild(no);
+      }
+      row.appendChild(meta);
+
+      if (open) {
+        const take = document.createElement("button");
+        take.className = "primary";
+        take.textContent = "Take it";
+        // The game asks twice because it cannot be undone. Here it can be undone
+        // by clicking another button, so it asks once.
+        take.addEventListener("click", () => showFate(seal(f, c), true));
+        row.appendChild(take);
+      }
+      exList.appendChild(row);
+    }
+
+    if (atTop) {
+      // On the bench a refusal is just the dial going up by one, so you can walk
+      // the counter to four and watch the road to Flamma open underneath you.
+      exButton("Refuse the rudis", false, () => {
+        $("dRef").value = c.refusals + 1;
+        openExitus("rank1");
+      });
+      exHint.textContent = c.refusals
+        ? `Refused ${c.refusals === 1 ? "once" : roman(c.refusals) + " times"} already. He will come back tomorrow, and there are only so many afternoons he will do that for.`
+        : "Refusing costs you nothing today. He will be back tomorrow, and the man who refused four times is on this board.";
+    } else {
+      exButton("Not today", true, () => openExitus("walk"));
+      exHint.textContent = "Nothing on this screen has happened yet. Walk back out and the career carries on exactly as it was.";
+    }
+    readGates();
+  }
+
+  // ---- The epilogue ----
+  function showFate(s, fresh) {
+    const f = EXITUS.BY_ID[s.fate];
+    exReset(f.accent);
+    exSet(exKicker, f.kicker);
+    exSet(exName, f.name);
+    exSet(exSub, f.sub);
+    for (const para of (f.body || [])) exBody.appendChild(exLine("", para));
+    const rule = document.createElement("div");
+    rule.className = "exrule";
+    exBody.appendChild(rule);
+    exBody.appendChild(exLine("exstone", f.stone));
+    exBody.appendChild(exRecordLine(s));
+    exButton("The Endings", true, showEndings);
+    exButton("Back to the offer", false, () => openExitus(fresh ? "rank1" : "walk"));
+    exHint.textContent = "This career is finished. On the bench, nothing is.";
+  }
+
+  // ---- The collection ----
+  function showEndings() {
+    const seen = endingsSeen();
+    const rows = EXITUS.catalogue(seen);
+    exReset("var(--gold)");
+    exSet(exKicker, `${roman(seen.length)} OF ${roman(EXITUS.FATES.length)}`);
+    exSet(exName, "The Endings");
+    exSet(exSub, "Every way out of this building that anybody in your house has found. Kept across all of them — a fresh tessera does not un-see one, and neither does a wipe.");
+    for (const r of rows) {
+      const row = document.createElement("div");
+      row.className = "libitem exfate" + (r.veiled ? " veiled" : "");
+      row.style.setProperty("--fc", r.reached ? r.fate.accent : "#3a2c1a");
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      nm.textContent = r.veiled ? "· · · · ·" : r.fate.name;
+      if (r.reached) {
+        const t = document.createElement("span");
+        t.className = "tick"; t.textContent = "✓ reached";
+        nm.appendChild(t);
+      }
+      meta.appendChild(nm);
+      meta.appendChild(r.veiled
+        ? exLine("sub2", "Nothing is said about this one until somebody finds it.")
+        : exLine("sub2", r.fate.sub));
+      row.appendChild(meta);
+      exList.appendChild(row);
+    }
+    exButton("Back to the offer", true, () => openExitus("rank1"));
+    exHint.textContent = "An ending is reached by taking it, and a career can only take one.";
+  }
+
+  // ---- The rail ----
+  // One button per fate, straight to its epilogue, coloured with its own accent.
+  for (const f of EXITUS.FATES) {
+    const b = document.createElement("button");
+    b.className = "fate";
+    b.style.setProperty("--fc", f.accent);
+    const n = document.createElement("span");
+    n.className = "fname"; n.textContent = f.name;
+    const w = document.createElement("span");
+    w.className = "fwhy"; w.textContent = f.kicker.toLowerCase() + " · " + (f.after || "—");
+    b.appendChild(n); b.appendChild(w);
+    b.addEventListener("click", () => showFate(seal(f, ctx(true)), true));
+    $("fateBtns").appendChild(b);
+  }
+
+  // What the dials currently open. Restated under the presets so a greyed-out
+  // row is never a mystery.
+  function readGates() {
+    const at = EXITUS.offered(ctx(true)).map((f) => f.name);
+    const off = EXITUS.offered(ctx(false)).map((f) => f.name);
+    $("gateRead").innerHTML =
+      "At rank I: <b>" + (at.join(", ") || "nothing") + "</b><br>" +
+      "Walking away: <b>" + (off.join(", ") || "nothing") + "</b>";
+  }
+
+  const PRESETS = {
+    // The afternoon the whole climb was pointed at.
+    top:    { dPugn: 31, dVic: 22, dMiss: 9, dFelled: 24, dRank: 1, dBest: 1, dPurse: 1840,
+              dDay: 14, dForms: 14, dRef: 0, dDoc: true, dSine: false, dDrop: false },
+    // Halfway up, and the only door open is the floor.
+    mid:    { dPugn: 12, dVic: 7, dMiss: 5, dFelled: 9, dRank: 11, dBest: 9, dPurse: 420,
+              dDay: 6, dForms: 6, dRef: 0, dDoc: true, dSine: true, dDrop: true },
+    // Four afternoons of saying no.
+    flamma: { dPugn: 44, dVic: 30, dMiss: 14, dFelled: 24, dRank: 1, dBest: 1, dPurse: 2600,
+              dDay: 22, dForms: 14, dRef: 4, dDoc: true, dSine: true, dDrop: true },
+    // A man who has not taken the sand yet. Nothing is open to him, which is
+    // correct — you cannot retire from a career you have not started.
+    green:  { dPugn: 0, dVic: 0, dMiss: 0, dFelled: 0, dRank: 25, dBest: 25, dPurse: 0,
+              dDay: 1, dForms: 0, dRef: 0, dDoc: true, dSine: false, dDrop: false },
+  };
+  function applyPreset(name) {
+    const p = PRESETS[name];
+    for (const k in p) {
+      const el = $(k);
+      if (el.type === "checkbox") el.checked = p[k]; else el.value = p[k];
+    }
+    openExitus(name === "mid" || name === "green" ? "walk" : "rank1");
+  }
+
+  document.querySelectorAll("[data-open]").forEach((b) => {
+    b.addEventListener("click", () => {
+      const w = b.dataset.open;
+      if (w === "endings") showEndings(); else openExitus(w);
+    });
+  });
+  document.querySelectorAll("[data-preset]").forEach((b) => {
+    b.addEventListener("click", () => applyPreset(b.dataset.preset));
+  });
+  // Any dial moving re-reads the gates, so the panel is never stale.
+  document.querySelectorAll(".panel input").forEach((el) => {
+    el.addEventListener("input", readGates);
+    el.addEventListener("change", readGates);
+  });
+
+  openExitus("rank1");
+})();
+</script>
+</body>
+</html>

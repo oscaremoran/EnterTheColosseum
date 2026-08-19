@@ -400,6 +400,65 @@
   .libitem .blurb { color: var(--text); font-size: 12.5px; line-height: 1.45; }
   .libitem .sub2 { color: var(--muted); font-size: 11.5px; }
   .libitem button { padding: 7px 12px; font-size: 12px; align-self: center; flex: none; }
+  /* Exitus — the end of a career. Every colour on it is driven off the fate's
+     own accent, set as --ex on the screen, so one ending does not look like
+     the next one. */
+  #exitus { --ex: var(--gold); gap: 14px; }
+  .exhead { max-width: 560px; }
+  .exkicker {
+    font-size: 11px; letter-spacing: 5px; color: var(--ex); opacity: .85;
+    text-transform: uppercase;
+  }
+  .exname {
+    font-family: var(--serif); font-size: 30px; font-weight: 700; letter-spacing: 3px;
+    color: var(--ex); margin-top: 4px; text-shadow: 0 0 26px rgba(0,0,0,.6);
+  }
+  .exsub { color: var(--muted); font-size: 13px; line-height: 1.5; margin-top: 5px; }
+  .exbody { max-width: 560px; display: flex; flex-direction: column; gap: 11px; }
+  .exbody p { font-size: 14px; line-height: 1.65; color: var(--text); text-align: left; }
+  /* A rule with the fate's colour in it, between the epilogue and the record. */
+  .exbody .exrule { height: 1px; background: linear-gradient(90deg,
+      rgba(0,0,0,0) 0%, var(--ex) 50%, rgba(0,0,0,0) 100%); opacity: .5; }
+  .exbody .exstone {
+    border-left: 3px solid var(--ex); padding: 8px 0 8px 12px;
+    font-family: var(--serif); font-size: 15px; letter-spacing: 1px; line-height: 1.6;
+    text-align: left; color: var(--ex);
+  }
+  .exbody .exrec { color: var(--muted); font-size: 12px; line-height: 1.6; text-align: left; }
+  /* The save handed back at the end of a career. Set apart from the epilogue
+     above it — that is prose about a man, this is a machine you type into. */
+  .exsave {
+    border: 1px solid var(--ex); background: rgba(0,0,0,0.28);
+    border-radius: 4px; padding: 11px 12px; margin-top: 4px;
+    display: flex; flex-direction: column; gap: 8px; text-align: left;
+  }
+  .exsavelab {
+    font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--ex); opacity: .85;
+  }
+  .exsaverow { display: flex; gap: 8px; }
+  .exsaverow input {
+    flex: 1 1 auto; min-width: 0; font: inherit; font-size: 12px; color: var(--text);
+    background: #100c07; border: 1px solid #3a2c1a; border-radius: 3px; padding: 8px 9px;
+  }
+  .exsaverow input:read-only { color: var(--muted); }
+  .exsaverow button { flex: none; padding: 8px 13px; font-size: 12px; }
+  .exsavemsg { font-size: 12px; color: var(--ex); min-height: 1.3em; }
+  .exsavemsg.bad { color: var(--danger); }
+  /* A line nobody has written yet. It says so rather than showing blank. */
+  .exstub { color: #7a6a55; font-style: italic; }
+  .exstub::after {
+    content: " [unwritten]"; font-style: normal; font-size: 10px; letter-spacing: 2px;
+    color: #55483a;
+  }
+  /* One fate on the offer list. Veiled ones are the hidden fates you have not
+     reached: you can see there is a rung there, and nothing else about it. */
+  #exList { max-width: 560px; }
+  .exfate { border-left-color: var(--fc, var(--bronze)); align-items: flex-start; }
+  .exfate .nm { color: var(--fc, var(--gold)); }
+  .exfate.veiled { border-left-color: #2e2418; opacity: .55; }
+  .exfate.veiled .nm { color: #6a5b47; letter-spacing: 6px; }
+  .exfate .tick { color: var(--gold); }
   /* Vault */
   #vaultRow { display: flex; gap: 8px; width: 100%; max-width: 340px; }
   /* Tessera — the bone tag, and the house it belongs to */
@@ -414,6 +473,9 @@
   .tessman { display: flex; align-items: center; gap: 10px; text-align: left;
              border: 1px solid #2e2418; background: rgba(20,15,9,0.5); padding: 8px 10px; }
   .tessman.on { border-color: var(--gold); background: rgba(201,162,39,0.09); }
+  /* A career that has taken an ending. Still in the book, and not going out. */
+  .tessman.done { opacity: .6; border-style: dashed; }
+  .tessman.done .wn { color: var(--muted); }
   .tessman .who { flex: 1 1 auto; min-width: 0; }
   .tessman .wn { font-family: var(--serif); font-weight: 700; letter-spacing: 1.5px; font-size: 14px; }
   .tessman.on .wn { color: var(--gold); }
@@ -1075,43 +1137,6 @@
         </div>
       </div>
 
-      <!-- Settings: its own gate now. The contract you fight under is the one
-           thing in here that changes what happens on the sand, so it sits with
-           the sound switches rather than on top of the fights. -->
-      <div class="tabpanel hidden" data-panel="settings">
-        <p class="sub">What the building sounds like, and the terms you take a bout under. The contract travels with you — every fight in the place is fought on whichever of these three is lit.</p>
-        <div class="btnrow">
-          <button id="soundBtn">Sound: On</button>
-          <button id="musicBtn">Music: On</button>
-        </div>
-        <div class="divider"></div>
-        <div class="btnrow" id="diffRow"></div>
-        <p class="hint" id="diffHint"></p>
-
-        <div class="divider"></div>
-        <p class="sub"><b style="color:var(--text)">The doctore</b> — the green man who walks a new man round the passage.</p>
-        <div class="btnrow">
-          <button id="docBtn">Send the Doctore Away</button>
-        </div>
-        <p class="hint" id="docHint"></p>
-
-        <div class="divider"></div>
-        <p class="sub"><b style="color:var(--text)">Strike the record</b> — everything this man has done, undone.</p>
-        <div class="btnrow">
-          <button id="wipeBtn">Clear All Progress</button>
-        </div>
-        <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms, the day's card and your standing on the Ladder. Levels you built stay put, and so does every other man in the house — a wipe is scoped to whoever is holding the tessera.</p>
-      </div>
-
-      
-
-      
-
-      
-
-      
-
-      <!-- Munera: the missions fought against more than one man at once -->
       <!-- Munera: the day's card, and everything the day did not ask for.
            The five gates this replaced are all still here, folded up underneath
            the plan — a bout you fight off the card pays nothing and records
@@ -1195,7 +1220,7 @@
               <div id="ladderList" class="liblist"></div>
             </div>
             <div class="subpane hidden" id="ladderNotePane">
-              <p class="sub" id="ladderNote"><b style="color:var(--gold)">This is the career.</b> Twenty-four fighters hold the board, the rudis waits above rank I, and taking it is what this building is asking of you — everything else in the place is training, purse, or spectacle on the way up. The man standing directly above you is put at the top of the day's card as its main event, and he is the only one you may fight for a rung — beat him and you take it. One defeat costs you nothing; lose to him <i>three times running</i> and you drop a rung and he is struck off the card for the day. The rung cannot be paid off the card: the board does not take money.</p>
+              <p class="sub" id="ladderNote"><b style="color:var(--gold)">This is the career.</b> Twenty-four fighters hold the board, the rudis waits above rank I, and taking it is what this building is asking of you — everything else in the place is training, purse, or spectacle on the way up. The man standing directly above you is put at the top of the day's card as its main event, and he is the only one you may fight for a rung — beat him and you take it. One defeat costs you nothing; lose to him <i>three times running</i> and you drop a rung and he is struck off the card for the day. The rung cannot be dodged: it is fought, or it is still there tomorrow.</p>
               <p class="sub">Men above you sometimes ask for a bout of their own. Those settle no rung either way and pay like the rung they are standing on, which makes an invitation from near the top the best-paid afternoon available to somebody who has no business being up there yet. You can decline one on the card, and it costs nothing to say no.</p>
               <p class="sub">Take rank <b>I</b> and the <b>munerarius</b> — the magistrate paying for the games — grants you the <b>rudis</b>, the wooden sword that means discharge.</p>
               <p class="sub">The board belongs to <b style="color:#4dd7ff">Munus Legitimum</b> and to nothing else. Under the Ludus there is no rung to win — wooden swords settle nothing — and under Sine Missione there is no climb to have, because one loss would be the end of the career holding it. Take another contract and the board is still here to read; it just has nothing on the day's card and nobody on it you can call out.</p>
@@ -1209,7 +1234,7 @@
             <span class="foldsub" id="libraryFoldSub">—</span>
             <span class="foldmark">▸</span>
           </summary>
-          <div class="foldbody"><p class="sub">Built levels: fixed runs that chain patterns the two campaigns never put together. Each opens once you've beaten every form it uses. The name beside it is how hard it hits.</p>
+          <div class="foldbody"><p class="sub">Built levels: fixed runs that chain patterns the Pantheon never puts together. Each opens once you've beaten every form it uses. The name beside it is how hard it hits.</p>
         <div id="libList" class="liblist"></div>
         <div class="divider"></div>
         <p class="sub"><b style="color:var(--text)">Your levels</b> — build your own out of any of the 14 patterns.</p>
@@ -1277,93 +1302,149 @@
       </div>
 
       <!-- Vault -->
-      <div class="tabpanel hidden" data-panel="vault">
-        <p class="sub">The vault under the arena. Codes go in, prizes come out.</p>
-        <div id="vaultRow">
-          <input id="codeInput" maxlength="24" placeholder="Enter a code" spellcheck="false" autocomplete="off">
-          <button class="primary" id="redeemBtn">Redeem</button>
-        </div>
-        <p id="vaultMsg"></p>
-        <div class="divider"></div>
-        <p class="sub"><b style="color:var(--text)">Claimed</b></p>
-        <div id="prizeList" class="liblist"></div>
-      </div>
+      
 
-      <!-- Tessera: the identity tag, and everything that hangs off it -->
+      <!-- Tessera: whose career this is, and everything that hangs off a
+           name. The tag itself is at the top because it is the thing you
+           came here for; the strongbox, the switches and the stone by the
+           door are folded under it. They were three more gates in the
+           passage once, and three gates you visit twice a career each is a
+           passage that is mostly walking. -->
       <div class="tabpanel hidden" data-panel="tessera">
         <p class="sub">A <b style="color:var(--text)">tessera gladiatoria</b> was a bone tag with a man's name cut into it, carried so there was no argument about whose fights were whose. You can keep several. Your purse, your rungs, the forms you have beaten and the school's notes on everyone else all sit under whichever tag you are holding.</p>
         <div id="tessNow" class="tessnow"></div>
         <div class="tessrow">
-          <input id="tessName" maxlength="20" placeholder="A name to cut into it" spellcheck="false" autocomplete="off">
-          <button id="tessRename">Rename</button>
+        <input id="tessName" maxlength="20" placeholder="A name to cut into it" spellcheck="false" autocomplete="off">
+        <button id="tessRename">Rename</button>
         </div>
         <div class="divider"></div>
         <p class="sub"><b style="color:var(--text)">The house</b></p>
         <div id="tessList" class="liblist"></div>
         <div class="btnrow">
-          <button class="primary" id="tessNew">Enter A New Man</button>
+        <button class="primary" id="tessNew">Enter A New Man</button>
         </div>
         <p id="tessMsg"></p>
 
         <div class="divider"></div>
         <p class="sub"><b style="color:var(--text)">Save and load.</b> A save is a single line of text with everything this man has done in it. Keep it somewhere. Pasting it back into any copy of the game brings him in alongside whoever you already have, so a load can never write over the career you are in the middle of.</p>
         <div class="tessrow">
-          <input id="saveCode" placeholder="Your save appears here" spellcheck="false" readonly>
-          <button id="saveBtn">Copy The Save</button>
+        <input id="saveCode" placeholder="Your save appears here" spellcheck="false" readonly>
+        <button id="saveBtn">Copy The Save</button>
         </div>
         <div class="tessrow">
-          <input id="loadCode" placeholder="Paste a save here to load it" spellcheck="false" autocomplete="off">
-          <button class="primary" id="loadBtn">Load</button>
+        <input id="loadCode" placeholder="Paste a save here to load it" spellcheck="false" autocomplete="off">
+        <button class="primary" id="loadBtn">Load</button>
         </div>
         <p id="saveMsg"></p>
-      </div>
 
-      <!-- Credits: the stone by the door. Sections rather than a paragraph, so
-           a name can be added to one without rewriting the rest. -->
-      <div class="tabpanel hidden" data-panel="credits">
-        <div class="creditcard">
-          <div class="credtitle">ENTER THE<br><span class="accent">COLOSSEUM</span></div>
-          <div class="credline"></div>
-        </div>
-
-        <div class="credits">
-          <div class="credrole">Made by</div>
-          <div class="credname">Oscar Moran</div>
-
-          <div class="credrole">Design &amp; direction</div>
-          <div class="credname">Oscar Moran</div>
-
-          <div class="credrole">Code</div>
-          <div class="credname">Oscar Moran</div>
-
-          <div class="credrole">Words</div>
-          <div class="credname">Oscar Moran</div>
-
-          <div class="credrole">Music &amp; sound</div>
-          <div class="credname">Oscar Moran</div>
-          <div class="crednote">Every note in this game is generated as it plays — there are no audio files. The band is a step sequencer and a handful of oscillators.</div>
-
-          <div class="credrole">Playtesting</div>
-          <div class="credname credempty">—</div>
-
-          <div class="credrole">Thanks</div>
-          <div class="credname credempty">—</div>
-        </div>
 
         <div class="divider"></div>
 
-        <div class="credits">
-          <div class="credrole">The men on the board</div>
-          <div class="crednote">The twenty-four names on the Ladder are real. They come off surviving inscriptions and graffiti, and where a record survives — how many times a man fought, how many he won, how many times he was beaten and allowed to walk off — it is his own, not invented. Glauco's stone was paid for by his wife Aurelia. Bato was a Dacian who fought three men in one day and won the first two. They were people before they were opponents.</div>
+        <details class="fold" data-fold="vaultfold">
+          <summary>
+            <span class="foldname">The Vault</span>
+            <span class="foldsub">codes in, prizes out</span>
+            <span class="foldmark">&#9656;</span>
+          </summary>
+          <div class="foldbody">
+            <p class="sub">The vault under the arena. Codes go in, prizes come out.</p>
+            <div id="vaultRow">
+            <input id="codeInput" maxlength="24" placeholder="Enter a code" spellcheck="false" autocomplete="off">
+            <button class="primary" id="redeemBtn">Redeem</button>
+            </div>
+            <p id="vaultMsg"></p>
+            <div class="divider"></div>
+            <p class="sub"><b style="color:var(--text)">Claimed</b></p>
+            <div id="prizeList" class="liblist"></div>
 
-          <div class="credrole">The Latin</div>
-          <div class="crednote">The contracts, the armaturae, the sparsiones and the rest are the real terms as far as the sources have them. Where the game had to invent a word for something Rome never had to name, it says so in its own comments rather than pretending.</div>
-        </div>
+          </div>
+        </details>
 
-        <p class="hint" style="margin-top:6px">Everything here runs off a disk with no server, no account and nothing sent anywhere. Whatever this game knows about you, it knows only on this machine.</p>
+        <details class="fold" data-fold="settingsfold">
+          <summary>
+            <span class="foldname">Settings</span>
+            <span class="foldsub">the sound, the terms, the wipe</span>
+            <span class="foldmark">&#9656;</span>
+          </summary>
+          <div class="foldbody">
+            <p class="sub">What the building sounds like, and the terms you take a bout under. The contract travels with you — every fight in the place is fought on whichever of these three is lit.</p>
+            <div class="btnrow">
+            <button id="soundBtn">Sound: On</button>
+            <button id="musicBtn">Music: On</button>
+            </div>
+            <div class="divider"></div>
+            <div class="btnrow" id="diffRow"></div>
+            <p class="hint" id="diffHint"></p>
+
+            <div class="divider"></div>
+            <p class="sub"><b style="color:var(--text)">The doctore</b> — the green man who walks a new man round the passage.</p>
+            <div class="btnrow">
+            <button id="docBtn">Send the Doctore Away</button>
+            </div>
+            <p class="hint" id="docHint"></p>
+
+            <div class="divider"></div>
+            <p class="sub"><b style="color:var(--text)">Strike the record</b> — everything this man has done, undone.</p>
+            <div class="btnrow">
+            <button id="wipeBtn">Clear All Progress</button>
+            </div>
+            <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms, the day's card and your standing on the Ladder. Levels you built stay put, and so does every other man in the house — a wipe is scoped to whoever is holding the tessera.</p>
+
+          </div>
+        </details>
+
+        <details class="fold" data-fold="creditsfold">
+          <summary>
+            <span class="foldname">Credits</span>
+            <span class="foldsub">whose hands this passed through</span>
+            <span class="foldmark">&#9656;</span>
+          </summary>
+          <div class="foldbody">
+            <div class="creditcard">
+            <div class="credtitle">ENTER THE<br><span class="accent">COLOSSEUM</span></div>
+            <div class="credline"></div>
+            </div>
+
+            <div class="credits">
+            <div class="credrole">Made by</div>
+            <div class="credname">Oscar Moran</div>
+
+            <div class="credrole">Design &amp; direction</div>
+            <div class="credname">Oscar Moran</div>
+
+            <div class="credrole">Code</div>
+            <div class="credname">Oscar Moran</div>
+
+            <div class="credrole">Words</div>
+            <div class="credname">Oscar Moran</div>
+
+            <div class="credrole">Music &amp; sound</div>
+            <div class="credname">Oscar Moran</div>
+            <div class="crednote">Every note in this game is generated as it plays — there are no audio files. The band is a step sequencer and a handful of oscillators.</div>
+
+            <div class="credrole">Playtesting</div>
+            <div class="credname credempty">—</div>
+
+            <div class="credrole">Thanks</div>
+            <div class="credname credempty">—</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="credits">
+            <div class="credrole">The men on the board</div>
+            <div class="crednote">The twenty-four names on the Ladder are real. They come off surviving inscriptions and graffiti, and where a record survives — how many times a man fought, how many he won, how many times he was beaten and allowed to walk off — it is his own, not invented. Glauco's stone was paid for by his wife Aurelia. Bato was a Dacian who fought three men in one day and won the first two. They were people before they were opponents.</div>
+
+            <div class="credrole">The Latin</div>
+            <div class="crednote">The contracts, the armaturae, the sparsiones and the rest are the real terms as far as the sources have them. Where the game had to invent a word for something Rome never had to name, it says so in its own comments rather than pretending.</div>
+            </div>
+
+            <p class="hint" style="margin-top:6px">Everything here runs off a disk with no server, no account and nothing sent anywhere. Whatever this game knows about you, it knows only on this machine.</p>
+
+          </div>
+        </details>
       </div>
 
-      <!-- How to play -->
       <!-- How to play -->
       <div class="tabpanel hidden" data-panel="help">
         <!-- The trainer takes one thing at a time. It was a single column you
@@ -1462,6 +1543,23 @@
       </div>
       <p class="hint" id="endHint">Space to take the sand again</p>
     </div>
+
+    <!-- Exitus: how the career ends. Two faces of the same screen — the offer,
+         where the fates your record has earned are laid out and you pick one,
+         and the epilogue, which is what you get for picking it. A direct child
+         of #wrap like every other screen: nest one of these inside a pane that
+         is display:none by default and it opens into a cupboard. -->
+    <div id="exitus" class="screen scroll hidden">
+      <div class="exhead">
+        <p class="exkicker" id="exKicker">—</p>
+        <h2 class="exname" id="exName">—</h2>
+        <p class="exsub" id="exSub"></p>
+      </div>
+      <div class="exbody" id="exBody"></div>
+      <div id="exList" class="liblist"></div>
+      <div class="btnrow" id="exFoot"></div>
+      <p class="hint" id="exHint"></p>
+    </div>
   </div>
 
 <!-- The furnishings of the arena, in load order: levels.js reads CAMPAIGNS,
@@ -1473,6 +1571,7 @@
 <script src="js/campaigns.js"></script>
 <script src="js/armaturae.js"></script>
 <script src="js/ladder.js"></script>
+<script src="js/exitus.js"></script>
 <script src="js/condicio.js"></script>
 <script src="js/levels.js"></script>
 <script src="js/dies.js"></script>
@@ -1530,11 +1629,11 @@
     POWERUPS, SWIFT_MULT, PU_KEYS, PU_SPAWN, PU_LIFE, SLOW_FACTOR,
     CAMPAIGNS, PATTERNS, PATTERN_BY_KEY,
     ARMATURAE, armOf,
-    LADDER, LADDER_BY_ID, UNRANKED, TIERS, tierOf,
+    LADDER, LADDER_BY_ID, UNRANKED, TIERS, tierOf, tierRating,
     CONDICIO,
     LEVEL_COLORS, LEVELS, BATTLES, MUNERA, formValue, chainPayout, stageForms,
     GATE_TALK,
-    skipCost, perilPay, sparePay, SPARE_OVATION, PLAN, DAYS_PER_SITTING,
+    perilPay, sparePay, SPARE_OVATION, PLAN, DAYS_PER_SITTING,
     LINES, ARM_LINES, SPEECH_DUR, SPEECH_GAP,
   } = window.COLOSSEUM;
 
@@ -1569,8 +1668,14 @@
     denarii, addDenarii, spendDenarii, boughtCodes, buy, redeem, claimedCodes, CODES, SHOP,
     accountList, activeAccount, createAccount, switchAccount, renameAccount, deleteAccount,
     exportSave, importSave,
+    loadAnnals, noteAnnal, markRank,
+    loadExitus, isSealed, sealedAccount, sealExitus, endingsSeen,
     wipeProgress,
   } = PROGRESS;
+  // The fates a career can end on, and which of them a given record may reach.
+  // Content and gates only — see js/exitus.js. Sealing is PROGRESS's job and
+  // drawing the screen is this file's.
+  const EXITUS = window.COLOSSEUM.EXITUS;
 
   const CENTER = { x: W / 2, y: H / 2 };
 
@@ -1791,7 +1896,11 @@
 
   let startIdx = 0; // remembered start stage (for Space-to-restart)
 
+  // Every bout in the building comes through here, which makes it the one place
+  // a sealed man has to be turned round. He is not refused in a message box: he
+  // is shown what happened to him instead. See sealBlocked.
   function startGame(selectedMode, fromStage) {
+    if (sealBlocked()) return;
     mode = selectedMode;
     startIdx = fromStage || 0;
     resetGame();
@@ -2282,7 +2391,7 @@
     activeLevel = null;
     campaign = "inferno";
     // What a win is worth: the higher the rung, the bigger the purse.
-    activeRating = Math.max(1, Math.min(5, Math.ceil((LADDER.length - rank + 1) / 5)));
+    activeRating = tierRating(rank);
     activePeril = activeRating;      // a rung is priced and billed on one scale
     // An invitation settles no rung, so the purse is the whole of what it is
     // for — and it is priced off HIS rung, not yours. A man near the top of the
@@ -2291,7 +2400,14 @@
     // The board is the sanctioned bout's alone now — see ladderOpen — so there
     // is no heavier version of these men to fight any more. They are who they
     // are, at the pressure their rung earns.
-    const depth = Math.max(0, Math.min(6, Math.round((LADDER.length - rank) / 3.6)));
+    // What a rung is worth in pressure, and the single most powerful number in
+    // a ladder bout: every pattern in the game reads it, and several of them
+    // change shape at thresholds rather than sliding. A man may be handed less
+    // than his rung earns — see `depth` on his entry in ladder.js — for the
+    // case where the shape his rung unlocks is not a harder version of him but
+    // a different animal wearing his name.
+    const depth = f.depth != null ? f.depth
+      : Math.max(0, Math.min(6, Math.round((LADDER.length - rank) / 3.6)));
     activeCamp = {
       name: f.name,
       accent: armOf(f.arm).color,
@@ -2608,9 +2724,12 @@
       if (!st.felled.includes(f.id)) st.felled.push(f.id);
       rollInvite(st);
       note = `You take rank ${roman(theirRank)}. ${f.name} steps down to ${roman(mine)}.`;
-      if (theirRank === 1 && !hasRudis()) {
-        grantRudis();
-        note = `Rank ${roman(1)} — first stake of the school. The munerarius comes down onto the sand and holds out the rudis, the wooden sword: you are discharged, a free citizen, and nobody owns your fights any more. ${f.name} was offered it four times and refused it four times. What you do with yours is your business.`;
+      if (theirRank === 1) {
+        // The top of the board. The rudis is NOT handed over here any more —
+        // taking rank I only puts the offer on the table, and the offer is a
+        // screen with four doors on it. See openExitus and takeFate: grantRudis
+        // happens there, if that is the door you walk through.
+        note = `Rank ${roman(1)} — first stake of the school. ${f.name} steps down to ${roman(mine)}, and there is nobody above you. The munerarius is coming down onto the sand himself; he will be waiting in the passage.`;
       } else {
         note += ` You fight as ${tierOf(st.rank).name} now.`;
       }
@@ -2632,6 +2751,12 @@
     }
     saveLadder(st);
     saveRecord(rec);
+    // The high-water mark, so a slide back down cannot take it off him. Kept
+    // here rather than derived later, because the board forgets.
+    markRank(st.rank);
+    // And whether this afternoon was one with no appeal on it, which is the
+    // other thing only the annals will remember.
+    if (difficulty === "sine") noteAnnal((a) => { a.sine = true; });
     return note;
   }
 
@@ -3631,7 +3756,13 @@
     if (A.net) w *= 1.10;
     if (A.beasts) w *= 1.14;
     if (A.blind) w *= 0.88;
-    w *= (f.hp || 40) / 42;
+    // The body he is priced on, which is not always the body he brings onto the
+    // sand. Health is the one handicap that does nothing in a duel — both men
+    // are given the same body there — so a man whose ladder health was cut to
+    // make his bout survivable would otherwise be quoted as the weaker man while
+    // fighting exactly as he always did, and that is free money for anybody who
+    // noticed. `priceHp` is how such a man keeps his old price. See ladder.js.
+    w *= ((f.priceHp != null ? f.priceHp : f.hp) || 40) / 42;
     w *= FORM_WEIGHT[f.key] || 1;
     // Whatever the sand takes off him, the price knows about too. A nerf the desk
     // cannot see is just a slower way of selling the same certainty.
@@ -4044,12 +4175,20 @@
     const all = accountList();
     for (const a of all) {
       const held = a.id === me.id;
+      // A man who has taken an ending is still in the book and always will be,
+      // but his tessera cannot be picked up again. Nothing in the building
+      // opens for him, so handing it over would only put you on a screen you
+      // could not leave — and the ending itself is not a thing to be gone back
+      // and looked at. The house says he finished, and says no more than that.
+      const done = held ? null : sealedAccount(a.id);
       const row = document.createElement("div");
-      row.className = "tessman" + (held ? " on" : "");
+      row.className = "tessman" + (held ? " on" : "") + (done ? " done" : "");
       row.innerHTML = `<div class="who"><div class="wn"></div><div class="wb"></div></div>`;
       row.querySelector(".wn").textContent = a.name;
-      row.querySelector(".wb").textContent = held ? "holding the tessera" : "in the house";
-      if (!held) {
+      row.querySelector(".wb").textContent = held ? "holding the tessera"
+        : done ? `${done.after || "Finished"} — his afternoons are over`
+        : "in the house";
+      if (!held && !done) {
         const take = document.createElement("button");
         take.textContent = "Take His Tessera";
         take.addEventListener("click", () => {
@@ -4305,7 +4444,7 @@
     {
       tab: "munera", name: "Munera", sub: "the day's card",
       x: 360, y: 96,  color: "#ff5a2b",
-      what: "Where the career happens. Twenty-four men hold the board, the rudis — discharge, freedom — waits above rank I, and the day's card opens with the one man you can currently reach: that climb is the story of this building, and this gate is where it is told. Under the main event the card fills out with the day's work — a campaign form, a bout from the record office, a day's games — the things a fighting man does on the way up.",
+      what: "Where the career happens. Twenty-four men hold the board, the rudis — discharge, freedom — waits above rank I, and the day's card opens with the one man you can currently reach: that climb is the story of this building, and this gate is where it is told. Under the main event the card fills out with the day's work — a form out of the Pantheon, a bout from the record office, a day's games — the things a fighting man does on the way up.",
       now: () => {
         const p = plan();
         const left = p ? p.bouts.filter((b) => b.state === "pending").length : 0;
@@ -4321,41 +4460,22 @@
     },
     {
       tab: "horreum", name: "Horreum", sub: "the granary, and the desk beside it",
-      x: 128, y: 236, color: "#f0b429",
+      x: 128, y: 268, color: "#f0b429",
       what: "The granary under the stands, where the prize codes are kept and sold for what you have won. The Sponsio desk shares the counter: three bouts go up on a board with drifting prices, you lay money on men who are not you, and then you watch from the stands like everyone else — with the editor reachable, for a price, if the fight goes the wrong way.",
       now: () => `✦ ${denarii()} in the purse`,
     },
     {
-      tab: "vault", name: "Vault", sub: "the strongbox",
-      x: 592, y: 236, color: "#ff66c4",
-      what: "The iron-bound box the codes go into. Whatever you bought at the granary is typed in here to take effect. Nothing else lives in it any more — a career is emptied out from Settings now, where a thing that dangerous belongs.",
-      now: () => {
-        const waiting = boughtCodes().length;
-        return waiting ? `${roman(waiting)} bought and not yet redeemed`
-                       : `${roman(claimedCodes().length)} prizes redeemed`;
-      },
-    },
-    {
-      tab: "tessera", name: "Tessera", sub: "whose career this is",
-      x: 128, y: 396, color: "#dbe6f2",
-      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on the board, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped and struck off here.",
+      tab: "tessera", name: "Tessera", sub: "whose career this is, and everything under his name",
+      x: 592, y: 268, color: "#dbe6f2",
+      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on the board, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped, saved and struck off here — and folded under the tag are the three rooms that were gates of their own once: the Vault the prize codes go into, the Settings that hold the sound and the contract and the wipe, and the stone by the door with the names on it.",
       now: () => {
         const rec = loadRecord();
         return `${activeAccount().name} · ${roman(rec.vic)} won of ${roman(rec.pugn)} taken`;
       },
     },
     {
-      tab: "settings", name: "Settings", sub: "the sound, the terms, the wipe",
-      x: 592, y: 396, color: "#8fa3b8",
-      what: "The two switches for what the building sounds like, and the three contracts a bout can be booked under. Ludus is wooden swords — nobody can be wounded, nothing is paid. Munus Legitimum is the sanctioned bout, three lives. Sine Missione is one life, no appeal, and triple the purse. Emptying a career out is done down here too, behind two questions.",
-      now: () => {
-        const d = DIFF_BY_KEY[difficulty] || DIFFS[1];
-        return `${d[1]} · sound ${AUDIO.soundOn ? "on" : "off"} · music ${AUDIO.musicOn ? "on" : "off"}`;
-      },
-    },
-    {
       tab: "offcard", name: "Off the Card", sub: "open practice, worth nothing",
-      x: 360, y: 664, color: "#7b5cff",
+      x: 360, y: 620, color: "#7b5cff",
       what: "The same fourteen forms, the same record office, the same board and the same school — reachable any time, and worth nothing at all. Nothing here pays, records a time, unseals a form or moves a rung. It is where you go to learn a man before the day puts him in front of you, or because you feel like fighting and nobody asked you to.",
       now: () => {
         const done = loadCleared();
@@ -4364,19 +4484,41 @@
       },
     },
     {
-      tab: "credits", name: "Credits", sub: "whose hands this passed through",
-      x: 128, y: 556, color: "#c9a227",
-      what: "The stone by the door with the names cut into it. Somebody built this — the sand, the men on the board, the words in your ear, the noise the crowd makes — and the Romans would have put that on the wall where you come in, because a building without a name on it belongs to nobody.",
-      now: () => "one name, and room for more",
-    },
-    {
       tab: "help", name: "How to Play", sub: "the trainer, if you ask him",
-      x: 592, y: 556, color: "#a08f76",
+      x: 360, y: 428, color: "#a08f76",
       what: "The man who trains the school. He will go over the whole of it: the emperor's eye and why you have to stand in it, the hot circle that burns three times as fast and only some of the time, what the crowd throws into the sand, and every armatura you are likely to meet across from you.",
       now: () => "he has time for you",
     },
+    // The last thing in the passage, past everything else, and not a counter:
+    // nobody is selling anything through it. It is the way out of the building
+    // for good. `door` makes it draw as an arch rather than a stall, and `open`
+    // means taking it runs a function instead of putting a panel on the screen —
+    // there is no Exitus tab, and there should not be one.
+    {
+      tab: "exitus", name: "The Gate", sub: "the way out, for good",
+      x: 360, y: 692, color: "#a08f76", door: true,
+      open: () => openExitus("walk"),
+      what: "The door at the end of the passage. Everything else down here is about the next afternoon; this is about there not being one. Walk through it and you put the sword down where you stand — at whatever rung you happen to hold, with whatever is in the purse — and the career is sealed as it is. Nobody will stop you and nobody has asked you to. What is open to you on the other side is whatever your record has earned.",
+      // Counting what is open means reading the board, the record, the annals
+      // and the card, which is far too much to do sixty times a second for one
+      // line of text. Worked out twice a second and held between times.
+      now: () => {
+        if (hub.t - gateNow.t < 0.5) return gateNow.line;
+        gateNow.t = hub.t;
+        if (isSealed()) gateNow.line = "he came through here already";
+        else if (!loadRecord().pugn) gateNow.line = "nothing to walk away from yet";
+        else {
+          const n = EXITUS.offered(exitusCtx(false)).length;
+          gateNow.line = n === 1 ? "one way out is open to him"
+                                 : `${roman(n)} ways out are open to him`;
+        }
+        return gateNow.line;
+      },
+    },
   ];
   const STALL_BY_TAB = Object.fromEntries(STALLS.map((s) => [s.tab, s]));
+  // The Gate's one-line state, held between recounts. See its `now` above.
+  const gateNow = { t: -9, line: "" };
 
   // Where the man is standing in the passage, and what he is standing at. Kept
   // across visits: come out of the Horreum and you are outside the Horreum, not
@@ -4441,6 +4583,26 @@
     editorEl.classList.add("hidden");
     padEl.classList.add("hub");    // the thumb still needs its band down here
     syncMenu();                    // the lists behind the stalls stay current
+
+    // Last, because both of these take the screen off the passage again.
+    //
+    // A sealed man does not get the passage at all. Every door into the
+    // building comes through enterHub, so this one line is what makes an
+    // ending an ending: whatever he was trying to open — a bout, a stall, a
+    // reload of the page — he gets his epilogue and the save from before it.
+    // Everything above has already run, so the sand is cleared and the band is
+    // stopped behind the screen he is looking at.
+    if (isSealed()) { showFate(loadExitus(), false); return; }
+
+    // And a man who has just taken rank I walks back in here to find the
+    // magistrate waiting, while a man who waved him off yesterday finds him
+    // back today. checkExitusOffer owns both rules; all this does is answer.
+    checkExitusOffer();
+    if (exitusDue) {
+      const why = exitusDue;
+      exitusDue = null;            // cleared first — closeExitus comes back through here
+      openExitus(why);
+    }
   }
 
   // Standing at a stall and taking it. The panel is the one that was always
@@ -4449,6 +4611,10 @@
   function openStall(tabName) {
     const s = STALL_BY_TAB[tabName];
     if (!s) return;
+    // A gate that is not a counter. The Gate at the end of the passage has no
+    // panel behind it — it runs its own screen and owns the state from there,
+    // so none of the tab machinery below should touch it.
+    if (s.open) { sfx("tick"); s.open(); return; }
     state = GS.MENU;
     padEl.classList.remove("hub");
     menuEl.classList.remove("hidden");
@@ -4462,7 +4628,10 @@
     disarmWipe();             // never leave the wipe armed behind you
     if (tabName === "munera") renderPlan();
     if (tabName === "offcard") { renderLadder(true); renderLibrary(); renderBattles(); renderMunera(); }
-    if (tabName === "vault") { renderPrizes(); vaultMsg.textContent = ""; }
+    // The Tessera now carries the Vault, the Settings and the Credits folded
+    // under it, so opening the tag has to furnish all of them — a fold that is
+    // shut is still a fold somebody may open without the panel reloading.
+    if (tabName === "tessera") { renderTessera(); renderPrizes(); vaultMsg.textContent = ""; }
     if (tabName === "horreum") { renderShop(); renderSponsio(); shopMsg.textContent = ""; }
     sfx("tick");
   }
@@ -4685,7 +4854,46 @@
     const p = plan();
     return p ? p.bouts.filter((b) => b.state === "pending") : [];
   }
-  function planFinished() { const p = plan(); return !!p && !planPending().length; }
+
+  // ---- What buys tomorrow ----
+  //
+  // It used to be the whole card, every bout of it, and that made the climb the
+  // slowest thing in the building: one rung came per day, a day cost four bouts,
+  // and three of the four had nothing to do with the board. Seventy-two fights
+  // of training to get twenty-four rungs.
+  //
+  // So the rung no longer waits for the rest of the card. What tomorrow costs
+  // now is two things:
+  //   · the main event is settled — beaten, or lost three times and struck off.
+  //     The board is the story and you do not get to walk past it, and there is
+  //     no longer any fee that would let you.
+  //   · ONE of the other bouts on the card has been BEATEN — two, once the card
+  //     is carrying four or more of them, which happens when a man above you has
+  //     asked for a bout. Never more than two, whatever the day deals.
+  //
+  // Beaten, and only beaten. A bout struck off after three losses is settled but
+  // it is not won, and it does not buy you a morning.
+  //
+  // A standard card is the rung and three others, so the usual price of tomorrow
+  // is the man above you and one afternoon's work. The other two stay on the
+  // card and stay worth fighting — they are the purse, the forms and the
+  // Library — they simply no longer stand between you and the climb.
+  function dayWork() {
+    const p = plan();
+    if (!p) return { rung: false, need: 0, beaten: 0, ok: false };
+    // Only a rung is a rung. An invitation settles nothing on the board, so it
+    // is counted with the day's work rather than with the climb — which is also
+    // what can push the day's price up to two.
+    const rung = p.bouts.every((b) => b.kind !== "ladder" || b.state !== "pending");
+    const rest = p.bouts.filter((b) => b.kind !== "ladder");
+    const need = Math.min(rest.length, rest.length >= 4 ? 2 : 1);
+    // A card saved while bouts could still be bought off it may be holding one.
+    // Nothing can reach that state any more, and a man should not be locked out
+    // of tomorrow by a fee this arena no longer charges, so it counts as done.
+    const beaten = rest.filter((b) => b.state === "beaten" || b.state === "skipped").length;
+    return { rung, need, beaten, ok: rung && beaten >= need };
+  }
+  function dayDone() { return dayWork().ok; }
 
   let planUid = 0;
   function planBout(kind, ref, name, rating, extra) {
@@ -4771,9 +4979,11 @@
 
   // What a rung is worth, as a peril from I to V. Pulled out of fightLadder so
   // the card can price a bout before anybody walks onto the sand.
+  // A rung's peril is his tier, and the two are one number — see tierRating in
+  // ladder.js for why this is not arithmetic on the rank any more.
   function ladderRating(rank) {
     if (rank == null) return 1;
-    return Math.max(1, Math.min(5, Math.ceil((LADDER.length - rank + 1) / 5)));
+    return tierRating(rank);
   }
 
   // The card is dealt on demand rather than on a schedule — there is no clock in
@@ -4788,10 +4998,10 @@
   }
 
   // ---- Rolling over ----
-  // Only a finished card buys a new one, and after three of them the building
-  // says something about it.
+  // The rung and half the work buy a new card — see dayWork — and after three
+  // of them the building says something about it.
   function rollDay() {
-    if (!planFinished()) return;
+    if (!dayDone()) return;
     if (sittingDays >= DAYS_PER_SITTING && !breakAsked) { askBreak(); return; }
     const p = plan();
     CONDICIO.advanceDay();
@@ -4828,6 +5038,28 @@
     return null;
   }
 
+  // What peril a bout on the card is, asked now rather than remembered.
+  //
+  // A card is dealt once and then saved, so every number written onto it is a
+  // number frozen at the moment it was dealt. For a Library level or a form out
+  // of the Pantheon that is fine — their peril is a property of the thing and
+  // does not move. A rung's peril is not: it comes off where the man is standing
+  // on the board, and the board moves under him. It also moves when the peril
+  // scale itself is changed, and a card dealt before such a change would go on
+  // insisting on the old number until the day rolled — which is exactly how a
+  // rebalance comes to look like it did not take.
+  //
+  // So a rung is asked every time it is drawn. The stored `rating` is left alone
+  // and is still what the bout was dealt at; nothing reads it for a rung now.
+  function boutRating(b) {
+    if (b.kind === "ladder" || b.kind === "invite") {
+      const st = loadLadder();
+      const rank = st.board[b.ref];
+      if (rank != null) return ladderRating(rank);
+    }
+    return b.rating;
+  }
+
   function startPlanBout(b) {
     if (b.state !== "pending") return;
     const src = planSourceOf(b);
@@ -4838,31 +5070,6 @@
     if (b.kind === "battle") return playBattle(src);
     if (b.kind === "level" || b.kind === "munus") return playLevel(src);
     if (b.kind === "ladder" || b.kind === "invite") return fightLadder(src, b.kind === "invite");
-  }
-
-  // Buying your way past one. The fee is the peril's, the money is gone, and
-  // nothing else happens: no clear, no purse, no form unsealed. You did not
-  // fight it — you simply are not going to.
-  function skipPlanBout(b) {
-    if (b.kind === "ladder") return;   // the rung is not for sale — see renderPlan
-    if (b.state !== "pending") return;
-    const cost = skipCost(b.rating);
-    // Ask the purse before taking from it. spendDenarii floors at empty and
-    // tells you nothing about whether it could afford what you asked — it is a
-    // subtraction, not a transaction — so the check has to happen out here.
-    if (denarii() < cost) {
-      sfx("tick");
-      flashPlanMsg(`Striking ${b.name} off costs ${cost}. You have ${denarii()}.`);
-      renderPlan();
-      return;
-    }
-    spendDenarii(cost);
-    b.state = "skipped";
-    planSave();
-    sfx("pickup");
-    flashPlanMsg(`${b.name} struck off the card for ${cost}.`);
-    renderPlan();
-    refreshMenu();
   }
 
   // Turning a man down. The bout comes off the card entirely rather than being
@@ -4907,6 +5114,10 @@
       const st = loadLadder();
       dropPlayer(st, 1);
       saveLadder(st);
+      // The board went the wrong way under him, which the annals keep because
+      // nothing else does: the board only remembers where everybody is standing
+      // now, and a slide cannot be read back off it afterwards.
+      noteAnnal((a) => { a.dropped = true; });
     }
     planSave();
   }
@@ -4921,7 +5132,7 @@
   function flashPlanMsg(t) { planMsg = t; }
 
   const KIND_TAG = {
-    ludus: "THE SCHOOL", battle: "CAMPAIGN", level: "LIBRARY",
+    ludus: "THE SCHOOL", battle: "PANTHEON", level: "LIBRARY",
     munus: "A DAY OF GAMES", ladder: "THE MAIN EVENT · A RUNG OF THE BOARD",
     invite: "INVITATION",
   };
@@ -4952,12 +5163,20 @@
     planDayEl.textContent = `Day ${roman(p.day)}`;
     planClimbEl.textContent = climbLine();
     const left = planPending().length;
-    planLeftEl.textContent = left
-      ? `${roman(left)} of ${roman(p.bouts.length)} still standing`
-      : "the card is finished";
-    planNoteEl.textContent = planMsg || (left
-      ? "Fight them in any order. Buying your way past one costs by its peril — the easier it is, the dearer it is to avoid."
-      : "Nothing left on it. Call the next day when you are ready.");
+    const w = dayWork();
+    // What the day still wants, rather than what is merely unfought. A card can
+    // have three bouts standing on it and still be a day you are free to call,
+    // and the header has to say so or the button looks broken.
+    planLeftEl.textContent = w.ok
+      ? (left ? `the day is yours — ${roman(left)} still on the card` : "the card is finished")
+      : `${roman(left)} of ${roman(p.bouts.length)} still standing`;
+    planNoteEl.textContent = planMsg || (w.ok
+      ? "The day is bought. Anything still on the card is yours to take or leave — it pays and it teaches, and it no longer stands between you and the man above you."
+      : !w.rung
+      ? "The main event settles the rung and nothing else will. Fight it — there is no buying past the board, and the day does not turn without it."
+      : w.need - w.beaten === 1 && w.need === 1
+      ? "The rung is settled. Win one more bout off this card — any of them — and the day is yours."
+      : `${roman(w.need - w.beaten)} more of the day's work to win — ${roman(w.beaten)} of ${roman(w.need)} so far. Any of them will do; the rest of the card is yours to leave.`);
     planMsg = "";
 
     for (const b of p.bouts) {
@@ -4983,8 +5202,10 @@
         t.className = "tick"; t.textContent = "✓ done";
         nm.appendChild(t);
       } else if (b.state === "skipped") {
+        // Nothing can reach this state any more. A card saved while the fee
+        // still existed can still be holding one, so it keeps a label.
         const t = document.createElement("span");
-        t.className = "tick"; t.textContent = "paid off";
+        t.className = "tick"; t.textContent = "off the card";
         nm.appendChild(t);
       } else if (b.state === "struck") {
         const t = document.createElement("span");
@@ -4999,7 +5220,7 @@
       }
       const dif = document.createElement("span");
       dif.className = "diff";
-      dif.textContent = perilName(b.rating);
+      dif.textContent = perilName(boutRating(b));
       nm.appendChild(dif);
       meta.appendChild(nm);
       const tag = document.createElement("span");
@@ -5019,17 +5240,6 @@
           no.title = `Refuse ${b.name}. It costs nothing — he asked you.`;
           no.addEventListener("click", (e) => { e.stopPropagation(); declineInvite(b); });
           row.appendChild(no);
-        } else if (b.kind !== "ladder") {
-          // The rung cannot be bought past. Everything else on the card is
-          // work, and work can be paid off; the rung is the story, and the
-          // board does not take money. (Losing to him three times still
-          // strikes him off for the day — that door stays open.)
-          const skip = document.createElement("button");
-          skip.className = "skip";
-          skip.textContent = `skip ✦${skipCost(b.rating)}`;
-          skip.title = "Pay to have it struck off the card. Nothing is earned by it.";
-          skip.addEventListener("click", (e) => { e.stopPropagation(); skipPlanBout(b); });
-          row.appendChild(skip);
         }
 
         const go = document.createElement("button");
@@ -5042,7 +5252,8 @@
       }
       planListEl.appendChild(row);
     }
-    planDoneRow.classList.toggle("hidden", !!left);
+    // Shown the moment the day is bought, not the moment the card is empty.
+    planDoneRow.classList.toggle("hidden", !dayDone());
   }
   document.getElementById("nextDayBtn").addEventListener("click", rollDay);
 
@@ -5052,6 +5263,495 @@
   const PERILS = ["Tiro", "Gregarius", "Veteranus", "Secundus Palus", "Primus Palus"];
   function perilName(rating) {
     return PERILS[Math.max(1, Math.min(5, rating | 0)) - 1];
+  }
+
+  // ---- Exitus: the end of a career ----
+  //
+  // The climb has had a top on it since the ladder went in, and nothing behind
+  // it: rank I flipped a flag, the card started calling you Rudiarius, and the
+  // game went on exactly as before. This is what is behind it.
+  //
+  // Three doors, and none of them is dying. The munerarius comes down with the
+  // rudis when you take rank I; you may wave him away, and he comes back the
+  // next day, and the fourth refusal is a road of its own; and you may put the
+  // sword down from the Tessera at whatever rung you happen to be holding. All
+  // three arrive at the same screen: the fates your record has earned, laid out
+  // to be chosen between. Your record decides which are on the table. You decide
+  // which one you take.
+  //
+  // Taking one SEALS the career — the board, the purse, the record and the day
+  // freeze as they stand, the man does not fight again, and the tessera becomes
+  // a monument you can still walk up and read. Entering a new man is the way on,
+  // and the endings you have reached are kept across all of them, because an
+  // ending is something the player saw and not something a career owns.
+  const exitusEl = document.getElementById("exitus");
+  const exKicker = document.getElementById("exKicker");
+  const exName = document.getElementById("exName");
+  const exSub = document.getElementById("exSub");
+  const exBody = document.getElementById("exBody");
+  const exList = document.getElementById("exList");
+  const exFoot = document.getElementById("exFoot");
+  const exHint = document.getElementById("exHint");
+
+  // Set when something has happened that the munerarius wants a word about, and
+  // read on the way off the sand — an offer must never land on top of a bout
+  // that is still being scored. enterHub is where it is spent.
+  let exitusDue = null;
+
+  // The career, as a gate sees it. Everything here is read at the moment the
+  // offer is made; nothing is cached, because a man's record is exactly what is
+  // being judged and it changed this afternoon.
+  function exitusCtx(atTop) {
+    const st = loadLadder();
+    const rec = loadRecord();
+    const an = loadAnnals();
+    const p = plan();
+    return {
+      atTop: !!atTop,
+      rank: st.rank,
+      // The high-water mark. A career that reached rank II and slid to rank IX
+      // still reached rank II, and the fates that care about how high he got
+      // must not be able to be lost by a bad week.
+      best: Math.min(an.best, st.rank),
+      ranked: st.rank < UNRANKED || an.best < UNRANKED,
+      pugn: rec.pugn, vic: rec.vic, miss: rec.miss,
+      felled: (st.felled || []).length,
+      purse: denarii(),
+      day: p ? p.day : 1,
+      refusals: an.refusals,
+      doctore: !doctoreGone(),
+      sine: an.sine,
+      dropped: an.dropped,
+      forms: BATTLES.filter((b) => formBeaten(b)).length,
+      name: activeAccount().name,
+    };
+  }
+
+  // A line of prose that may not have been written yet. js/exitus.js ships every
+  // fate with its words stubbed, and a stub says so on the screen rather than
+  // rendering as a blank — an ending nobody has written should be obvious to
+  // whoever is writing them, not quietly empty to whoever is reading them.
+  function exLine(cls, v) {
+    const el = document.createElement("p");
+    el.className = cls + (EXITUS.isStub(v) ? " exstub" : "");
+    el.textContent = EXITUS.isStub(v) ? v.hint : String(v == null ? "" : v);
+    return el;
+  }
+  function exSet(el, v) {
+    el.classList.toggle("exstub", EXITUS.isStub(v));
+    el.textContent = EXITUS.isStub(v) ? v.hint : String(v == null ? "" : v);
+  }
+
+  // Clear the screen down to bare boards. Every view below builds itself back
+  // up from here, so no view can inherit a button belonging to another one.
+  function exReset(accent) {
+    exitusEl.style.setProperty("--ex", accent || "var(--gold)");
+    exBody.innerHTML = "";
+    exList.innerHTML = "";
+    exFoot.innerHTML = "";
+    exHint.textContent = "";
+    exSub.className = "exsub";
+    exitusEl.classList.remove("hidden");
+    exitusEl.scrollTop = 0;
+    menuEl.classList.add("hidden");
+    endEl.classList.add("hidden");
+    hudEl.classList.add("hidden");
+    editorEl.classList.add("hidden");
+    padEl.classList.remove("hub");
+    state = GS.MENU;
+  }
+  function exButton(label, primary, fn) {
+    const b = document.createElement("button");
+    if (primary) b.className = "primary";
+    b.textContent = label;
+    b.addEventListener("click", fn);
+    exFoot.appendChild(b);
+    return b;
+  }
+  function closeExitus() {
+    exitusEl.classList.add("hidden");
+    enterHub();
+  }
+
+  // ---- The offer ----
+  // `why` is "rank1" when the magistrate has come down onto the sand, and "walk"
+  // when you have gone looking for the door yourself. The difference is entirely
+  // in what the screen says and what the way out of it is: a man at the top has
+  // to answer, and a man walking away can always change his mind.
+  function openExitus(why) {
+    const atTop = why === "rank1";
+    const c = exitusCtx(atTop);
+    const earned = EXITUS.offered(c);
+    exReset("var(--gold)");
+    stopMusic(true);
+    sfx("clear");
+
+    exSet(exKicker, atTop ? `RANK I · DAY ${roman(c.day)}` : "OFF THE CARD");
+    exSet(exName, atTop ? "The Munerarius" : "Leaving The Sand");
+    exSet(exSub, atTop
+      ? `There is nobody above you. The magistrate paying for these games has come down onto the sand himself, and what he is holding out is the end of your career — one way or another. ${c.name} has fought ${roman(c.pugn)} and won ${roman(c.vic)}.`
+      : `Nobody has asked you to stop and nobody will stop you. ${c.name} stands at ${c.rank >= UNRANKED ? "no rank at all" : "rank " + roman(c.rank)}, ${roman(c.vic)} won of ${roman(c.pugn)} taken, with ✦${c.purse} in the purse. What is open to you is what that record has earned.`);
+
+    // Everything that was never a secret, whether or not this man qualified, so
+    // it is legible what a record buys. The hidden ones appear only once earned
+    // — the whole of what makes them hidden is that nothing announces them.
+    const shown = EXITUS.FATES.filter((f) => !f.hidden || earned.includes(f));
+    const seen = endingsSeen();
+    for (const f of shown) {
+      const open = earned.includes(f);
+      const row = document.createElement("div");
+      row.className = "libitem exfate" + (open ? "" : " veiled");
+      row.style.setProperty("--fc", f.accent);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      nm.textContent = f.name;
+      if (seen.includes(f.id)) {
+        const t = document.createElement("span");
+        t.className = "tick";
+        t.textContent = "✓ reached before";
+        nm.appendChild(t);
+      }
+      meta.appendChild(nm);
+      meta.appendChild(exLine("sub2", f.sub));
+      // The offer itself is only read out for a fate you could actually take.
+      // A door you have not earned does not get to make its pitch.
+      if (open) meta.appendChild(exLine("blurb", f.offer));
+      else {
+        const no = document.createElement("div");
+        no.className = "sub2";
+        no.textContent = "Not open to this record.";
+        meta.appendChild(no);
+      }
+      row.appendChild(meta);
+
+      if (open) {
+        const take = document.createElement("button");
+        take.className = "primary";
+        take.textContent = "Take it";
+        // Two taps, the way the wipe and the strike-off ask twice. This one
+        // cannot be undone by anything short of entering a new man.
+        let armed = false;
+        take.addEventListener("click", () => {
+          if (!armed) {
+            armed = true;
+            take.textContent = "Tap again — it is final";
+            take.classList.add("arm");
+            sfx("tick");
+            return;
+          }
+          takeFate(f, c);
+        });
+        row.appendChild(take);
+      }
+      exList.appendChild(row);
+    }
+
+    if (atTop) {
+      // A man standing at the top has to answer. The only two answers are a
+      // fate and a refusal — there is no walking off the sand with the
+      // magistrate still holding the sword out.
+      exButton("Refuse the rudis", false, () => refuseRudis(c));
+      exHint.textContent = c.refusals
+        ? `Refused ${c.refusals === 1 ? "once" : roman(c.refusals) + " times"} already. He will come back tomorrow, and there are only so many afternoons he will do that for.`
+        : "Refusing costs you nothing today. He will be back tomorrow, and the man who refused four times is on this board.";
+    } else {
+      exButton("Not today", true, () => { closeExitus(); });
+      // The collection hangs off this face and only this one. A man at the top
+      // has an answer to give and should not be able to wander off into a list
+      // instead; a man who walked down here of his own accord can look at
+      // whatever he likes, because he can also just walk back out.
+      exButton("The Endings", false, showEndings);
+      exHint.textContent = "Nothing on this screen has happened yet. Walk back out and the career carries on exactly as it was.";
+    }
+  }
+
+  // Waving him away. It is written down — four separate afternoons of it is a
+  // road nothing else in the building opens.
+  function refuseRudis(c) {
+    const an = noteAnnal((a) => {
+      a.refusals = (a.refusals | 0) + 1;
+      a.lastOffer = c.day;
+    });
+    exitusEl.classList.add("hidden");
+    sfx("phase");
+    enterHub("munera");
+    flashPlanMsg(an.refusals >= 4
+      ? `The rudis, refused for the ${ordinal(an.refusals)} time. He has stopped asking, and the crowd has started telling each other about you.`
+      : `The rudis, refused. ${ordinal(an.refusals)} time — the magistrate puts it back under his arm and says he will be here tomorrow.`);
+    openStall("munera");
+  }
+  function ordinal(n) {
+    return ["zeroth", "first", "second", "third", "fourth", "fifth", "sixth", "seventh"][n] || `${n}th`;
+  }
+
+  // ---- Taking one ----
+  // The career freezes here. Everything written to the seal is a snapshot rather
+  // than something read back live afterwards: a sealed career does not move, and
+  // an epilogue that re-derived itself from storage could be quietly rewritten
+  // by anything that touched the board later.
+  function takeFate(f, c) {
+    const st = loadLadder();
+    const rec = loadRecord();
+    // The career as it stood one second ago, before any of this was written
+    // down. Taken FIRST and on purpose: exportSave reads live storage and the
+    // seal is one of the keys it reads, so a code written a line later would be
+    // a code for a man who has already finished — which is no use to anybody.
+    // This one still has him standing at the top with the offer on the table,
+    // and it is the only copy of that man there will ever be.
+    const before = exportSave();
+    // The rudis is the one fate that is also a thing the rest of the building
+    // already knows how to say. Everything downstream of hasRudis() — the card's
+    // climb line, the Ladder head, the concourse gate — keeps working because
+    // this still grants it.
+    if (f.id === "rudis") grantRudis();
+    sealExitus(f.id, {
+      rank: st.rank,
+      best: c.best,
+      pugn: rec.pugn, vic: rec.vic, miss: rec.miss,
+      felled: c.felled,
+      purse: c.purse,
+      day: c.day,
+      refusals: c.refusals,
+      name: c.name,
+      after: f.after || "",
+      // Kept on the seal rather than in a variable, because the epilogue is
+      // shown again on every load and the code has to still be there.
+      before: before,
+    });
+    clearPlan();               // there is no card tomorrow
+    planCache = null;
+    showFate(loadExitus(), true);
+  }
+
+  // ---- The epilogue ----
+  //
+  // The last screen a career has. It is deliberately a dead end: nothing on it
+  // walks back into the building, because an ending that you can click away
+  // from is not an ending. Every route that used to reach the passage from here
+  // — the concourse, the collection, a fresh tessera — is gone, and what is
+  // under the prose instead is the save from the moment before the choice was
+  // made. That is the only way on, and it is the honest one: it does not undo
+  // the ending, it hands you back the man who had not made it yet.
+  function showFate(seal, fresh) {
+    const f = EXITUS.BY_ID[seal.fate];
+    if (!f) {
+      // A save naming a fate this build no longer has. Say so plainly rather
+      // than showing an empty screen — the career is still sealed either way,
+      // and the code from before it is still the way out.
+      exReset("var(--muted)");
+      exSet(exKicker, "FINISHED");
+      exSet(exName, "An Ending This Arena No Longer Keeps");
+      exSet(exSub, `${seal.name || "He"} ended his career on a fate called "${seal.fate}", which is not in this copy of the game. The record below is still his.`);
+      exBody.appendChild(exRecordLine(seal));
+      exBody.appendChild(exSaveBlock(seal));
+      exHint.textContent = "Sealed on an ending this copy of the game cannot read. The line above is still the save from before he chose it.";
+      return;
+    }
+    exReset(f.accent);
+    stopMusic(true);
+    if (fresh) sfx("clear");
+    exSet(exKicker, f.kicker);
+    exSet(exName, f.name);
+    exSet(exSub, f.sub);
+
+    for (const para of (f.body || [])) exBody.appendChild(exLine("", para));
+
+    const rule = document.createElement("div");
+    rule.className = "exrule";
+    exBody.appendChild(rule);
+    exBody.appendChild(exLine("exstone", f.stone));
+    exBody.appendChild(exRecordLine(seal));
+
+    // And here it stops. There is no way back into the building off this
+    // screen — no concourse, no board, no collection of endings to go and
+    // admire. An ending is an ending: the last thing this career does is be
+    // read, and the only thing under it is the way to have the man back.
+    exBody.appendChild(exSaveBlock(seal));
+    exHint.textContent = "This career is finished, and this is the last screen it has. The line above is the save from the moment before you chose — paste it back and he is standing at that afternoon again, with every door still open to him.";
+  }
+
+  // ---- The way out of a finished career ----
+  //
+  // Two boxes under the epilogue. The first holds the save taken the instant
+  // before the ending was chosen — the man as he was with every door still in
+  // front of him — and it is on the seal, so it survives a reload and is there
+  // every time this screen is drawn. The second takes any save at all and
+  // brings it in as a new man, which is importSave's own rule and the reason
+  // this is safe to put on a screen you cannot leave: loading never writes over
+  // anybody, so nothing on this page can cost you a career.
+  //
+  // A save written before this existed has no code on it. That man is sealed
+  // and there is nothing to hand back, so the box says so rather than sitting
+  // there empty and looking broken.
+  function exSaveBlock(seal) {
+    const wrap = document.createElement("div");
+    wrap.className = "exsave";
+
+    const lab = document.createElement("p");
+    lab.className = "exsavelab";
+    lab.textContent = seal.before ? "HIS SAVE, FROM BEFORE HE CHOSE" : "NO SAVE WAS KEPT";
+    wrap.appendChild(lab);
+
+    if (seal.before) {
+      const row = document.createElement("div");
+      row.className = "exsaverow";
+      const box = document.createElement("input");
+      box.type = "text";
+      box.readOnly = true;
+      box.spellcheck = false;
+      box.value = seal.before;
+      const copy = document.createElement("button");
+      copy.textContent = "Copy";
+      copy.addEventListener("click", () => {
+        box.select();
+        // Over file:// the clipboard is often shut, and select() is the
+        // fallback that always works — the same bargain the Tessera makes.
+        let done = false;
+        try { done = document.execCommand("copy"); } catch (e) { done = false; }
+        exSaveMsg(wrap, done ? `${seal.name || "He"} is on your clipboard. Keep it somewhere.`
+                             : "It is in the box and selected — copy it now.", true);
+      });
+      row.appendChild(box);
+      row.appendChild(copy);
+      wrap.appendChild(row);
+    } else {
+      const no = document.createElement("p");
+      no.className = "exrec";
+      no.textContent = "This career was sealed by a version of the arena that did not keep one. The ending stands; the man before it is gone.";
+      wrap.appendChild(no);
+    }
+
+    const row2 = document.createElement("div");
+    row2.className = "exsaverow";
+    const paste = document.createElement("input");
+    paste.type = "text";
+    paste.spellcheck = false;
+    paste.autocomplete = "off";
+    paste.placeholder = "Paste a save here to bring that man in";
+    const load = document.createElement("button");
+    load.className = "primary";
+    load.textContent = "Load";
+    load.addEventListener("click", () => {
+      planCache = null;
+      const res = importSave(paste.value);
+      exSaveMsg(wrap, res.msg, res.ok);
+      if (!res.ok) return;
+      // He is somebody else now, and somebody else is not sealed — so the
+      // building opens again. adoptAccount first, so the passage he walks into
+      // is furnished with the new man's board and card rather than the dead
+      // man's.
+      paste.value = "";
+      adoptAccount();
+      exitusEl.classList.add("hidden");
+      enterHub("tessera");
+    });
+    row2.appendChild(paste);
+    row2.appendChild(load);
+    wrap.appendChild(row2);
+    return wrap;
+  }
+  // One line under the boxes, in the fate's own colour when it went well.
+  function exSaveMsg(wrap, text, good) {
+    let el = wrap.querySelector(".exsavemsg");
+    if (!el) {
+      el = document.createElement("p");
+      el.className = "exsavemsg";
+      wrap.appendChild(el);
+    }
+    el.classList.toggle("bad", !good);
+    el.textContent = text;
+  }
+
+  // The numbers, in one line, the way they would have gone on the stone.
+  function exRecordLine(seal) {
+    const el = document.createElement("p");
+    el.className = "exrec";
+    const bits = [
+      seal.name || "—",
+      seal.after ? seal.after : null,
+      `${roman(seal.vic | 0)} won of ${roman(seal.pugn | 0)} taken`,
+      (seal.miss | 0) ? `${roman(seal.miss)} walked off from` : null,
+      (seal.best != null && seal.best < UNRANKED) ? `highest rung ${roman(seal.best)}` : "never on the board",
+      `${roman(seal.felled | 0)} of the twenty-four put down`,
+      `✦${seal.purse | 0} in hand`,
+      `day ${roman(seal.day || 1)}`,
+      (seal.refusals | 0) ? `the rudis refused ${roman(seal.refusals)} times` : null,
+    ].filter(Boolean);
+    el.textContent = bits.join(" · ");
+    return el;
+  }
+
+  // ---- Everything that has ever been reached ----
+  // The player's, not this man's: it survives a wipe, a strike-off and a fresh
+  // tessera, because it is a list of what you have seen rather than of what
+  // anybody in the house did.
+  function showEndings() {
+    const seen = endingsSeen();
+    const rows = EXITUS.catalogue(seen);
+    exReset("var(--gold)");
+    exSet(exKicker, `${roman(seen.length)} OF ${roman(EXITUS.FATES.length)}`);
+    exSet(exName, "The Endings");
+    exSet(exSub, "Every way out of this building that anybody in your house has found. Kept across all of them — a fresh tessera does not un-see one, and neither does a wipe.");
+    for (const r of rows) {
+      const row = document.createElement("div");
+      row.className = "libitem exfate" + (r.veiled ? " veiled" : "");
+      row.style.setProperty("--fc", r.reached ? r.fate.accent : "#3a2c1a");
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      // A hidden fate nobody has reached is a rung with nothing written on it.
+      // You are told there is something there and not one word about what.
+      nm.textContent = r.veiled ? "· · · · ·" : r.fate.name;
+      if (r.reached) {
+        const t = document.createElement("span");
+        t.className = "tick"; t.textContent = "✓ reached";
+        nm.appendChild(t);
+      }
+      meta.appendChild(nm);
+      meta.appendChild(r.veiled
+        ? exLine("sub2", "Nothing is said about this one until somebody finds it.")
+        : exLine("sub2", r.fate.sub));
+      row.appendChild(meta);
+      exList.appendChild(row);
+    }
+    // Back to the door he opened this from. There is no "read this man's
+    // ending" button any more and there is not meant to be: a sealed career
+    // never gets this far, because the epilogue is the only screen it has.
+    exButton("Back", true, () => openExitus("walk"));
+    exHint.textContent = "An ending is reached by taking it, and a career can only take one.";
+  }
+
+  // ---- When the offer is made ----
+  // Once a day at most, and only while you are standing on the top rung. The
+  // day it was last made is kept in the annals, so refusing does not put you in
+  // a loop of being asked again on the way out of the same screen — and so the
+  // fourth refusal costs four separate afternoons, which is the point of it.
+  function checkExitusOffer() {
+    if (isSealed()) return;
+    if (!ladderOpen()) return;
+    const st = loadLadder();
+    if (st.rank !== 1) return;
+    const p = plan();
+    const day = p ? p.day : 1;
+    if ((loadAnnals().lastOffer | 0) >= day) return;
+    noteAnnal((a) => { a.lastOffer = day; });
+    exitusDue = "rank1";
+  }
+
+  // A sealed man, asked to fight. Nothing refuses him in a message box — he is
+  // simply shown what happened to him instead, which is a better answer than
+  // a disabled button.
+  function sealBlocked() {
+    if (!isSealed()) return false;
+    // enterHub is what puts the epilogue up now — it turns a sealed man round
+    // at every door, not just this one — so this only has to send him through
+    // it and say that it caught him.
+    enterHub();
+    return true;
   }
 
   // ---- Ladder tab ----
@@ -8102,7 +8802,7 @@
   // arches, banners hang over them, and the dust has been in the air since
   // before you walked in — none of it is decided per frame.
   const TORCHES = [];
-  for (const cy of [236, 396, 556]) { TORCHES.push({ x: 48, y: cy - 78 }, { x: W - 48, y: cy - 78 }); }
+  for (const cy of [268, 428, 588]) { TORCHES.push({ x: 48, y: cy - 78 }, { x: W - 48, y: cy - 78 }); }
   const HUB_DUST = [];
   for (let i = 0; i < 40; i++) {
     HUB_DUST.push({
@@ -8117,34 +8817,11 @@
 
   // ---- The passage itself ----
   //
-  // A corridor that is only a menu is a menu with a walk bolted on. The things
-  // below are what make it a place: none of them pay more than pocket change,
-  // none of them are on the card, and all of them answer you.
+  // The floor is the stalls and the walk between them. There was furniture
+  // down here once — a palus to shoulder, a grate over the hypogeum, graffiti
+  // on the walls, a cat that would not be caught — and it is gone. What is
+  // left on the flagstones is the one thing worth stopping for.
   //
-  // The palus: the training stake every gladiator in history drilled against.
-  // Walk into it and it takes the hit and leans, springs back, and waits for
-  // the next one, which is the whole of what a palus does.
-  const palus = { x: 468, y: 486, lean: 0, vel: 0, hits: 0, cool: 0 };
-  // Three lines scratched into the walls. Real graffiti, or near it — the walls
-  // of Pompeii are covered in exactly this. Stand close to read one.
-  const GRAFFITI = [
-    { x: 44, y: 312, side: 1,
-      line: "CELADVS · SVSPIRIVM PVELLARVM",
-      gloss: "\u201cCeladus the Thraex — the girls\u2019 sigh.\u201d He scratched it himself." },
-    { x: W - 44, y: 478, side: -1,
-      line: "XX PVGNAE · XIX CORONAE",
-      gloss: "Twenty fights, nineteen crowns. Nobody writes up the twentieth." },
-    { x: 214, y: 688, side: 0,
-      line: "VIVAS — MORITVRVS SCRIPSIT",
-      gloss: "\u201cLive well\u201d — written by a man going out to die. The door to the sand is that way." },
-  ];
-  // A grate in the floor over the hypogeum. Stand on it and the noise of the
-  // building comes up through your feet — the crowd, and whatever is caged
-  // under the sand waiting for the afternoon.
-  const grate = { x: 268, y: 486, w: 58, h: 34 };
-  // The passage cat. Every building of this size has one; nobody owns it, it
-  // cannot be caught, and it has seen a thousand of you come and go.
-  const cat = { x: 540, y: 600, tx: 540, ty: 600, pause: 1.5, t: 0, flee: 0, fx: 1 };
   // Once a day, somebody has dropped a coin in the dark and not gone back for
   // it. One denarius: worth bending down for, not worth patrolling for.
   let hubCoin = null;
@@ -8158,66 +8835,15 @@
     for (let tries = 0; tries < 24; tries++) {
       const x = 90 + Math.random() * (W - 180);
       const y = 150 + Math.random() * (H - 260);
-      if (STALLS.every((st) => Math.hypot(x - st.x, y - st.y) > 95) &&
-          Math.hypot(x - palus.x, y - palus.y) > 50 &&
-          Math.hypot(x - grate.x, y - grate.y) > 60) {
+      if (STALLS.every((st) => Math.hypot(x - st.x, y - st.y) > 95)) {
         hubCoin = { x, y };
         return;
       }
     }
   }
 
+  // Only the coin moves down here now, and only when you walk onto it.
   function updateHubProps(dt) {
-    // The palus takes the shoulder. Impulse from walking through it, then a
-    // damped spring back to vertical — and a knock only counts as a knock once
-    // the last one has settled enough to hear.
-    palus.cool = Math.max(0, palus.cool - dt);
-    const pd = Math.hypot(hub.x - palus.x, hub.y - (palus.y + 6));
-    if (pd < 30 && (hub.moving || 0) > 60 && palus.cool <= 0) {
-      palus.cool = 0.34;
-      palus.hits++;
-      palus.vel += (hub.x < palus.x ? 1 : -1) * (2.6 + Math.random() * 1.4);
-      sfx("tick");
-      hubSteps.push({ x: palus.x, y: palus.y + 22, t: 0, max: 0.6 });
-    }
-    palus.vel += -palus.lean * 26 * dt - palus.vel * 4.2 * dt;
-    palus.lean += palus.vel * dt;
-
-    // The grate: the building gets louder the closer you stand to it. The base
-    // level is the one enterHub set; this rides on top and falls away with you.
-    const gd = Math.hypot(hub.x - grate.x, hub.y - grate.y);
-    setCrowd(0.16 + 0.38 * Math.max(0, 1 - gd / 130));
-
-    // The cat. It has somewhere vague to be, no hurry to be there, and a firm
-    // policy about people. It will never let you reach it, and that is the game.
-    cat.t += dt;
-    const cd = Math.hypot(hub.x - cat.x, hub.y - cat.y);
-    if (cd < 95) {
-      cat.flee = 0.6;
-      const a = Math.atan2(cat.y - hub.y, cat.x - hub.x) + (Math.random() - 0.5) * 0.6;
-      cat.tx = cat.x + Math.cos(a) * 160;
-      cat.ty = cat.y + Math.sin(a) * 160;
-      cat.pause = 0;
-    }
-    cat.flee = Math.max(0, cat.flee - dt);
-    cat.tx = Math.max(30, Math.min(W - 30, cat.tx));
-    cat.ty = Math.max(120, Math.min(H - 26, cat.ty));
-    if (cat.pause > 0) {
-      cat.pause -= dt;
-    } else {
-      const dx = cat.tx - cat.x, dy = cat.ty - cat.y, d = Math.hypot(dx, dy);
-      if (d < 6) {
-        cat.pause = 1.2 + Math.random() * 3.4;
-        cat.tx = 60 + Math.random() * (W - 120);
-        cat.ty = 150 + Math.random() * (H - 270);
-      } else {
-        const sp = cat.flee > 0 ? 230 : 62;
-        cat.x += (dx / d) * sp * dt;
-        cat.y += (dy / d) * sp * dt;
-        cat.fx = dx < 0 ? -1 : 1;
-      }
-    }
-
     // The coin is picked up by walking over it, the way coins are.
     if (hubCoin && Math.hypot(hub.x - hubCoin.x, hub.y - hubCoin.y) < 22) {
       hubCoin = null;
@@ -8229,61 +8855,6 @@
   function drawHubProps() {
     ctx.save();
 
-    // The grate, first, because it is part of the floor. Iron bars over a dark
-    // slot, and a breath of warm light from the hypogeum under them.
-    ctx.fillStyle = "#0a0704";
-    roundRect(grate.x - grate.w / 2, grate.y - grate.h / 2, grate.w, grate.h, 4);
-    ctx.fill();
-    const gg = ctx.createRadialGradient(grate.x, grate.y, 2, grate.x, grate.y, 40);
-    gg.addColorStop(0, "rgba(255,140,60,0.13)");
-    gg.addColorStop(1, "rgba(255,140,60,0)");
-    ctx.fillStyle = gg;
-    ctx.fillRect(grate.x - 44, grate.y - 40, 88, 80);
-    ctx.strokeStyle = "#3a2e1d";
-    ctx.lineWidth = 3;
-    for (let i = 0; i < 5; i++) {
-      const gx = grate.x - grate.w / 2 + 7 + i * (grate.w - 14) / 4;
-      ctx.beginPath(); ctx.moveTo(gx, grate.y - grate.h / 2 + 4); ctx.lineTo(gx, grate.y + grate.h / 2 - 4); ctx.stroke();
-    }
-    roundRect(grate.x - grate.w / 2, grate.y - grate.h / 2, grate.w, grate.h, 4);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#4a3a22";
-    ctx.stroke();
-
-    // Graffiti: a pale scratch on the wall you can see from anywhere, and the
-    // words only once you are standing at them.
-    for (const g of GRAFFITI) {
-      ctx.strokeStyle = "rgba(220,200,160,0.28)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(g.x - 9, g.y - 3); ctx.lineTo(g.x + 9, g.y - 5);
-      ctx.moveTo(g.x - 7, g.y + 2); ctx.lineTo(g.x + 7, g.y + 1);
-      ctx.moveTo(g.x - 8, g.y + 6); ctx.lineTo(g.x + 5, g.y + 6);
-      ctx.stroke();
-    }
-
-    // The palus: a scarred stake in a socket of flagstone, leaning as it is hit.
-    ctx.save();
-    ctx.translate(palus.x, palus.y + 24);
-    ctx.fillStyle = "rgba(0,0,0,0.34)";
-    ctx.beginPath(); ctx.ellipse(0, 2, 14, 5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.rotate(palus.lean * 0.09);
-    ctx.fillStyle = "#4a3620";
-    ctx.fillRect(-5, -52, 10, 52);
-    ctx.fillStyle = "#5d472b";
-    ctx.fillRect(-5, -52, 4, 52);
-    // The scars. Every man in the building has hit this thing.
-    ctx.strokeStyle = "rgba(28,20,10,0.8)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-5, -14); ctx.lineTo(3, -18);
-    ctx.moveTo(-3, -30); ctx.lineTo(5, -33);
-    ctx.moveTo(-5, -42); ctx.lineTo(2, -44);
-    ctx.stroke();
-    ctx.fillStyle = "#3a2c18";
-    ctx.beginPath(); ctx.ellipse(0, -52, 7, 3.4, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-
     // The coin, if today dropped one.
     if (hubCoin) {
       const p = 0.5 + 0.5 * Math.sin(hub.t * 5);
@@ -8294,52 +8865,7 @@
       ctx.restore();
     }
 
-    // The cat, over everything on the floor, because it walks over everything
-    // on the floor.
-    ctx.save();
-    ctx.translate(cat.x, cat.y);
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.beginPath(); ctx.ellipse(0, 4, 9, 3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#14100a";
-    ctx.beginPath(); ctx.ellipse(0, 0, 9, 4.6, 0, 0, Math.PI * 2); ctx.fill();       // body
-    ctx.beginPath(); ctx.arc(cat.fx * 8, -2.5, 3.6, 0, Math.PI * 2); ctx.fill();     // head
-    ctx.beginPath();                                                                  // ears
-    ctx.moveTo(cat.fx * 6, -5); ctx.lineTo(cat.fx * 7, -8.5); ctx.lineTo(cat.fx * 8.4, -5.4);
-    ctx.moveTo(cat.fx * 8.6, -5.4); ctx.lineTo(cat.fx * 10, -8); ctx.lineTo(cat.fx * 10.6, -4.6);
-    ctx.fill();
-    ctx.strokeStyle = "#14100a";                                                      // tail
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-cat.fx * 8, 0);
-    ctx.quadraticCurveTo(-cat.fx * 15, -2 + Math.sin(cat.t * 3) * 3, -cat.fx * 16, -9 + Math.sin(cat.t * 2.2) * 2);
-    ctx.stroke();
-    if (cat.flee > 0) {                                                               // eyes, when you got close
-      ctx.fillStyle = "#b7e07a";
-      ctx.fillRect(cat.fx * 7 - 1, -3.4, 1.4, 1.4);
-      ctx.fillRect(cat.fx * 9 - 1, -3.4, 1.4, 1.4);
-    }
     ctx.restore();
-    ctx.restore();
-  }
-
-  // The one line the passage says about whatever you are standing at, in the
-  // same spot the stall prompt uses. Stalls win — a gate you can open matters
-  // more than furniture you can read.
-  function hubPropCaption() {
-    for (const g of GRAFFITI) {
-      if (Math.hypot(hub.x - g.x, hub.y - g.y) < 60) return `${g.line} — ${g.gloss}`;
-    }
-    if (Math.hypot(hub.x - grate.x, hub.y - grate.y) < 55) {
-      return "The hypogeum. The games are above; what is fed to them is below.";
-    }
-    if (Math.hypot(hub.x - palus.x, hub.y - palus.y) < 52) {
-      return palus.hits >= 12 ? "The palus does not hit back. That is what the card is for."
-                              : "The palus. Every man in this building has hit it.";
-    }
-    if (Math.hypot(hub.x - cat.x, hub.y - cat.y) < 60) {
-      return "The passage cat. It has seen a thousand of you.";
-    }
-    return null;
   }
 
   function drawHubFloor() {
@@ -8441,7 +8967,75 @@
 
   // One stall. Awning, counter, sign — brighter and raised when you are standing
   // at it, so "which of these is answering me" is never a question.
+  // The Gate is not a stall and must not be drawn as one: no awning, no lantern,
+  // no counter to lean on. An arch in the end wall with the dark behind it, and
+  // the dark gets a little warmer when somebody is standing in front of it.
+  function drawDoor(s, lit) {
+    const p = 0.5 + 0.5 * Math.sin(hub.t * 2 + s.x);
+    const w = 76, h = 96;
+    const x = s.x, top = s.y - h * 0.42;      // the arch stands up out of the floor
+    ctx.save();
+
+    // The light it throws forward onto the flagstones, which is also the mat.
+    const g = ctx.createRadialGradient(x, s.y, 6, x, s.y, STALL_R + 20);
+    g.addColorStop(0, s.color + (lit ? "34" : "14"));
+    g.addColorStop(1, s.color + "00");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, s.y, STALL_R + 20, 0, Math.PI * 2); ctx.fill();
+
+    // The opening: a rectangle with a half-round head on it, filled with nothing.
+    ctx.beginPath();
+    ctx.moveTo(x - w / 2, top + h);
+    ctx.lineTo(x - w / 2, top + w / 2);
+    ctx.arc(x, top + w / 2, w / 2, Math.PI, 0);
+    ctx.lineTo(x + w / 2, top + h);
+    ctx.closePath();
+    const dk = ctx.createLinearGradient(0, top, 0, top + h);
+    dk.addColorStop(0, "#080503");
+    dk.addColorStop(1, lit ? "#1a1209" : "#0d0906");
+    ctx.fillStyle = dk;
+    ctx.fill();
+    ctx.strokeStyle = lit ? s.color : "rgba(107,79,42,0.7)";
+    ctx.lineWidth = lit ? 2.5 : 1.5;
+    if (lit) { ctx.shadowColor = s.color; ctx.shadowBlur = 12 + p * 12; }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Voussoirs — the wedge stones over the head of the arch, which is the one
+    // detail that makes a hole in a wall read as Roman.
+    ctx.strokeStyle = lit ? "rgba(217,164,65,0.5)" : "rgba(107,79,42,0.4)";
+    ctx.lineWidth = 1.2;
+    for (let i = 1; i < 7; i++) {
+      const a = Math.PI + (i / 7) * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(a) * (w / 2), top + w / 2 + Math.sin(a) * (w / 2));
+      ctx.lineTo(x + Math.cos(a) * (w / 2 + 9), top + w / 2 + Math.sin(a) * (w / 2 + 9));
+      ctx.stroke();
+    }
+
+    // Daylight, a long way off, at the far end of whatever is behind it.
+    const lf = lit ? 1 : 0.45;
+    const dg = ctx.createRadialGradient(x, top + h * 0.72, 1, x, top + h * 0.72, 30);
+    dg.addColorStop(0, `rgba(255,226,170,${0.22 * lf})`);
+    dg.addColorStop(1, "rgba(255,226,170,0)");
+    ctx.fillStyle = dg;
+    ctx.fill();
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = lit ? "#f6ecd6" : "#8a7a63";
+    ctx.font = `700 14px ${FONT}`;
+    ctx.fillText(s.name.toUpperCase(), x, top + h * 0.62);
+    if (lit) {
+      ctx.fillStyle = "#a08f76";
+      ctx.font = `500 12px ${FONT}`;
+      ctx.fillText(s.sub, x, top - 16);
+    }
+    ctx.restore();
+  }
+
   function drawStall(s, lit) {
+    if (s.door) return drawDoor(s, lit);
     const p = 0.5 + 0.5 * Math.sin(hub.t * 3 + s.x);
     const w = 108, h = 34;
     ctx.save();
@@ -8689,9 +9283,8 @@
     drawHubFloor();
     // Under the gates and under the man: it is paint on the floor.
     drawCardBeaconFloor();
-    // The furniture of the passage — the palus, the grate, the walls' graffiti,
-    // the cat, the coin somebody dropped. Under the stalls and the man, because
-    // all of it lives on the floor.
+    // The coin somebody dropped. Under the stalls and the man, because it lives
+    // on the floor.
     drawHubProps();
     // A hovered stall lights the same way a stall you are standing at does —
     // the pointer is a way of looking, and looking is what lights a place up.
@@ -8773,23 +9366,6 @@
       ctx.fill();
       ctx.fillStyle = COLORS.gold;
       ctx.fillText(text, hub.x, py + 3);
-      ctx.restore();
-    } else if (hubPropCaption()) {
-      // Standing at the furniture instead. Same spot, quieter voice.
-      const cap = hubPropCaption();
-      ctx.save();
-      ctx.textAlign = "center";
-      ctx.font = `500 12px ${FONT}`;
-      const lines = wrapText(cap, 300);
-      const cw2 = Math.min(320, Math.max(...lines.map((l) => ctx.measureText(l).width)) + 20);
-      const ch2 = lines.length * 16 + 10;
-      const cy2 = Math.min(H - ch2 - 8, hub.y + 30);
-      const cx2 = Math.max(cw2 / 2 + 8, Math.min(W - cw2 / 2 - 8, hub.x));
-      ctx.fillStyle = "rgba(10,7,4,0.82)";
-      roundRect(cx2 - cw2 / 2, cy2 - 12, cw2, ch2, 4);
-      ctx.fill();
-      ctx.fillStyle = "#c9b896";
-      lines.forEach((l, i) => ctx.fillText(l, cx2, cy2 + 3 + i * 16));
       ctx.restore();
     } else if (hub.enterT < 7) {
       // Only while it is new. Nobody needs to be told how to walk twice.

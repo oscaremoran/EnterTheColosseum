@@ -62,22 +62,48 @@
     { id: "diodorus", name: "Diodorus", arm: "provocator", key: "pulsar", hp: 62,
       blurb: "His stone says he beat Demetrius and the referee gave it away anyway.",
       pugn: 20, vic: 14, miss: 4 },
-    // The one man on the board carrying a handicap, and the reason is that his
-    // two halves multiply instead of adding. The serpent is a rope of bullets
-    // with holes you have to aim for; the net is the thing that takes away your
-    // aim. Either alone belongs at rank IX. Together they were being fought at
-    // rank II — he played like Priscus, who has eighty-two health and the Void.
-    // `rate` slows every cooldown he has at once, which is the only lever that
-    // widens the gaps in the rope rather than just thinning it: the spacing of a
-    // stream is its interval times its speed, so stretching the interval alone is
-    // what turns a wall back into a fence. It slows his nets by the same amount.
-    // Ladder bouts only — what he is worth at the Sponsio desk is priced apart,
-    // in DUEL_NERF. Tempo and not health for that reason too: the desk reads hp
-    // straight off this line, but a duel gives every man the same body, so taking
-    // health off him here would mark his price down without costing him anything
-    // in the only fight that price is about.
-    { id: "triumphus", name: "Triumphus", arm: "retiarius", key: "serpent", hp: 58,
-      rate: 0.82,
+    // The one man on the board handed less pressure than his rung earns, and the
+    // trouble was never the net. It is the rope.
+    //
+    // A serpent changes SHAPE at depth rather than merely getting faster. Two
+    // strands shallow — one whipping line with holes you aim for, the pattern
+    // you learn on. At sdeep 0.4 the head coils and it becomes four; at 0.75 it
+    // becomes six, offset so the holes in one strand sit on the beads of the
+    // next. Six is Serpens, the fourth thing Nox sends, and it is a different
+    // animal to the thing at two.
+    //
+    // Rank IX hands out depth 4, which is sdeep 0.80 — over both thresholds. So
+    // the ninth man on the board was throwing the full braid, the same rope the
+    // top of the board throws, and no amount of tempo was going to fix a bullet
+    // count three times what the rung is for. `rate` least of all: the spacing
+    // of a whipping stream is its interval times its speed and BOTH carry the
+    // tempo, so the tempo cancels and the beads stay 51px apart however slow he
+    // is made. All it was ever buying was fewer shots a second.
+    //
+    // So he is handed depth 2, which is sdeep 0.40 — the coil, and nothing past
+    // it. Four strands instead of six, and no strike, which took him from
+    // twenty-two bullets a second to fourteen. Everything else on the board
+    // still reads its own rung.
+    //
+    // Fourteen was still too many. `rate` at 0.62 takes the rest: it divides
+    // every cooldown he has, so the four strands arrive a third slower than they
+    // did and he walks the top of the sand slower with them. It does NOT widen
+    // the beads — the spacing of a whipping stream is its interval times its
+    // speed and both carry the tempo, so the tempo cancels and they stay 52px
+    // apart however slow he is made. What it buys is fewer of them in the air,
+    // which is the thing that was killing people.
+    //
+    // And his health comes down with it, 58 to 42, because a rope you can read
+    // is still a rope you have to stand in front of for as long as he lasts.
+    // `priceHp` is what stops that being an exploit: health is the one handicap
+    // that does nothing in a duel, since both men there are given the same body,
+    // so a man marked down to 42 would be quoted as the weaker man at the desk
+    // while fighting a duel exactly as he always did. He keeps his old price.
+    //
+    // All three are the ladder bout alone. What he is worth at the desk is
+    // priced apart, in DUEL_NERF.
+    { id: "triumphus", name: "Triumphus", arm: "retiarius", key: "serpent",
+      hp: 42, priceHp: 58, rate: 0.62, depth: 2,
       blurb: "Net first, trident second. Cut the net loose or you don't get to dodge.",
       pugn: 19, vic: 13, miss: 3 },
     { id: "hermes", name: "Hermes", arm: "andabata", key: "pulsar", hp: 64,
@@ -108,7 +134,22 @@
     { id: "verus", name: "Verus", arm: "murmillo", key: "hades", hp: 68, rate: 0.85,
       blurb: "Fought Priscus at the opening of this building until neither could lift a shield.",
       pugn: 30, vic: 24, miss: 5 },
-    { id: "priscus", name: "Priscus", arm: "murmillo", key: "void", hp: 70, rate: 0.85,
+    // The longest fight in the building, and it was not supposed to be — the
+    // crown is. A murmillo carries a body modifier of 1.2, so seventy on this
+    // line was eighty-four on the sand, against Flamma's seventy: the man one
+    // rung below the top took a fifth longer to put down than the top itself,
+    // while throwing the Void at a rung that hands out depth 6. Fifty-six here
+    // is sixty-seven out there, which puts him just under the crown where a
+    // second stake belongs.
+    //
+    // `priceHp` keeps the Sponsio desk quoting him at his old weight. Health is
+    // the one handicap that does nothing in a duel, since both men there are
+    // given the same body — so a man marked down for his ladder bout would
+    // otherwise be sold as the weaker man while fighting duels exactly as he
+    // always did. His tempo handicap is unchanged, and what he is worth at the
+    // desk is priced apart again in DUEL_NERF.
+    { id: "priscus", name: "Priscus", arm: "murmillo", key: "void",
+      hp: 56, priceHp: 70, rate: 0.85,
       blurb: "The other man in that fight. Titus freed them both rather than choose.",
       pugn: 30, vic: 24, miss: 5 },
     // rank 1 — the top of the ladder.
@@ -141,5 +182,26 @@
     return { name: "Tiro", note: "never yet on the sand" };
   }
 
-  Object.assign(C, { LADDER, LADDER_BY_ID, UNRANKED, TIERS, tierOf });
+  // The same standing, said as a peril from I to V — which is the scale the
+  // day's card prices and bills a bout on.
+  //
+  // It has to come from the table above and not from arithmetic on the rank,
+  // and here is why it used to: the card worked its own peril out by cutting
+  // twenty-four rungs into five even blocks, ceil((24 - rank + 1) / 5). The
+  // TIERS above are not even blocks and were never meant to be — Primus Palus
+  // is ONE man, because the first stake of the school is a post with one name on
+  // it, and the tiers below it widen as the board gets more crowded. Two scales
+  // wearing the same five titles disagreed on nine rungs out of twenty-four:
+  // Priscus and Verus stand at Secundus Palus and were billed Primus Palus,
+  // Triumphus stands at Veteranus and was billed Secundus Palus, and so on down.
+  // A man's rung and the peril of fighting him are the same fact, so they are
+  // now the same number.
+  function tierRating(rank) {
+    for (let i = 0; i < TIERS.length; i++) {
+      if (rank >= TIERS[i][0] && rank <= TIERS[i][1]) return TIERS.length - i;
+    }
+    return 1;
+  }
+
+  Object.assign(C, { LADDER, LADDER_BY_ID, UNRANKED, TIERS, tierOf, tierRating });
 })();

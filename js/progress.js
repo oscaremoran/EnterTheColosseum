@@ -58,6 +58,26 @@
   // this file to scope it — the name lives here because this file is what knows
   // the full list of a career's keys, and a save that forgot one is not a save.
   const CONDICIO_KEY = "dodger_condicio";
+  // How this career ended, if it has. A sealed career is frozen: the board, the
+  // purse and the record stay exactly as he left them and he does not fight
+  // again. See sealExitus below — this is the only key in the file that, once
+  // written, changes what every other one is for.
+  const EXITUS_KEY = "dodger_exitus";
+  // The handful of facts about a career that nothing else was writing down, and
+  // that the endings need to be gated on. A high-water mark on the board (which
+  // sliding back down must not erase), how many times the rudis has been waved
+  // away, whether he has ever taken a bout with no reprieve in it, and whether
+  // the board has ever gone the wrong way under him. Small, and all of it is
+  // written at the moment the thing happens rather than derived afterwards,
+  // because none of it can be reconstructed from a board that only remembers
+  // where everybody is standing now.
+  const ANNALS_KEY = "dodger_annals";
+  // Which endings have been reached — ever, by anybody in the house. This is
+  // the one thing in the file that is deliberately NOT a career's: an ending is
+  // a thing the player has seen, and seeing it again with a different man on
+  // the tessera should not be how you find out you had seen it. It survives a
+  // wipe and a strike-off for the same reason. See isGlobal.
+  const ENDINGS_KEY = "dodger_endings_seen";
 
   // ---- Accounts ----
   // Everything above is one career's worth of memory, and until now there was
@@ -85,10 +105,14 @@
   function careerKeys() {
     return [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
             LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY,
-            CONDICIO_KEY, PLAN_KEY, TUTORIAL_KEY, DOCTORE_KEY];
+            CONDICIO_KEY, PLAN_KEY, TUTORIAL_KEY, DOCTORE_KEY,
+            EXITUS_KEY, ANNALS_KEY];
   }
-  // The levels you built, which belong to you rather than to a career.
-  function isGlobal(key) { return key === MINE_KEY; }
+  // The two things that belong to the player rather than to any one career: the
+  // levels they built, and the endings they have reached. Neither is scoped,
+  // neither is wiped, and neither travels in a save — a save is one man's
+  // career, and an ending you have seen is not part of anybody's career.
+  function isGlobal(key) { return key === MINE_KEY || key === ENDINGS_KEY; }
   function scoped(key) {
     if (isGlobal(key)) return key;
     return "a" + activeId() + ":" + key;
@@ -429,6 +453,102 @@
   // the Sine Missione one. There is no matching revoke: only wipeProgress clears it.
   function grantRudis() { set(rudisKey(), "yes"); }
 
+  // ---- The annals ----
+  // The facts a career accumulates that nothing else keeps. Every field is
+  // defaulted on read, so a save written before this key existed reads as a
+  // career that has done none of it — which, for a man in the middle of a
+  // climb, is very nearly true and never wrong in a way that costs him
+  // anything: the worst case is a hidden ending he had already earned staying
+  // shut, and the honest fix for that is to keep climbing.
+  function loadAnnals() {
+    const a = readJSON(ANNALS_KEY, null) || {};
+    return {
+      best: Number.isInteger(a.best) ? a.best : UNRANKED,  // highest rung ever held
+      refusals: (a.refusals | 0),                          // times the rudis was waved away
+      sine: !!a.sine,                                      // ever fought with no reprieve
+      dropped: !!a.dropped,                                // ever put down a rung
+      days: (a.days | 0),                                  // days of games seen through
+      // The day the rudis was last held out. The offer is made once per day of
+      // games and no more, so refusing it does not put you in a loop of being
+      // asked again on the way out of the screen you just refused it on.
+      lastOffer: (a.lastOffer | 0),
+    };
+  }
+  function saveAnnals(a) { set(ANNALS_KEY, JSON.stringify(a)); }
+  // Read, change, write — so a caller never has to hold the whole record to
+  // note one thing down. The mutator's return value is ignored; edit in place.
+  function noteAnnal(fn) {
+    const a = loadAnnals();
+    fn(a);
+    saveAnnals(a);
+    return a;
+  }
+  // The high-water mark, kept honest whichever direction the board moved.
+  function markRank(rank) {
+    return noteAnnal((a) => {
+      if (rank < a.best) a.best = rank;
+    });
+  }
+
+  // ---- Sealing a career ----
+  // What ending this man reached, and the state he was in when he reached it.
+  // Written once. There is no unseal in this file: a career that has finished
+  // has finished, and the way on is to enter a new man.
+  function loadExitus() {
+    const e = readJSON(EXITUS_KEY, null);
+    if (!e || typeof e !== "object" || typeof e.fate !== "string") return null;
+    return e;
+  }
+  function isSealed() { return !!loadExitus(); }
+  // Whether some OTHER man in the house has finished, asked without taking his
+  // tessera up to find out. The house list needs this: a sealed career cannot
+  // be swapped to, and the only way to know that before you swap is to read his
+  // key directly rather than through the active-account scoping above.
+  function sealedAccount(id) {
+    try {
+      const raw = rawGet("a" + (id | 0) + ":" + EXITUS_KEY);
+      if (!raw) return null;
+      const e = JSON.parse(raw);
+      return e && typeof e.fate === "string" ? e : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  // The monument. Everything on it is a snapshot taken at the moment of sealing
+  // rather than something read live afterwards, because the whole point of a
+  // sealed career is that it does not move any more — and reading it live would
+  // mean a later change anywhere else in this file could quietly rewrite an
+  // ending that has already been read.
+  function sealExitus(fate, snapshot) {
+    if (isSealed()) return loadExitus();      // written once, and once only
+    const rec = Object.assign({
+      fate: String(fate),
+      at: Date.now(),
+    }, snapshot || {});
+    set(EXITUS_KEY, JSON.stringify(rec));
+    markEndingSeen(rec.fate);
+    return rec;
+  }
+
+  // ---- The endings reached ----
+  // Not a career's — the player's, across every man in the house and every man
+  // they ever wipe. See isGlobal.
+  function endingsSeen() {
+    try {
+      const raw = JSON.parse(rawGet(ENDINGS_KEY) || "[]");
+      return Array.isArray(raw) ? raw.filter((x) => typeof x === "string") : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  function markEndingSeen(id) {
+    const seen = endingsSeen();
+    if (seen.includes(id)) return seen;
+    seen.push(id);
+    rawSet(ENDINGS_KEY, JSON.stringify(seen));
+    return seen;
+  }
+
   // The fighter standing on a given rung.
   function fighterAt(rank, st) {
     return LADDER.find((f) => st.board[f.id] === rank) || null;
@@ -614,6 +734,13 @@
     loadRecord, saveRecord, hasRudis, grantRudis,
     fighterAt, challengeable, friendlyable, rollInvite,
     TILT,
+
+    // How the career ends, and what it did on the way that only the endings
+    // care about. The seal is one-way; the list of endings reached is the
+    // player's rather than this man's.
+    loadAnnals, saveAnnals, noteAnnal, markRank,
+    loadExitus, isSealed, sealedAccount, sealExitus,
+    endingsSeen, markEndingSeen,
 
     // What is open to you.
     keyBeaten, levelUnlocked, campaignCleared, editorUnlocked,

@@ -18,16 +18,11 @@
   const C = (window.COLOSSEUM = window.COLOSSEUM || {});
 
   // ---- Buying your way out of a bout ----
-  // Priced by peril, and priced BACKWARDS on purpose. Skipping a Tiro bout costs
-  // fifty because there is no reason on earth not to just fight it; skipping a
-  // Primus Palus costs three because the man across the sand from you is a
-  // horror and the building knows it. The fee is mercy where it is dear and a
-  // fine where it is not.
-  const SKIP_COST = [50, 30, 15, 8, 3];
-  function skipCost(rating) {
-    const r = Math.max(1, Math.min(SKIP_COST.length, Math.round(rating || 1)));
-    return SKIP_COST[r - 1];
-  }
+  // There is no longer any such thing. A bout on the card was once something a
+  // purse could have struck off it, priced by peril; that is gone, and with it
+  // the idea that the day's work is a toll. What you owe the day is fought or
+  // it is left unfought — see dayWork in the engine, which asks for the rung
+  // and a share of the rest and does not care about your money.
 
   // ---- What a bout pays, by how bad it is ----
   // On top of the contract multiplier, and in every mode. Peril was already
@@ -66,6 +61,6 @@
   // stops paying you — not a lock, not a lecture twice, just the purse closing.
   const DAYS_PER_SITTING = 3;
 
-  Object.assign(C, { SKIP_COST, skipCost, PERIL_PAY, perilPay,
+  Object.assign(C, { PERIL_PAY, perilPay,
                      SPARE_PAY, sparePay, SPARE_OVATION, PLAN, DAYS_PER_SITTING });
 })();
