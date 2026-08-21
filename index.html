@@ -158,13 +158,47 @@
      lives at the foot of the sand by default and jumps to the head when what it
      is pointing at is down there, because a card sitting on the circle it is
      explaining explains nothing. */
-  #tutorial {
-    background: rgba(10,7,4,0.42);
-    backdrop-filter: none;
-    gap: 0; cursor: pointer;
-    justify-content: flex-end; padding-bottom: 5%;
+  /* ---- The school's sidebar ---- */
+  #tutside {
+    flex: none; width: min(300px, 30vw); align-self: center;
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 16px 16px 18px; margin-right: 18px;
+    background: linear-gradient(180deg, rgba(24,17,10,0.96), rgba(14,10,6,0.96));
+    border: 1px solid #3c2c17; border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(217,164,65,0.10), 0 18px 44px rgba(0,0,0,0.5);
+    max-height: 92vh; overflow-y: auto;
   }
-  #tutorial.top { justify-content: flex-start; padding-top: 12%; padding-bottom: 24px; }
+  #tutside.hidden { display: none; }
+  #tutside .ts-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  #tutside .ts-part {
+    font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold);
+  }
+  #tutside .ts-goal {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px; font-weight: 600; color: #f0c45a;
+    padding: 7px 9px; border: 1px solid #3c2c17; border-radius: 6px;
+    background: rgba(240,196,90,0.06); text-align: center;
+  }
+  /* The card fades in when it changes, so a new one is noticed without the
+     arena having to stop for it to be noticed. */
+  #tutside .ts-card { animation: tsIn 260ms ease-out; }
+  #tutside .ts-card.empty { opacity: 0.35; }
+  @keyframes tsIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  #tutside .ts-kicker {
+    font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 3px;
+  }
+  #tutside .ts-head-line {
+    font-family: var(--serif); font-weight: 700; color: var(--gold);
+    font-size: 15px; line-height: 1.25; margin-bottom: 6px;
+  }
+  #tutside .ts-body {
+    font-size: 12.5px; line-height: 1.5; color: var(--text); white-space: pre-line;
+  }
+  #tutside .tut-dots { justify-content: center; }
+  /* The sand gives up the room the panel needs rather than being covered by it. */
+  body.teaching #wrap { width: min(58vw, 88vh, 720px); }
+
   .tutcard {
     display: flex; flex-direction: column; align-items: center; gap: 7px;
     max-width: 520px; margin: 0 18px; padding: 20px 26px 16px;
@@ -204,7 +238,24 @@
   /* On a phone the band under the sand is already off the floor, so the card
      lives there and never has to jump out of its own way. */
   @media (max-width: 620px) and (orientation: portrait) {
-    #tutorial, #tutorial.top { justify-content: flex-end; padding: 16px 12px 3%; }
+    /* The band under the sand is not spare room — it is the thumbstick. So the
+       school takes the top of it and the thumb keeps the bottom, rather than
+       the two of them being drawn on top of each other. */
+    body.teaching #wrap { width: 100vw; }
+    #tutside {
+      /* Over the sand's rim, not under it: #tutside comes before #wrap in the
+         markup, so without this the canvas and its bronze shadow paint on top
+         and take the first line of the panel with them. The 5px clears the rim
+         itself, which is drawn outside the canvas box. */
+      position: fixed; z-index: 5; left: 0; right: 0;
+      top: calc(var(--hud-h) + 100vw + 5px); bottom: var(--pad-h);
+      width: auto; margin: 0; border-radius: 0;
+      border: none; border-top: 1px solid #3c2c17;
+      padding: 10px 14px 12px; gap: 6px;
+      max-height: none; overflow-y: auto;
+    }
+    #tutside .ts-body { font-size: 13px; }
+    body.teaching #pad { top: auto; height: var(--pad-h); }
   }
   h1 {
     font-family: var(--serif);
@@ -1015,10 +1066,16 @@
       display: block; padding: 0; overflow: hidden;
       /* iOS puts the URL bar in vh, so the bottom band would sit under it. */
       height: 100dvh;
+      /* On the page rather than on #wrap, because the school's panel sits
+         outside #wrap and has to line up with the bottom of the sand too. */
+      --hud-h: 54px;
+      /* How much of the band under the sand the thumb keeps while the school
+         is talking. The rest of it is the panel. */
+      --pad-h: 150px;
     }
     #wrap {
       width: 100vw; height: 100dvh; max-width: none; aspect-ratio: auto;
-      margin: 0; --hud-h: 54px;
+      margin: 0;
     }
     canvas {
       position: absolute; left: 0; top: var(--hud-h);
@@ -1079,6 +1136,24 @@
 </style>
 </head>
 <body>
+  <!-- The school talks from the side of the sand. It used to stop the bout and
+       put a card in front of you, which taught the words and not the game: you
+       read, you pressed space, and the thing being described had not moved the
+       whole time. Now it says its piece while the man is still throwing. -->
+  <aside id="tutside" class="hidden">
+    <div class="ts-head">
+      <span class="ts-part" id="tsPart">THE LUDUS</span>
+      <button class="tut-skip" id="tsSkip">skip</button>
+    </div>
+    <div class="ts-goal" id="tsGoal"></div>
+    <div class="ts-card" id="tsCard">
+      <p class="ts-kicker" id="tsKicker"></p>
+      <p class="ts-head-line" id="tsHead"></p>
+      <p class="ts-body" id="tsBody"></p>
+    </div>
+    <div class="tut-dots" id="tsDots"></div>
+  </aside>
+
   <div id="wrap">
     <canvas id="game" width="720" height="720"></canvas>
 
@@ -1135,6 +1210,7 @@
         <h1>ENTER THE<br><span class="accent">COLOSSEUM</span></h1>
         <p id="introKey">PRESS ANY KEY TO BEGIN</p>
         <p class="introfoot">Arrow keys to move · a touch screen works too</p>
+        <button class="tut-skip" id="introHub">or go straight to the passage</button>
       </div>
       <!-- The trailer's caption, raised in place of the title card once the
            building has been left running long enough to start showing itself. -->
@@ -1144,23 +1220,6 @@
         <p class="tc-body" id="tcBody"></p>
         <div class="tc-dots" id="tcDots"></div>
         <p class="tc-key">PRESS ANY KEY TO BEGIN</p>
-      </div>
-    </div>
-
-    <!-- The Ludus. One popup at a time, over a bout that is stopped dead rather
-         than hidden — the thing being explained is still on the sand behind
-         this, ringed in gold, exactly where it will be when the frame starts
-         moving again. -->
-    <div id="tutorial" class="screen hidden">
-      <div class="tutcard">
-        <p class="tut-kicker" id="tutKicker"></p>
-        <p class="tut-head" id="tutHead"></p>
-        <p class="tut-body" id="tutBody"></p>
-        <div class="tut-dots" id="tutDots"></div>
-        <div class="tut-foot">
-          <span class="tut-key" id="tutKey">PRESS ANY KEY</span>
-          <button class="tut-skip" id="tutSkip">skip the Ludus</button>
-        </div>
       </div>
     </div>
 
@@ -2275,12 +2334,6 @@
   // which meant the second gladiator in a house was assumed to know everything
   // the first one had been taught, and a wipe left him still knowing it.
 
-  const tutEl = document.getElementById("tutorial");
-  const tutKicker = document.getElementById("tutKicker");
-  const tutHead = document.getElementById("tutHead");
-  const tutBody = document.getElementById("tutBody");
-  const tutDots = document.getElementById("tutDots");
-  const tutKey = document.getElementById("tutKey");
 
   // The four lessons live in js/ludus.js — names, goals, pass conditions and
   // every word on every card. They ask questions about a fight in progress but
@@ -2315,7 +2368,40 @@
   // other way out, so walking in fresh off the menu is genuinely fresh.
   let tutShownAgain = null;
 
-  function tutHolding() { return !!(tut && tut.card); }
+  const tutsideEl = document.getElementById("tutside");
+  const tsPart = document.getElementById("tsPart");
+  const tsGoal = document.getElementById("tsGoal");
+  const tsCard = document.getElementById("tsCard");
+  const tsKicker = document.getElementById("tsKicker");
+  const tsHead = document.getElementById("tsHead");
+  const tsBody = document.getElementById("tsBody");
+  const tsDots = document.getElementById("tsDots");
+  document.getElementById("tsSkip").addEventListener("click", (e) => {
+    e.stopPropagation();
+    skipTutorial();
+  });
+
+  // Nothing holds the arena any more. Kept as a name because the gate still
+  // asks, and because "is the school saying something" is a real question — it
+  // just no longer means "is everything stopped".
+  function tutHolding() { return false; }
+  function tutShowing() { return !!(tut && tut.card); }
+
+  // The panel, repainted every frame the school is in session: which lesson,
+  // how far along, and whatever it is currently saying.
+  function tutPaintSide() {
+    if (!tut) { tutsideEl.classList.add("hidden"); document.body.classList.remove("teaching"); return; }
+    const L = LUDUS_BY_N[tut.part];
+    if (!L) return;
+    tutsideEl.classList.remove("hidden");
+    document.body.classList.add("teaching");
+    tsPart.textContent = `The Ludus · Part ${L.roman}`;
+    tsGoal.textContent = L.goal(ludusCtx()).toUpperCase();
+  }
+  function tutCloseSide() {
+    tutsideEl.classList.add("hidden");
+    document.body.classList.remove("teaching");
+  }
 
   function startTutorial(part) {
     if (tut) return;          // already in session; never borrow the contract twice
@@ -2366,6 +2452,15 @@
     menuEl.classList.add("hidden");
     introEl.classList.add("hidden");
     startGame("tutorial", 0);
+    // Up before the first frame rather than on the first tick. The panel is
+    // what makes room for itself on the page, so raising it a frame late means
+    // the sand is laid out at full width and then shoves sideways.
+    tsCard.classList.add("empty");
+    tsKicker.textContent = "";
+    tsHead.textContent = "";
+    tsBody.textContent = "";
+    tutPaintDots();
+    tutPaintSide();
   }
 
   // The cards this lesson owns. Every hook below asks the part rather than the
@@ -2376,87 +2471,73 @@
   }
 
   function tutPaintDots() {
-    tutDots.innerHTML = "";
+    tsDots.innerHTML = "";
     const seq = tutSteps().filter((s) => s.seq);
     for (const s of seq) {
       const d = document.createElement("i");
       if (tut.shown[s.id]) d.className = "on";
-      tutDots.appendChild(d);
+      tsDots.appendChild(d);
     }
   }
 
+  // A card goes up in the panel and the bout carries straight on. Nothing is
+  // held, nothing is dropped, nobody has to press anything: the whole reason
+  // the school exists is to be read while the thing it describes is happening.
   function tutRaise(step) {
     tut.card = step;
+    tut.cardT = 0;
     tut.shown[step.id] = 1;
-    // Drop whatever is being held. A card raised mid-stride on a held arrow or a
-    // planted thumb is a man who walks off on his own the moment the frame
-    // starts again, into shots that were standing still while you read.
-    for (const k in MOVE_KEYS) keys[k] = false;
-    padRelease();
-    stickRelease();
-    // A stopped frame has to sit still. Shake is re-rolled every render and only
-    // decays while the clock runs, so a card raised on the back of a wound would
-    // otherwise vibrate the whole arena for as long as it was up.
-    shake = 0;
-    freeze = 0;
-    tutKicker.textContent = step.kicker;
-    tutHead.textContent = step.head;
-    tutBody.textContent = step.body;
-    tutTap = 0;
-    tutKey.textContent = tutKeyLabel();
+    // The kickers were written for a card that filled the screen and had to
+    // introduce itself. The panel header says which lesson this is on every
+    // frame, so an opening card repeating it is the same words twice.
+    const k = String(step.kicker || "");
+    tsKicker.textContent = /^THE LUDUS/i.test(k) ? "" : k;
+    tsHead.textContent = step.head;
+    tsBody.textContent = step.body;
+    tsCard.classList.remove("empty");
+    // Restart the fade so a card arriving while another is up still reads as a
+    // new one rather than as text quietly changing under you.
+    tsCard.style.animation = "none";
+    void tsCard.offsetWidth;
+    tsCard.style.animation = "";
     tutPaintDots();
-    // Get out of the way of what we are pointing at: a card parked on the
-    // circle it is describing describes nothing.
-    const f = step.focus && step.focus(ludusCtx());
-    tutEl.classList.toggle("top", !!f && f.y > H * 0.58);
-    tutEl.classList.remove("hidden");
     sfx("tick");
   }
 
-  // What it takes to put a card away. Deliberately not "anything": the intro
-  // takes any key because any key means "I am here", but a card is being read,
-  // and the hand that is about to be on the arrows is resting on them now. One
-  // press of Space, or two taps — never a stray key and never a thumb that
-  // happened to land on the glass.
-  function tutKeyLabel() { return padMode ? "DOUBLE-TAP TO GO ON" : "PRESS SPACE"; }
-  const TUT_TAP_MS = 450;   // how long the first tap of a double stays good for
-  let tutTap = 0;
-
-  function tutDismiss() {
-    if (!tutHolding()) return;
-    tut.card = null;
-    tut.beat = 0;
-    tutTap = 0;
-    tutEl.classList.add("hidden");
+  // How long a card stays up. Long enough to read at a comfortable pace, with a
+  // floor so a short card is not gone before it is noticed — and it is only a
+  // minimum: nothing replaces it until the next card's moment actually arrives.
+  function tutDwell(step) {
+    const words = String(step.body || "").split(/\s+/).length;
+    return Math.max(5.5, Math.min(12, 2.2 + words / 3.1));
   }
 
-  // A tap, and then the same tap again. The first one says so on the card rather
-  // than doing nothing visible, or a single tap reads as a popup that is stuck.
-  function tutTapAdvance() {
-    if (!tutHolding()) return;
-    const now = performance.now();
-    if (tutTap && now - tutTap < TUT_TAP_MS) { tutDismiss(); return; }
-    tutTap = now;
-    tutKey.textContent = "AGAIN TO GO ON";
-    setTimeout(() => {
-      if (!tutHolding() || performance.now() - tutTap < TUT_TAP_MS) return;
-      tutTap = 0;
-      tutKey.textContent = tutKeyLabel();
-    }, TUT_TAP_MS + 30);
+  function tutDismiss() {
+    if (!tut || !tut.card) return;
+    tut.card = null;
+    tut.beat = 0;
+    tsCard.classList.add("empty");
   }
 
   // Called once per playing frame, while the school is in session and nothing is
   // up. Interruptions get first look; the queue moves one card at a time.
   function tutTick(dt) {
     if (!tut) return;
-    if (tut.card) return;
     // The lesson's clock. It only runs while the arena is actually running —
     // a card holds the frame, and time spent reading is not time survived.
     tut.t += dt;
+    tutPaintSide();
     // Has he done the thing yet? Asked before the queue, because a man who has
     // already proved it should not be handed another card about it.
     const L = LUDUS_BY_N[tut.part];
     if (L && !tut.passed && L.test(ludusCtx())) { tutPass(); return; }
+    // A card that has had its time comes down on its own. It is not waiting on
+    // a keypress any more, so something has to end it.
+    if (tut.card) {
+      tut.cardT += dt;
+      if (tut.cardT >= tutDwell(tut.card)) tutDismiss();
+      else return;              // one card at a time, as before
+    }
     tut.beat += dt;
     // Never two cards on top of each other. A beat of the game between them is
     // what makes the second one land as a consequence of the first.
@@ -2483,32 +2564,10 @@
     winGame();
   }
 
-  // What the sand tells you about how far along the lesson is. One line, under
-  // the health bar, and only while the school is in session — the rest of the
-  // building has a purse and a rung to report and does not need this.
-  function drawTutGoal() {
-    if (!tut || tut.part >= LUDUS.length) return;
-    const L = LUDUS_BY_N[tut.part];
-    if (!L) return;
-    ctx.save();
-    ctx.textAlign = "center";
-    // Above the marks at the foot of the sand, not up under the health bar —
-    // the top of the screen already carries his name, his life and his mouth,
-    // and a fourth line up there lands on top of the second. Down here it sits
-    // with the other thing that is about you rather than about him.
-    ctx.textBaseline = "bottom";
-    ctx.font = "600 13px ui-monospace, Menlo, Consolas, monospace";
-    ctx.fillStyle = "rgba(240,196,90,0.92)";
-    ctx.shadowColor = "rgba(0,0,0,0.75)";
-    ctx.shadowBlur = 7;
-    ctx.fillText(`LUDUS ${L.roman} · ${L.goal(ludusCtx()).toUpperCase()}`, W / 2, H - 52);
-    ctx.restore();
-  }
-
   // The gold ring behind the popup. Drawn on the frozen frame, so it breathes on
   // the wall clock rather than on a game clock that has stopped.
   function drawTutFocus() {
-    if (!tutHolding()) return;
+    if (!tutShowing()) return;
     const f = tut.card.focus && tut.card.focus(ludusCtx());
     if (!f) return;
     const p = 0.5 + 0.5 * Math.sin(performance.now() / 380);
@@ -2559,9 +2618,8 @@
   function endTutorial() {
     if (!tut) return;
     tut = null;
+    tutCloseSide();
     tutShownAgain = null;
-    tutEl.classList.add("hidden");
-    tutEl.classList.remove("top");
     if (tutDiffWas) { setDifficulty(tutDiffWas); tutDiffWas = null; }
     renderLadder(tab === "ladder");   // the contract picks the board
     renderTutorialRow();              // the door stops calling itself the start
@@ -2577,14 +2635,6 @@
     endTutorial();
     toMenu();
   }
-  document.getElementById("tutSkip").addEventListener("click", (e) => {
-    e.stopPropagation();
-    skipTutorial();
-  });
-  tutEl.addEventListener("click", tutTapAdvance);
-  // preventDefault, or the browser turns this touch into a synthetic click that
-  // arrives at the handler above and counts the same thumb twice.
-  tutEl.addEventListener("touchstart", (e) => { e.preventDefault(); tutTapAdvance(); }, { passive: false });
 
   // ---- Ladder bouts ----
   // A challenge is a single bout against one named fighter, launched the same way
@@ -3452,15 +3502,17 @@
     // at that press — otherwise the Space that dismissed the intro would fall
     // through and start a bout you never chose.
     if (state === GS.INTRO) { e.preventDefault(); leaveIntro(); return; }
-    // A Ludus card eats every key while it is up, but only one of them puts it
-    // away. Everything else is swallowed rather than passed on: the hand is
-    // resting on the arrows while the card is being read, and a card that
-    // vanished on a twitch would take the sentence with it.
-    if (tutHolding()) {
-      e.preventDefault();
-      if (e.key === "Escape") { skipTutorial(); return; }
-      if (e.code === "Space" || e.key === " " || e.key === "Enter") tutDismiss();
-      return;
+    // The school no longer eats keys — it is a panel at the side, not a card in
+    // the way, and the hand on the arrows is meant to be using them. Escape
+    // still walks out of it, and Space puts the current card down early for
+    // somebody who reads faster than the clock.
+    if (tut) {
+      if (e.key === "Escape") { e.preventDefault(); skipTutorial(); return; }
+      if (tutShowing() && (e.code === "Space" || e.key === " ")) {
+        e.preventDefault();
+        tutDismiss();
+        return;
+      }
     }
     // The terms take every key. Space signs the contract the building expects —
     // the sanctioned one where it is on offer, and the only one on the table
@@ -10664,7 +10716,6 @@
       // Over the fight, under the HUD: what the card that stopped the frame is
       // actually pointing at.
       drawTutFocus();
-      drawTutGoal();
 
       if (state !== GS.TRANSITION) drawBossHpBar();
       drawHits();
@@ -10799,11 +10850,10 @@
       let dt = (ts - lastTs) / 1000;
       lastTs = ts;
       if (dt > 0.05) dt = 0.05;
-      // A Ludus card stops the arena dead — not slowed, not blurred, stopped.
-      // The clock above is still read and thrown away, so the bout resumes on
-      // the frame it left off rather than jumping the length of the reading.
-      // Nothing below this runs: no shots, no drain, no wounds, no timer.
-      if (tutHolding() || gateHolding()) { render(); return; }
+      // A crown at the gate still stops the arena dead. The school does not:
+      // it talks from the panel at the side while the bout carries on, which is
+      // the only way a lesson about dodging can be read by somebody dodging.
+      if (gateHolding()) { render(); return; }
       if (shake > 0) shake = Math.max(0, shake - dt * 34);
       if (freeze > 0) { freeze -= dt; totalTime += dt; }   // hit-stop: hold the frame
       else if (state === GS.PLAYING) { updatePlaying(dt); if (state === GS.PLAYING) updateHud(); }
@@ -11039,6 +11089,9 @@
   // Any key, any click, any touch. Everything the arena does from here needs a
   // gesture behind it anyway — the audio context is one of them, which is why
   // resumeAudio() hangs off this and not off the boot.
+  // Set by the one control on the title screen that does NOT mean "play".
+  let introToHub = false;
+
   function leaveIntro() {
     if (state !== GS.INTRO) return;
     state = GS.MENU;
@@ -11068,10 +11121,24 @@
     introEl.classList.add("hidden");
     resumeAudio();
     refreshMenu();
+    // One press and you are fighting. Somebody who has just opened the game
+    // wants to play it, not to be shown a building and asked to find the door —
+    // so the first key goes straight onto the sand, into whichever lesson the
+    // school has next for him. A man who has been through all four has nothing
+    // waiting for him in there, and gets the passage instead, which is where
+    // his career actually is.
+    const next = ludusNext();
+    if (next && !introToHub) return startTutorial(next);
+    introToHub = false;
     // Through the doors and into the passage under the stands, standing at the
     // gate to the sand — which is where somebody walking in is walking to.
     enterHub("munera");
   }
+  document.getElementById("introHub").addEventListener("click", (e) => {
+    e.stopPropagation();
+    introToHub = true;
+    leaveIntro();
+  });
   introEl.addEventListener("click", leaveIntro);
   // preventDefault stops the browser turning this touch into a synthetic click
   // that would fall straight through to the handler above and open the building
