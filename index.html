@@ -873,20 +873,65 @@
      only action on this screen, so it should not be buried at row twelve. */
   #ladderInvite { width: 100%; max-width: 460px; }
   #ladderInvite:empty { display: none; }
-  #termsRow { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 4px 0 2px; }
-  button.termsbtn {
-    display: flex; flex-direction: column; gap: 3px; align-items: center;
-    padding: 12px 18px; min-width: 190px; max-width: 100%;
+  /* ---- The terms ---- */
+  .termscard {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    width: min(560px, 92vw); padding: 26px 24px 18px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(18,13,8,0.99) 0%, rgba(10,7,4,0.97) 70%);
+    border: 1px solid #3c2c17; border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(217,164,65,0.10), 0 26px 70px rgba(0,0,0,0.66);
   }
-  button.termsbtn .tname { font-weight: 700; font-size: 15px; letter-spacing: 0.5px; }
+  .terms-eyebrow {
+    font-size: 10.5px; letter-spacing: 3.5px; text-transform: uppercase;
+    color: var(--muted); text-align: center;
+  }
+  .terms-who {
+    font-family: var(--serif); font-weight: 700; color: #f4ead6;
+    font-size: clamp(24px, 5vw, 34px); line-height: 1.15; letter-spacing: 1px;
+    text-align: center; margin-top: 4px;
+  }
+  .terms-rule {
+    width: 64px; height: 1px; margin: 14px 0 16px;
+    background: linear-gradient(90deg, transparent, #6b4f2a, transparent);
+  }
+  #termsRow { display: flex; gap: 12px; width: 100%; align-items: stretch; }
+  /* Each contract is a card you sign, not a button in a row: it carries its own
+     colour down the edge, the terms in full, and what it pays. The colour is
+     the contract, so it is the first thing on it and the last thing you see. */
+  button.termsbtn {
+    flex: 1 1 0; min-width: 0;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+    padding: 15px 15px 14px; text-align: left;
+    border-left-width: 3px; border-radius: 9px;
+    transition: transform 90ms ease-out, box-shadow 90ms ease-out;
+  }
+  button.termsbtn:hover:not(:disabled) { transform: translateY(-2px); }
+  button.termsbtn .tname {
+    font-family: var(--serif); font-weight: 700;
+    font-size: clamp(14px, 2.6vw, 17px); letter-spacing: 0.4px; line-height: 1.15;
+  }
+  button.termsbtn .tterms {
+    display: flex; flex-wrap: wrap; gap: 4px 10px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 10.5px; letter-spacing: 0.6px; color: #cbbb9c;
+  }
+  button.termsbtn .tterms b { color: #f0c45a; font-weight: 700; }
   button.termsbtn .tsub {
     font-size: 11.5px; color: var(--muted); font-weight: 500;
-    line-height: 1.35; white-space: normal; text-align: center;
+    line-height: 1.45; white-space: normal; text-align: left;
   }
   /* A contract that will not be offered still shows, because the reason it is
      not on the table is the most interesting thing on the screen. */
-  button.termsbtn.barred { opacity: 0.4; }
+  button.termsbtn.barred { opacity: 0.38; }
   button.termsbtn.barred .tname { text-decoration: line-through; }
+  .terms-note {
+    font-size: 12px; line-height: 1.5; color: var(--muted);
+    text-align: center; margin: 15px 0 12px; max-width: 44ch;
+  }
+  @media (max-width: 620px) {
+    #termsRow { flex-direction: column; }
+    .termscard { padding: 20px 16px 14px; }
+  }
   button.reachbtn {
     flex: none; align-self: center; display: flex; flex-direction: column;
     gap: 1px; padding: 7px 12px; font-size: 12px; line-height: 1.2;
@@ -1143,7 +1188,6 @@
   <aside id="tutside" class="hidden">
     <div class="ts-head">
       <span class="ts-part" id="tsPart">THE LUDUS</span>
-      <button class="tut-skip" id="tsSkip">skip</button>
     </div>
     <div class="ts-goal" id="tsGoal"></div>
     <div class="ts-card" id="tsCard">
@@ -1226,15 +1270,13 @@
     <!-- The terms. Every real bout stops here first: two contracts, and you
          sign one of them against the man named on it. -->
     <div id="terms" class="screen hidden">
-      <div class="gatecard">
-        <p class="gate-sub">the terms · you are booked against</p>
-        <p class="gate-name" id="termsWho">—</p>
-        <div class="btnrow" id="termsRow"></div>
-        <p class="hint" id="termsNote"></p>
-        <div class="tut-foot">
-          <span class="tut-key" id="termsKey">PRESS SPACE TO SIGN</span>
-          <button class="tut-skip" id="termsBack">back</button>
-        </div>
+      <div class="termscard">
+        <p class="terms-eyebrow" id="termsEyebrow">the terms · you are booked against</p>
+        <p class="terms-who" id="termsWho">—</p>
+        <div class="terms-rule"></div>
+        <div id="termsRow"></div>
+        <p class="terms-note" id="termsNote"></p>
+        <button class="tut-skip" id="termsBack">back</button>
       </div>
     </div>
 
@@ -1500,20 +1542,18 @@
           </div>
         </details>
 
-        <details class="fold" data-fold="settingsfold">
-          <summary>
-            <span class="foldname">Settings</span>
-            <span class="foldsub">the sound, the terms, the wipe</span>
-            <span class="foldmark">&#9656;</span>
-          </summary>
-          <div class="foldbody">
-            <p class="sub">What the building sounds like, and the terms you take a bout under. The contract travels with you — every fight in the place is fought on whichever of these three is lit.</p>
+      </div>
+
+      <!-- Settings. Its own counter in the passage now: it was folded away
+           inside the Tessera, which is one man's career, and the sound, the
+           doctore and the wipe are not part of any one man's career. -->
+      <div class="tabpanel hidden" data-panel="settings">
+
+            <p class="sub">What the building sounds like.</p>
             <div class="btnrow">
             <button id="soundBtn">Sound: On</button>
             <button id="musicBtn">Music: On</button>
             </div>
-            <div class="divider"></div>
-            <p class="hint">The contract is no longer set here. A bout is booked one at a time now — the terms come up against the man you are about to fight, and you sign them there.</p>
 
             <div class="divider"></div>
             <p class="sub"><b style="color:var(--text)">The doctore</b> — the green man who walks a new man round the passage.</p>
@@ -1529,10 +1569,7 @@
             </div>
             <p class="hint" id="wipeHint">Wipes clears, best times, unlocked forms, the day's card and your standing on the Ladder. Levels you built stay put, and so does every other man in the house — a wipe is scoped to whoever is holding the tessera.</p>
 
-          </div>
-        </details>
-
-      </div>
+                </div>
 
       <!-- How to play -->
       <div class="tabpanel hidden" data-panel="help">
@@ -2069,15 +2106,13 @@
   //
   // A contract is signed per bout now rather than set once in a menu, because
   // that is what a booking was: you agree the terms for THIS afternoon against
-  // THIS man. So everything real stops here and asks. The school does not — a
-  // man being taught the arrow keys is not choosing whether he may be appealed
-  // for — and neither does a duel, which is two other men fighting and none of
-  // your business what they signed.
+  // THIS man. So everything stops here and asks — the school included, since a
+  // lesson is a bout and the first thing this building should teach is that you
+  // choose what you are walking into. A duel does not ask: that is two other
+  // men fighting, and none of your business what they signed.
   function startGame(selectedMode, fromStage) {
     if (sealBlocked()) return;
-    if (selectedMode === "tutorial" || selectedMode === "duel") {
-      return beginBout(selectedMode, fromStage);
-    }
+    if (selectedMode === "duel") return beginBout(selectedMode, fromStage);
     pendingBout = { mode: selectedMode, from: fromStage || 0 };
     openTerms();
   }
@@ -2085,6 +2120,18 @@
   // The terms, agreed. Everything from here is the bout actually starting.
   function beginBout(selectedMode, fromStage) {
     mode = selectedMode;
+    // The school's panel goes up with the bout, not with the booking — raised
+    // any earlier it sits behind the terms screen shoving the sand sideways
+    // before there is a lesson to talk about. Up before the first frame, though,
+    // or the sand lays out full width and then jumps when the panel arrives.
+    if (selectedMode === "tutorial" && tut) {
+      tsCard.classList.add("empty");
+      tsKicker.textContent = "";
+      tsHead.textContent = "";
+      tsBody.textContent = "";
+      tutPaintDots();
+      tutPaintSide();
+    }
     startIdx = fromStage || 0;
     resetGame();
     state = GS.PLAYING;
@@ -2109,6 +2156,7 @@
   let pendingBout = null;
   const termsEl = document.getElementById("terms");
   const termsWho = document.getElementById("termsWho");
+  const termsEyebrow = document.getElementById("termsEyebrow");
   const termsRow = document.getElementById("termsRow");
   const termsNote = document.getElementById("termsNote");
 
@@ -2116,6 +2164,15 @@
     if (activeLadderFoe) return activeLadderFoe.name;
     if (activeCamp && activeCamp.name) return activeCamp.name;
     return "the sand";
+  }
+  // What the screen calls itself. The school is the one bout whose name is the
+  // lesson rather than the man, and it is the same man in all four.
+  function termsEyebrow_() {
+    if (pendingBout && pendingBout.mode === "tutorial") {
+      const L = LUDUS_BY_N[ludusNext() || 1];
+      return L ? `the ludus · part ${L.roman} · ${L.name.toLowerCase()}` : "the ludus";
+    }
+    return "the terms · you are booked against";
   }
   // Whether this contract may be booked for this bout, and why not if not.
   function contractBarred(key) {
@@ -2129,6 +2186,7 @@
     const b = pendingBout;
     if (!b) return;
     mode = b.mode;                    // contractBarred asks what kind of bout this is
+    termsEyebrow.textContent = termsEyebrow_();
     termsWho.textContent = termsOpponent();
     termsRow.innerHTML = "";
     let firstOpen = null;
@@ -2137,18 +2195,28 @@
       const btn = document.createElement("button");
       btn.className = "termsbtn" + (barred ? " barred" : "");
       btn.disabled = !!barred;
+      // The hard facts on their own line, in the same order for both contracts,
+      // so the two can be read against each other at a glance rather than by
+      // picking two sentences apart.
+      const pay = PAY_MULT[key] || 0;
+      const terms = b.mode === "tutorial"
+        ? `<b>${hits}</b> lives · <b>nothing</b> paid`
+        : `<b>${hits}</b> lives · purse <b>×${pay}</b>`;
       btn.innerHTML = `<span class="tname">${label}</span>`
-        + `<span class="tsub">${barred ? "not offered" : note}</span>`;
+        + `<span class="tterms">${barred ? "not on the table" : terms}</span>`
+        + `<span class="tsub">${barred ? barred : (b.mode === "tutorial"
+             ? String(note).replace(/\s*·\s*(triple purse|.*purse)\s*$/i, "")
+             : note)}</span>`;
       btn.querySelector(".tname").style.color = color;
-      btn.style.borderColor = barred ? "" : color + "66";
+      btn.style.borderColor = barred ? "" : color + "55";
+      btn.style.borderLeftColor = barred ? "" : color;
       btn.addEventListener("click", () => signTerms(key));
       termsRow.appendChild(btn);
       if (!barred && !firstOpen) firstOpen = key;
     });
-    const barred = contractBarred("normal");
-    termsNote.textContent = barred
-      || "Three lives either way. Without reprieve he changes at half his life, and the purse is trebled.";
-    termsNote.style.color = barred ? diffColor("sine") : "";
+    termsNote.textContent = b.mode === "tutorial"
+      ? "The school pays nothing and records nothing, but it can still be lost. Take it without reprieve if you want to be taught the hard way."
+      : "Three lives either way. Without reprieve he changes at half his life, and the purse is trebled.";
     termsEl.classList.remove("hidden");
     menuEl.classList.add("hidden");
     endEl.classList.add("hidden");
@@ -2360,7 +2428,6 @@
   // Live only while the school is in session. Null everywhere else, which is
   // what every hook in the engine below tests.
   let tut = null;
-  let tutDiffWas = null;    // the contract to hand back when the school lets out
   let tutLost = false;      // how the last one ended, which is what "again" means
   let tutLostPart = 0;      // and which lesson it was, so "again" is that one
   // The cards a lost run had already been shown, carried into the retry so the
@@ -2376,10 +2443,6 @@
   const tsHead = document.getElementById("tsHead");
   const tsBody = document.getElementById("tsBody");
   const tsDots = document.getElementById("tsDots");
-  document.getElementById("tsSkip").addEventListener("click", (e) => {
-    e.stopPropagation();
-    skipTutorial();
-  });
 
   // Nothing holds the arena any more. Kept as a name because the gate still
   // asks, and because "is the school saying something" is a real question — it
@@ -2410,16 +2473,11 @@
     const n = Math.max(1, Math.min(LUDUS.length, part || ludusNext() || LUDUS.length));
     const L = LUDUS_BY_N[n];
     doc = null;               // the doctore has done his round; you are in the school now
-    // The school teaches the standard bout, whatever contract is set on the
-    // menu: three lives, the terms almost everything else in the building is
-    // fought under. Not the Ludus contract, despite the name — wooden swords
-    // would make the first lesson a lie, because the whole game is that the red
-    // things cost you something, and every part of this school can be lost.
-    // Not Sine Missione either: a man learning the eye should not lose the
-    // school to his first mistake. The choice is borrowed, not overwritten —
-    // endTutorial puts it back.
-    tutDiffWas = difficulty;
-    setDifficulty("normal");
+    // The school no longer borrows a contract on your behalf. It asks, like
+    // every other bout in the building — the terms come up first and you sign
+    // one of them, and a man who wants to be taught without reprieve may have
+    // it. Three lives either way; under Sine the Venator changes at half his
+    // life the same as anybody else would.
     // beat starts spent, so the first card is up on the first frame — the gates
     // should not open on a man who has not been told the keys work.
     const shown = tutShownAgain || Object.create(null);
@@ -2452,15 +2510,6 @@
     menuEl.classList.add("hidden");
     introEl.classList.add("hidden");
     startGame("tutorial", 0);
-    // Up before the first frame rather than on the first tick. The panel is
-    // what makes room for itself on the page, so raising it a frame late means
-    // the sand is laid out at full width and then shoves sideways.
-    tsCard.classList.add("empty");
-    tsKicker.textContent = "";
-    tsHead.textContent = "";
-    tsBody.textContent = "";
-    tutPaintDots();
-    tutPaintSide();
   }
 
   // The cards this lesson owns. Every hook below asks the part rather than the
@@ -2504,6 +2553,10 @@
     sfx("tick");
   }
 
+  // The least time a card gets before the queue may push it aside. Not a delay
+  // on the next card — a floor under the current one.
+  const TUT_MIN_READ = 2.2;
+
   // How long a card stays up. Long enough to read at a comfortable pace, with a
   // floor so a short card is not gone before it is noticed — and it is only a
   // minimum: nothing replaces it until the next card's moment actually arrives.
@@ -2523,37 +2576,41 @@
   // up. Interruptions get first look; the queue moves one card at a time.
   function tutTick(dt) {
     if (!tut) return;
-    // The lesson's clock. It only runs while the arena is actually running —
-    // a card holds the frame, and time spent reading is not time survived.
+    // The lesson's clock. Nothing stops the arena any more, so this is simply
+    // how long he has been in the lesson.
     tut.t += dt;
     tutPaintSide();
     // Has he done the thing yet? Asked before the queue, because a man who has
     // already proved it should not be handed another card about it.
     const L = LUDUS_BY_N[tut.part];
     if (L && !tut.passed && L.test(ludusCtx())) { tutPass(); return; }
-    // A card that has had its time comes down on its own. It is not waiting on
-    // a keypress any more, so something has to end it.
-    if (tut.card) {
-      tut.cardT += dt;
-      if (tut.cardT >= tutDwell(tut.card)) tutDismiss();
-      else return;              // one card at a time, as before
-    }
-    tut.beat += dt;
-    // Never two cards on top of each other. A beat of the game between them is
-    // what makes the second one land as a consequence of the first.
-    if (tut.beat < 1.1) return;
+    if (tut.card) tut.cardT += dt;
+
     const steps = tutSteps();
     const g = ludusCtx();
+
+    // Interruptions go up the instant they happen, over whatever is showing.
+    // A card about being hit is worthless arriving eight seconds after you were
+    // hit — by then you have worked out what happened, or been hit again. This
+    // is the whole reason the school stopped being a popup: it can talk at the
+    // moment the thing occurs instead of queueing behind itself.
     for (const s of steps) {
-      if (tut.shown[s.id]) continue;
-      if (s.seq) {
-        // Only the first unshown card in the queue is eligible, so the order
-        // the school teaches in is the order the sand offers things in.
-        const firstPending = steps.find((x) => x.seq && !tut.shown[x.id]);
-        if (firstPending !== s) continue;
-      }
+      if (s.seq || tut.shown[s.id]) continue;
       if (s.at(g)) { tutRaise(s); return; }
     }
+
+    // The queue, in the order the school teaches in. A pending card goes up as
+    // soon as its moment arrives — it waits on the moment, not on the card
+    // before it timing out. The one thing it does wait for is long enough that
+    // the card before it could be read, so two moments a second apart do not
+    // flicker past as one.
+    if (!tut.card || tut.cardT >= TUT_MIN_READ) {
+      const next = steps.find((x) => x.seq && !tut.shown[x.id]);
+      if (next && next.at(g)) { tutRaise(next); return; }
+    }
+
+    // Nothing came to replace it, so it comes down when it has had its time.
+    if (tut.card && tut.cardT >= tutDwell(tut.card)) tutDismiss();
   }
 
   // He proved it. The last lesson is not passed here — it is passed by putting
@@ -2620,18 +2677,16 @@
     tut = null;
     tutCloseSide();
     tutShownAgain = null;
-    if (tutDiffWas) { setDifficulty(tutDiffWas); tutDiffWas = null; }
     renderLadder(tab === "ladder");   // the contract picks the board
     renderTutorialRow();              // the door stops calling itself the start
   }
 
-  // "Skip the Ludus" means the whole school, not the lesson you happen to be
-  // standing in — otherwise skipping Part I drops you back onto a locked Part
-  // II with no way past it, and the button becomes a trap instead of a door.
-  // Every lesson is written off as passed and the building opens.
-  function skipTutorial() {
+  // Walking out of the school. Nothing is credited: a lesson is passed by
+  // passing it, and there is no longer a control anywhere that hands you the
+  // four of them for nothing. This is the door out of the room, not a way past
+  // it — the lesson you left is still the one waiting when you come back.
+  function leaveTutorial() {
     if (!tut) return;
-    LUDUS.forEach((L) => passLudusPart(L.n));
     endTutorial();
     toMenu();
   }
@@ -3507,7 +3562,7 @@
     // still walks out of it, and Space puts the current card down early for
     // somebody who reads faster than the clock.
     if (tut) {
-      if (e.key === "Escape") { e.preventDefault(); skipTutorial(); return; }
+      if (e.key === "Escape") { e.preventDefault(); leaveTutorial(); return; }
       if (tutShowing() && (e.code === "Space" || e.key === " ")) {
         e.preventDefault();
         tutDismiss();
@@ -4822,7 +4877,7 @@
     {
       tab: "tessera", name: "Tessera", sub: "whose career this is, and everything under his name",
       x: 592, y: 268, color: "#dbe6f2",
-      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on the board, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped, saved and struck off here — and folded under the tag are the two rooms that were gates of their own once: the Vault the prize codes go into, and the Settings that hold the sound, the contract and the wipe.",
+      what: "The tally-token that says which gladiator you are. A house holds more than one man: each has his own purse, his own standing on the board, his own record and his own card for the day, and they do not know about each other. Careers are made, swapped, saved and struck off here — and folded under the tag is the Vault the prize codes go into.",
       now: () => {
         const rec = loadRecord();
         return `${activeAccount().name} · ${roman(rec.vic)} won of ${roman(rec.pugn)} taken`;
@@ -4836,6 +4891,17 @@
         const done = loadCleared();
         const n = LEVELS.filter((l) => done.includes(l.id)).length + MUNERA.filter((m) => done.includes(m.id)).length;
         return `${roman(BATTLES.filter((b) => formBeaten(b)).length)} forms and ${roman(n)} bouts known`;
+      },
+    },
+    {
+      tab: "settings", name: "Settings", sub: "the sound, the doctore, the wipe",
+      x: 128, y: 428, color: "#8b95b4",
+      what: "The switches. What the building sounds like, whether the doctore is still walking new men round the passage, and the one control that undoes a career on purpose. It was folded away inside the Tessera, which is a mistake: a tessera is one man, and the sound is not his — it is the same whoever is holding the tag.",
+      now: () => {
+        const bits = [];
+        bits.push(AUDIO.soundOn ? "sound on" : "sound off");
+        if (doctoreGone()) bits.push("doctore sent away");
+        return bits.join(" · ");
       },
     },
     {
