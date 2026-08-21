@@ -53,6 +53,15 @@
       "Come closer, then. Finish it.",
       "You are slower than you were.",
     ],
+    // Sine Missione, at half his life: no appeal is coming for either of you,
+    // and he has stopped fighting the way the school taught him.
+    sine: [
+      "No missio. Not for you, not for me.",
+      "You signed for this. So did I.",
+      "Enough of the training-yard guard.",
+      "Neither of us walks out of here on a raised finger.",
+      "Now you find out what I keep back.",
+    ],
     // He is nearly out.
     low: [
       "Not here. Not to you.",

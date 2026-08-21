@@ -48,6 +48,10 @@
   // browser's: the second gladiator in the house has not been taught anything
   // just because the first one was, and a wipe puts him back in the Ludus.
   const TUTORIAL_KEY = "dodger_tutorial_done";
+  // Which of the school's four lessons have been passed. The old key above is
+  // still the one thing the rest of the building asks about — "has this man
+  // been taught" — and it is set when the fourth is passed.
+  const LUDUS_KEY = "dodger_ludus_parts";
   // Whether the doctore has been sent away. He is the green man who walks a new
   // man round the passage on his first morning, and there is a switch in
   // Settings that gets rid of him for good — a career's fact like the rest, so
@@ -100,13 +104,22 @@
   function rawSet(key, v) { try { localStorage.setItem(key, String(v)); } catch (e) { /* full disk */ } }
   function rawDel(key) { try { localStorage.removeItem(key); } catch (e) { /* nothing to clear */ } }
 
-  // Every key this file writes, so a save can be gathered up and an account can
-  // be emptied without either job having to remember the list by hand.
+  // Keys this file no longer writes, but which older saves on disk may still
+  // carry. Sine Missione kept its own board and its own rudis once; it does not
+  // any more. They stay on the list below and nowhere else, because a key that
+  // is dropped from it is not cleaned up by a wipe, does not travel in an
+  // export, and is refused on import — so the stale data would outlive the
+  // career it belonged to. Nothing reads or writes these: they are swept only.
+  const LEGACY_KEYS = ["dodger_ladder_sine", "dodger_rudis_sine"];
+
+  // Every key this file writes, plus the ones it used to, so a save can be
+  // gathered up and an account can be emptied without either job having to
+  // remember the list by hand.
   function careerKeys() {
     return [CLEARED_KEY, TIMES_KEY, FORMS_KEY, CODES_KEY, DEN_KEY, BOUGHT_KEY,
-            LADDER_KEY, LADDER_SINE_KEY, RECORD_KEY, RUDIS_KEY, RUDIS_SINE_KEY,
-            CONDICIO_KEY, PLAN_KEY, TUTORIAL_KEY, DOCTORE_KEY,
-            EXITUS_KEY, ANNALS_KEY];
+            LADDER_KEY, RECORD_KEY, RUDIS_KEY,
+            CONDICIO_KEY, PLAN_KEY, TUTORIAL_KEY, LUDUS_KEY, DOCTORE_KEY,
+            EXITUS_KEY, ANNALS_KEY].concat(LEGACY_KEYS);
   }
   // The two things that belong to the player rather than to any one career: the
   // levels they built, and the endings they have reached. Neither is scoped,
@@ -336,19 +349,13 @@
   // where board maps a fighter's id to the rung they currently hold. Anything the
   // save doesn't recognise is rebuilt from LADDER, so editing the roster later
   // can't corrupt an existing standing.
-  // Sine Missione keeps its own board. Two separate careers: the sanctioned one,
-  // and the one where every bout is to the death. The Ludus settles nothing, so it
-  // just looks at the sanctioned board without ever writing to it.
+  // There is one board and it belongs to the sanctioned bout: the engine will not
+  // let a rung be fought for under any other contract, so there is nothing to
+  // switch between and no second climb to keep.
   const LADDER_KEY = "dodger_ladder";
-  const LADDER_SINE_KEY = "dodger_ladder_sine";
   const RECORD_KEY = "dodger_record";
   const RUDIS_KEY = "dodger_rudis";
-  const RUDIS_SINE_KEY = "dodger_rudis_sine";
   // Which board the contract you're on plays for.
-  // One board, and it belongs to the sanctioned bout — the engine will not let a
-  // rung be fought for under any other contract, so there is nothing to switch
-  // between and no second climb to keep. The two sine keys stay named above so
-  // a wipe and an export still reach the old ones on a disk that has them.
   function ladderKey() { return LADDER_KEY; }
   function rudisKey() { return RUDIS_KEY; }
   // How many straight losses to the same fighter costs you an extra rung.
@@ -554,6 +561,25 @@
     return LADDER.find((f) => st.board[f.id] === rank) || null;
   }
   // The only fighter you may call out for your rung: the one directly above you.
+  // Who you may call out. Ordinarily the man standing directly above you and
+  // nobody else — that is what a ladder is. Sine Missione buys reach: pass how
+  // many rungs the contract lets you look up, and every man in that band is
+  // fair game. Nearest first, so index 0 is always the ordinary challenge and a
+  // caller that only wants that one can ignore the rest.
+  //
+  // Returns an array, possibly empty. The single-target callers take [0].
+  function challengeableList(st, reach) {
+    const out = [];
+    const up = Math.max(1, reach | 0);
+    for (let i = 1; i <= up; i++) {
+      const rank = st.rank - i;
+      if (rank < 1) break;
+      const f = fighterAt(rank, st);
+      if (f) out.push(f);
+    }
+    return out;
+  }
+  // The ordinary challenge: the man directly above, or null at the top.
   function challengeable(st) {
     return st.rank <= 1 ? null : fighterAt(st.rank - 1, st);
   }
@@ -595,6 +621,44 @@
   // never existed, and the engine deals a fresh one.
   function tutorialDone() { return get(TUTORIAL_KEY) === "1"; }
   function markTutorialDone() { set(TUTORIAL_KEY, "1"); }
+
+  // ---- The school's four lessons ----
+  // The Ludus is walked in order, and which parts a man has passed is the one
+  // thing the school keeps on him. It pays nothing — wooden swords never did —
+  // but what he has been taught is a record, and the tessera shows it.
+  const LUDUS_PARTS = 4;
+  function ludusPassed() {
+    // A career taught under the old single-run school has been through all of
+    // it, so it is credited with all of it rather than sent back to lesson one.
+    if (tutorialDone()) return [1, 2, 3, 4];
+    const raw = String(get(LUDUS_KEY) || "");
+    const out = [];
+    raw.split(",").forEach((bit) => {
+      const n = parseInt(bit, 10);
+      if (n >= 1 && n <= LUDUS_PARTS && !out.includes(n)) out.push(n);
+    });
+    return out.sort();
+  }
+  function ludusPart(n) { return ludusPassed().includes(n); }
+  // Passing the last lesson is what "taught" means, so the old key is set there
+  // and nowhere else — every door in the building that asks about the school
+  // goes on asking the same question it always did.
+  function passLudusPart(n) {
+    if (!(n >= 1 && n <= LUDUS_PARTS)) return;
+    const have = ludusPassed();
+    if (!have.includes(n)) have.push(n);
+    set(LUDUS_KEY, have.sort().join(","));
+    if (have.length >= LUDUS_PARTS) markTutorialDone();
+  }
+  // A lesson opens when the one below it has been passed. The first is always
+  // open: a new man has to be able to start somewhere.
+  function ludusOpen(n) { return n <= 1 || ludusPart(n - 1); }
+  // The next one he has not passed — what the door on the menu offers, and what
+  // the doctore would put him on. Null once the school has nothing left.
+  function ludusNext() {
+    for (let n = 1; n <= LUDUS_PARTS; n++) if (!ludusPart(n)) return n;
+    return null;
+  }
 
   // The doctore, sent away or not. Sending him away is one-way from the switch
   // in Settings; hiring him back is what a wipe does, along with everything
@@ -725,6 +789,7 @@
     bestTimes, recordTime, loadCleared, markCleared,
     loadForms, markFormId, formUnlocked, formBeaten, formsKnown,
     loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone,
+    LUDUS_PARTS, ludusPassed, ludusPart, passLudusPart, ludusOpen, ludusNext,
     doctoreGone, dismissDoctore,
 
     // Ladder standing. There is one board and the engine keeps it shut to every
@@ -732,7 +797,7 @@
     // to say how close to the drop you are, and that is this file's rule.
     loadLadder, saveLadder, dropPlayer,
     loadRecord, saveRecord, hasRudis, grantRudis,
-    fighterAt, challengeable, friendlyable, rollInvite,
+    fighterAt, challengeable, challengeableList, friendlyable, rollInvite,
     TILT,
 
     // How the career ends, and what it did on the way that only the endings

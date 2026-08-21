@@ -179,6 +179,9 @@
   .tut-body {
     color: var(--text); font-size: clamp(12px, 2.5vw, 14.5px); line-height: 1.55;
     text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+    /* The lessons are written as short steps with blank lines between them, and
+       a wall of text is the thing a tutorial can least afford. */
+    white-space: pre-line;
   }
   .tut-foot { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
   .tut-key {
@@ -251,10 +254,6 @@
   button.primary {
     border-color: var(--gold); color: #ffeec2;
     box-shadow: inset 0 1px 0 rgba(255,220,150,0.28), 0 0 16px rgba(217,164,65,0.18);
-  }
-  #diffRow button .cname { font-weight: 700; }
-  #diffRow button .csub {
-    display: block; font-size: 11px; color: var(--muted); font-weight: 500;
   }
   .hint { color: var(--muted); font-size: 13px; }
   #custom.hidden { display: none; }
@@ -823,6 +822,27 @@
      only action on this screen, so it should not be buried at row twelve. */
   #ladderInvite { width: 100%; max-width: 460px; }
   #ladderInvite:empty { display: none; }
+  #termsRow { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin: 4px 0 2px; }
+  button.termsbtn {
+    display: flex; flex-direction: column; gap: 3px; align-items: center;
+    padding: 12px 18px; min-width: 190px; max-width: 100%;
+  }
+  button.termsbtn .tname { font-weight: 700; font-size: 15px; letter-spacing: 0.5px; }
+  button.termsbtn .tsub {
+    font-size: 11.5px; color: var(--muted); font-weight: 500;
+    line-height: 1.35; white-space: normal; text-align: center;
+  }
+  /* A contract that will not be offered still shows, because the reason it is
+     not on the table is the most interesting thing on the screen. */
+  button.termsbtn.barred { opacity: 0.4; }
+  button.termsbtn.barred .tname { text-decoration: line-through; }
+  button.reachbtn {
+    flex: none; align-self: center; display: flex; flex-direction: column;
+    gap: 1px; padding: 7px 12px; font-size: 12px; line-height: 1.2;
+  }
+  button.reachbtn .rsub {
+    font-size: 9.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+  }
   .callcard.invite { border-left-style: dashed; }
   .callcard {
     display: flex; align-items: center; gap: 13px; text-align: left; padding: 13px 15px;
@@ -1144,6 +1164,21 @@
       </div>
     </div>
 
+    <!-- The terms. Every real bout stops here first: two contracts, and you
+         sign one of them against the man named on it. -->
+    <div id="terms" class="screen hidden">
+      <div class="gatecard">
+        <p class="gate-sub">the terms · you are booked against</p>
+        <p class="gate-name" id="termsWho">—</p>
+        <div class="btnrow" id="termsRow"></div>
+        <p class="hint" id="termsNote"></p>
+        <div class="tut-foot">
+          <span class="tut-key" id="termsKey">PRESS SPACE TO SIGN</span>
+          <button class="tut-skip" id="termsBack">back</button>
+        </div>
+      </div>
+    </div>
+
     <!-- At the gate, before a crown. The arena is stopped behind it and the man
          is already out there; this is the beat before the gate lifts. -->
     <div id="gate" class="screen hidden">
@@ -1312,10 +1347,8 @@
             <span class="foldsub" id="ludusFoldSub">—</span>
             <span class="foldmark">▸</span>
           </summary>
-          <div class="foldbody"><p class="sub">The training school. You face Venator, a gladiator eager for battle, fought under the standard contract with three lives on it, and the School will help you with these messages.</p>
-        <div class="btnrow">
-          <button id="tutorialBtn">The Ludus · Training</button>
-        </div>
+          <div class="foldbody"><p class="sub">Training, in four lessons. You fight the same opponent — Venator, slowed down — in all four, and each lesson makes you do the thing it just taught before it lets you move on. Three lives, like a normal fight. <b style="color:var(--text)">You can lose in here</b>, and if you lose a lesson you take it again.</p>
+        <div id="ludusList" class="liblist"></div>
         <p class="hint" id="tutorialHint"></p></div>
         </details>
       </div>
@@ -1421,8 +1454,7 @@
             <button id="musicBtn">Music: On</button>
             </div>
             <div class="divider"></div>
-            <div class="btnrow" id="diffRow"></div>
-            <p class="hint" id="diffHint"></p>
+            <p class="hint">The contract is no longer set here. A bout is booked one at a time now — the terms come up against the man you are about to fight, and you sign them there.</p>
 
             <div class="divider"></div>
             <p class="sub"><b style="color:var(--text)">The doctore</b> — the green man who walks a new man round the passage.</p>
@@ -1617,6 +1649,7 @@
 <script src="js/dies.js"></script>
 <script src="js/lines.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/ludus.js"></script>
 <script src="js/progress.js"></script>
 <script>
 (() => {
@@ -1667,6 +1700,7 @@
   const {
     COLORS, FONT, roman,
     POWERUPS, SWIFT_MULT, PU_KEYS, PU_SPAWN, PU_LIFE, SLOW_FACTOR,
+    LUDUS, LUDUS_BY_N, TUT_SURVIVE, TUT_DRAIN,
     CAMPAIGNS, PATTERNS, PATTERN_BY_KEY,
     ARMATURAE, armOf,
     LADDER, LADDER_BY_ID, UNRANKED, TIERS, tierOf, tierRating,
@@ -1700,10 +1734,11 @@
     bestTimes, recordTime, loadCleared, markCleared,
     markFormId, formUnlocked, formBeaten,
     loadPlan, savePlan, clearPlan, tutorialDone, markTutorialDone,
+    ludusPassed, ludusPart, passLudusPart, ludusOpen, ludusNext,
     doctoreGone, dismissDoctore,
     loadLadder, saveLadder, dropPlayer,
     loadRecord, saveRecord, hasRudis, grantRudis,
-    fighterAt, challengeable, friendlyable, rollInvite, TILT,
+    fighterAt, challengeable, challengeableList, friendlyable, rollInvite, TILT,
     keyBeaten, levelUnlocked, campaignCleared, editorUnlocked,
     denarii, addDenarii, spendDenarii, boughtCodes, buy, redeem, claimedCodes, CODES, SHOP,
     accountList, activeAccount, createAccount, switchAccount, renameAccount, deleteAccount,
@@ -1775,32 +1810,66 @@
 
   // Not difficulty settings — the terms of the contract you fight under. A Roman
   // bout was booked as one of these, and the name IS the rule:
-  //   Ludus          — the training school. Wooden swords: nobody dies, nobody is paid.
   //   Munus Legitimum— the standard sanctioned bout.
-  //   Sine Missione  — "without reprieve." No appeal will be granted. One hit, triple purse.
-  // 0 hits means the Ludus, where you cannot be wounded at all.
+  //   Sine Missione  — "without reprieve." No appeal will be granted.
+  //
+  // Both give you three lives. They used to differ in how many mistakes you were
+  // allowed, which made the harder contract a coin toss rather than a harder
+  // fight: one touch anywhere in a five-minute bout and it was over, so the
+  // sanctioned bout felt like a cushion and Sine Missione felt like a dare, with
+  // nothing in between. What separates them now is the man across the sand. He
+  // fights better under Sine — see bossPhase — and the risk is that he is
+  // better, not that you are thinner.
+  //
   // Each contract owns a colour, and the colour is not decoration: it is what
   // the marks at the foot of the sand are drawn in, so the terms you are
   // fighting under are legible from the middle of a bout without reading a word.
-  // Green is wood — the Ludus fights with wooden swords and draws no blood. Blue
-  // is the emperor's own, the colour of the eye he watches you through, and the
-  // sanctioned bout is the one he sanctions. Red is blood, and Sine Missione is
-  // the contract that means it.
+  // Blue is the emperor's own, the colour of the eye he watches you through, and
+  // the sanctioned bout is the one he sanctions. Red is blood, and Sine Missione
+  // is the contract that means it.
   const DIFFS = [
-    ["ludus", "Ludus", 0, "Training", "wooden swords — you cannot be wounded, nothing is recorded, nothing is paid", "#3ddc84"],
-    ["normal", "Munus Legitimum", 3, "Standard", "the sanctioned bout — three lives", "#4dd7ff"],
-    ["sine", "Sine Missione", 1, "No Reprieve", "one life, and no appeal will be granted · triple purse", "#e0301f"],
+    ["normal", "Munus Legitimum", 3, "Standard", "the sanctioned bout — three lives, and he fights you straight", "#4dd7ff"],
+    ["sine", "Sine Missione", 3, "No Reprieve", "three lives — but at half his life he changes, and no appeal will be granted · triple purse", "#e0301f"],
   ];
   const DIFF_BY_KEY = Object.fromEntries(DIFFS.map((d) => [d[0], d]));
+
+  // ---- What Sine Missione does to the man across the sand ----
+  // Halfway through his life he stops fighting you the way he was trained and
+  // starts fighting you to win. One threshold, not three: a bout that ratchets
+  // every quarter never settles into anything you can learn, and the whole
+  // point of a contract is that you know what you signed.
+  //
+  // The upgrade is written against whatever he already is rather than replacing
+  // it — a Sagittarius who lives on volleys gets another one, a Dimachaerus
+  // whose shots already arrive in pairs gets a wider pair. Nobody is handed a
+  // weapon that has nothing to do with the man. That also means it composes
+  // with all twelve armaturae and all fourteen patterns without a table.
+  const SINE_PHASE = 0.5;      // the fraction of his life where he changes
+  function sinePhaseArm(a) {
+    const cur = a || {};
+    return Object.assign({}, cur, {
+      // One more aimed shot chasing every attack he throws.
+      volley: (cur.volley || 0) + 1,
+      // Everything doubles. If it already doubled, the pair opens wider, which
+      // is harder to slip between than the tight one he started with.
+      twin: cur.twin ? Math.min(cur.twin * 1.7, 0.5) : 0.2,
+    });
+  }
+  // And his hands and legs come up with it. These live on the foe rather than
+  // on the armatura, because makeFoe bakes spd and rate in at creation.
+  const SINE_PHASE_SPD = 1.10;
+  const SINE_PHASE_RATE = 1.20;
   // The colour of the contract currently being fought under.
   function diffColor(key) {
-    const d = DIFF_BY_KEY[key || difficulty] || DIFFS[1];
+    const d = DIFF_BY_KEY[key || difficulty] || DIFFS[0];
     return d[5];
   }
   // What the purse pays per contract: less mercy, richer clears.
-  const PAY_MULT = { ludus: 0, normal: 1, sine: 3 };
-  // Saves written before the contracts were named used easy/normal/hard.
-  const DIFF_LEGACY = { easy: "ludus", normal: "normal", hard: "sine" };
+  const PAY_MULT = { normal: 1, sine: 3 };
+  // Saves written before the contracts were named used easy/normal/hard, and
+  // saves written while the school was a contract used ludus. Neither key is a
+  // bout you can be booked for now, so both land on the sanctioned one.
+  const DIFF_LEGACY = { easy: "normal", normal: "normal", hard: "sine", ludus: "normal" };
   const DIFF_KEY = "dodger_difficulty";
   let difficulty = "normal";
   let maxHits = 3;
@@ -1811,8 +1880,6 @@
   // across the sand for a second. Not unbounded: past three the row stops
   // reading as a row and the bonus stops being an achievement.
   const BONUS_HITS = 3;
-  // The Ludus and practice are the same thing now: wooden swords draw no blood.
-  let practice = false;
 
   const ZONE_DRAIN = 15;     // boss HP drained per second while you stand in the blue zone
   // How often Nox pulls the arena in. One event, well apart from the last one —
@@ -1937,10 +2004,27 @@
   let startIdx = 0; // remembered start stage (for Space-to-restart)
 
   // Every bout in the building comes through here, which makes it the one place
-  // a sealed man has to be turned round. He is not refused in a message box: he
-  // is shown what happened to him instead. See sealBlocked.
+  // a sealed man has to be turned round, and the one place the terms can be put
+  // in front of him. He is not refused in a message box: he is shown what
+  // happened to him instead. See sealBlocked.
+  //
+  // A contract is signed per bout now rather than set once in a menu, because
+  // that is what a booking was: you agree the terms for THIS afternoon against
+  // THIS man. So everything real stops here and asks. The school does not — a
+  // man being taught the arrow keys is not choosing whether he may be appealed
+  // for — and neither does a duel, which is two other men fighting and none of
+  // your business what they signed.
   function startGame(selectedMode, fromStage) {
     if (sealBlocked()) return;
+    if (selectedMode === "tutorial" || selectedMode === "duel") {
+      return beginBout(selectedMode, fromStage);
+    }
+    pendingBout = { mode: selectedMode, from: fromStage || 0 };
+    openTerms();
+  }
+
+  // The terms, agreed. Everything from here is the bout actually starting.
+  function beginBout(selectedMode, fromStage) {
     mode = selectedMode;
     startIdx = fromStage || 0;
     resetGame();
@@ -1955,6 +2039,85 @@
     stickRelease();
     for (const k in MOVE_KEYS) keys[k] = false;
   }
+
+  // ---- The terms ----
+  // Two contracts, and the bout does not start until one of them is signed. The
+  // reach rule shows up here as a refusal with a reason on it: a man more than
+  // one rung above you will not take a sanctioned bout, because there is nothing
+  // in it for him — he is already above you and the board says so. Without
+  // reprieve is the only thing that gets him to come down, which is the whole
+  // price of reaching past the man in front of you.
+  let pendingBout = null;
+  const termsEl = document.getElementById("terms");
+  const termsWho = document.getElementById("termsWho");
+  const termsRow = document.getElementById("termsRow");
+  const termsNote = document.getElementById("termsNote");
+
+  function termsOpponent() {
+    if (activeLadderFoe) return activeLadderFoe.name;
+    if (activeCamp && activeCamp.name) return activeCamp.name;
+    return "the sand";
+  }
+  // Whether this contract may be booked for this bout, and why not if not.
+  function contractBarred(key) {
+    if (key === "normal" && mode === "ladder" && ladderUp > 1) {
+      return `${termsOpponent()} is ${ladderUp} rungs above you. He will not take a sanctioned bout with a man he has already passed.`;
+    }
+    return null;
+  }
+
+  function openTerms() {
+    const b = pendingBout;
+    if (!b) return;
+    mode = b.mode;                    // contractBarred asks what kind of bout this is
+    termsWho.textContent = termsOpponent();
+    termsRow.innerHTML = "";
+    let firstOpen = null;
+    DIFFS.forEach(([key, label, hits, gloss, note, color]) => {
+      const barred = contractBarred(key);
+      const btn = document.createElement("button");
+      btn.className = "termsbtn" + (barred ? " barred" : "");
+      btn.disabled = !!barred;
+      btn.innerHTML = `<span class="tname">${label}</span>`
+        + `<span class="tsub">${barred ? "not offered" : note}</span>`;
+      btn.querySelector(".tname").style.color = color;
+      btn.style.borderColor = barred ? "" : color + "66";
+      btn.addEventListener("click", () => signTerms(key));
+      termsRow.appendChild(btn);
+      if (!barred && !firstOpen) firstOpen = key;
+    });
+    const barred = contractBarred("normal");
+    termsNote.textContent = barred
+      || "Three lives either way. Without reprieve he changes at half his life, and the purse is trebled.";
+    termsNote.style.color = barred ? diffColor("sine") : "";
+    termsEl.classList.remove("hidden");
+    menuEl.classList.add("hidden");
+    endEl.classList.add("hidden");
+    // Space takes the one the building expects, so a man who never touches the
+    // mouse can still get onto the sand.
+    termsDefault = firstOpen || "sine";
+  }
+  let termsDefault = "normal";
+
+  function signTerms(key) {
+    const b = pendingBout;
+    if (!b) return;
+    if (contractBarred(key)) return;
+    setDifficulty(key);
+    pendingBout = null;
+    termsEl.classList.add("hidden");
+    beginBout(b.mode, b.from);
+  }
+  function termsHolding() { return !termsEl.classList.contains("hidden"); }
+  // Backing out of the terms is backing out of the bout. Nothing has been
+  // started yet, so there is nothing to forfeit.
+  function termsCancel() {
+    if (!termsHolding()) return;
+    pendingBout = null;
+    termsEl.classList.add("hidden");
+    enterHub(tab);
+  }
+  document.getElementById("termsBack").addEventListener("click", termsCancel);
 
   // Out of the bout and back into the building. The building is the concourse
   // now, so this is one line — enterHub does the stopping, the forfeiting and
@@ -2119,76 +2282,34 @@
   const tutDots = document.getElementById("tutDots");
   const tutKey = document.getElementById("tutKey");
 
-  // A card is: what raised it (`at`), what it says, and what on the sand it is
-  // about (`focus`, ringed in gold behind the popup). `seq` cards come in order
-  // and wait their turn; the others are interruptions that fire whenever their
-  // moment arrives, because a wound does not schedule itself.
-  const TUT_STEPS = [
-    {
-      id: "move", seq: true,
-      kicker: "THE LUDUS", head: "THE TRAINING SCHOOL",
-      body: "One man, fought under the sanctioned contract: three lives, and nothing recorded or paid. The arena will stop when it has something to show you. Arrow keys to move — on a phone, put a thumb anywhere on the floor and drag.",
-      focus: () => ({ x: player.x, y: player.y, r: 46 }),
-      at: () => true,
-    },
-    {
-      id: "danger", seq: true,
-      kicker: "THE MAN ACROSS THE SAND", head: "RED IS THE ONLY THING",
-      body: "Venator stalks you and throws. Every red thing on this floor — his shots, and the man himself — takes a wound on touch. You carry no shield and no blade. You move, or you die.",
-      focus: () => ({ x: boss.x, y: boss.y, r: boss.r + 22 }),
-      at: () => tut.moved > 190 && bullets.length >= 2,
-    },
-    {
-      id: "zone", seq: true,
-      kicker: "THE EYE", head: "STAND IN IT",
-      body: "You have no weapon, so this is your only way to do damage. The emperor watches one patch of sand at a time and only what happens inside it deals damage. Sit in the Eye to drain your opponent's life bar.",
-      focus: () => ({ x: zone.x, y: zone.y, r: zone.r + 12 }),
-      at: () => true,
-    },
-    {
-      id: "zonemove", seq: true,
-      kicker: "IT DOES NOT STAY", head: "AND HE HEALS",
-      body: "The eye moves on every few seconds. Before it goes it rings itself in yellow — and if you never stood in it, the crowd gives him back a piece of his broken armor. Waiting in a safe corner is the one thing the arena charges you for.",
-      focus: () => ({ x: zone.x, y: zone.y, r: zone.r + 12 }),
-      at: () => boss.hp < boss.maxhp - 5,
-    },
-    {
-      id: "hot", seq: true,
-      kicker: "THE HOT EYE", head: "THREE TIMES THE DRAIN",
-      body: "The small circle rides with him and burns in bursts. The ring around it fills while nobody is touching you, and a wound empties it; full, it lights and takes his health three times as fast for as long as the window lasts — and once lit, nothing he does puts it out. It is never anywhere safe, because it is orbiting the man throwing at you. That is the whole trade.",
-      focus: () => ({ x: hotZone.x, y: hotZone.y, r: hotZone.r + 10 }),
-      at: () => hotZone.on,
-    },
-    {
-      id: "drops", seq: true,
-      kicker: "SPARSIONES", head: "WHAT GETS THROWN IN",
-      body: "Gifts flung into the sand mid-games. Green gives one wound back, violet drags everything red to a stop, white gives you Mercury's sandals of speed. None of them make you hit harder — they only get you to the ground that does. They rot if you leave them.",
-      focus: () => (powerups[0] ? { x: powerups[0].x, y: powerups[0].y, r: 40 } : null),
-      at: () => powerups.length > 0,
-    },
-    {
-      // Not in the queue. A wound happens when it happens, and it is the one
-      // thing on this floor that has to be felt rather than described.
-      id: "wound",
-      kicker: "A TOUCH", head: "THAT COST YOU ONE",
-      body: "One of the three marks at the foot of the sand is gone, and you get a moment's mercy before anything can reach you again. Three is what any sanctioned bout gives you. Under Sine Missione you get one, and no appeal will be granted.",
-      focus: () => ({ x: player.x, y: player.y, r: 44 }),
-      at: () => tut.hurt,
-    },
-    {
-      id: "finish", seq: true,
-      kicker: "HE IS NEARLY DOWN", head: "FINISH HIM",
-      body: "Hold the eye and it ends. Then the gates open on twenty-four men who fight back harder than this one, a Library of made bouts, and a desk that will take your money on somebody else's fight.",
-      focus: () => ({ x: boss.x, y: boss.y, r: boss.r + 22 }),
-      at: () => boss.hp <= boss.maxhp * 0.34,
-    },
-  ];
+  // The four lessons live in js/ludus.js — names, goals, pass conditions and
+  // every word on every card. They ask questions about a fight in progress but
+  // never reach in for the answers: this is the snapshot they are handed, and
+  // the only thing they are allowed to see. Built fresh per call, because a
+  // card raised on a stale one points at where the man used to be.
+  function ludusCtx() {
+    return {
+      t: tut ? tut.t : 0,
+      got: tut ? tut.got : Object.create(null),
+      moved: tut ? tut.moved : 0,
+      hurt: !!(tut && tut.hurt),
+      bullets: bullets.length,
+      player, boss, zone, hotZone, powerups,
+    };
+  }
+
+  // Which lesson is in session, and how far into the school we are. Zero
+  // everywhere outside it, which is what the engine below tests.
+  function tutPart() { return tut ? tut.part : 0; }
+  // The eye is not an attack until the lesson that says it is.
+  function tutEyeLive() { return !tut || tut.part >= 3; }
 
   // Live only while the school is in session. Null everywhere else, which is
   // what every hook in the engine below tests.
   let tut = null;
   let tutDiffWas = null;    // the contract to hand back when the school lets out
   let tutLost = false;      // how the last one ended, which is what "again" means
+  let tutLostPart = 0;      // and which lesson it was, so "again" is that one
   // The cards a lost run had already been shown, carried into the retry so the
   // second attempt is the fight rather than the lecture again. Cleared by every
   // other way out, so walking in fresh off the menu is genuinely fresh.
@@ -2196,23 +2317,29 @@
 
   function tutHolding() { return !!(tut && tut.card); }
 
-  function startTutorial() {
+  function startTutorial(part) {
     if (tut) return;          // already in session; never borrow the contract twice
+    // Asked for nothing in particular, the school gives you the next thing you
+    // have not passed — and once there is nothing left, the last one again.
+    const n = Math.max(1, Math.min(LUDUS.length, part || ludusNext() || LUDUS.length));
+    const L = LUDUS_BY_N[n];
     doc = null;               // the doctore has done his round; you are in the school now
     // The school teaches the standard bout, whatever contract is set on the
     // menu: three lives, the terms almost everything else in the building is
     // fought under. Not the Ludus contract, despite the name — wooden swords
     // would make the first lesson a lie, because the whole game is that the red
-    // things cost you something. Not Sine Missione either: a man learning the
-    // eye should not lose the school to his first mistake. The choice is
-    // borrowed, not overwritten — endTutorial puts it back.
+    // things cost you something, and every part of this school can be lost.
+    // Not Sine Missione either: a man learning the eye should not lose the
+    // school to his first mistake. The choice is borrowed, not overwritten —
+    // endTutorial puts it back.
     tutDiffWas = difficulty;
     setDifficulty("normal");
     // beat starts spent, so the first card is up on the first frame — the gates
     // should not open on a man who has not been told the keys work.
     const shown = tutShownAgain || Object.create(null);
     tutShownAgain = null;
-    tut = { card: null, shown: shown, moved: 0, hurt: false, beat: 99 };
+    tut = { part: n, card: null, shown: shown, moved: 0, hurt: false, beat: 99,
+            t: 0, got: Object.create(null), passed: false };
     campaign = "inferno";
     activeLevel = null;
     activeRating = 0;          // the Ludus pays nothing anyway; say so out loud
@@ -2241,9 +2368,16 @@
     startGame("tutorial", 0);
   }
 
+  // The cards this lesson owns. Every hook below asks the part rather than the
+  // school, so a card written for Part III cannot be raised in Part I.
+  function tutSteps() {
+    const L = LUDUS_BY_N[tutPart()];
+    return L ? L.steps : [];
+  }
+
   function tutPaintDots() {
     tutDots.innerHTML = "";
-    const seq = TUT_STEPS.filter((s) => s.seq);
+    const seq = tutSteps().filter((s) => s.seq);
     for (const s of seq) {
       const d = document.createElement("i");
       if (tut.shown[s.id]) d.className = "on";
@@ -2273,7 +2407,7 @@
     tutPaintDots();
     // Get out of the way of what we are pointing at: a card parked on the
     // circle it is describing describes nothing.
-    const f = step.focus && step.focus();
+    const f = step.focus && step.focus(ludusCtx());
     tutEl.classList.toggle("top", !!f && f.y > H * 0.58);
     tutEl.classList.remove("hidden");
     sfx("tick");
@@ -2314,28 +2448,68 @@
   // Called once per playing frame, while the school is in session and nothing is
   // up. Interruptions get first look; the queue moves one card at a time.
   function tutTick(dt) {
-    if (!tut || tut.card) return;
+    if (!tut) return;
+    if (tut.card) return;
+    // The lesson's clock. It only runs while the arena is actually running —
+    // a card holds the frame, and time spent reading is not time survived.
+    tut.t += dt;
+    // Has he done the thing yet? Asked before the queue, because a man who has
+    // already proved it should not be handed another card about it.
+    const L = LUDUS_BY_N[tut.part];
+    if (L && !tut.passed && L.test(ludusCtx())) { tutPass(); return; }
     tut.beat += dt;
     // Never two cards on top of each other. A beat of the game between them is
     // what makes the second one land as a consequence of the first.
     if (tut.beat < 1.1) return;
-    for (const s of TUT_STEPS) {
+    const steps = tutSteps();
+    const g = ludusCtx();
+    for (const s of steps) {
       if (tut.shown[s.id]) continue;
       if (s.seq) {
         // Only the first unshown card in the queue is eligible, so the order
         // the school teaches in is the order the sand offers things in.
-        const firstPending = TUT_STEPS.find((x) => x.seq && !tut.shown[x.id]);
+        const firstPending = steps.find((x) => x.seq && !tut.shown[x.id]);
         if (firstPending !== s) continue;
       }
-      if (s.at()) { tutRaise(s); return; }
+      if (s.at(g)) { tutRaise(s); return; }
     }
+  }
+
+  // He proved it. The last lesson is not passed here — it is passed by putting
+  // the man down, which is what every real bout in this building is passed by,
+  // and that comes through winGame on its own.
+  function tutPass() {
+    tut.passed = true;
+    winGame();
+  }
+
+  // What the sand tells you about how far along the lesson is. One line, under
+  // the health bar, and only while the school is in session — the rest of the
+  // building has a purse and a rung to report and does not need this.
+  function drawTutGoal() {
+    if (!tut || tut.part >= LUDUS.length) return;
+    const L = LUDUS_BY_N[tut.part];
+    if (!L) return;
+    ctx.save();
+    ctx.textAlign = "center";
+    // Above the marks at the foot of the sand, not up under the health bar —
+    // the top of the screen already carries his name, his life and his mouth,
+    // and a fourth line up there lands on top of the second. Down here it sits
+    // with the other thing that is about you rather than about him.
+    ctx.textBaseline = "bottom";
+    ctx.font = "600 13px ui-monospace, Menlo, Consolas, monospace";
+    ctx.fillStyle = "rgba(240,196,90,0.92)";
+    ctx.shadowColor = "rgba(0,0,0,0.75)";
+    ctx.shadowBlur = 7;
+    ctx.fillText(`LUDUS ${L.roman} · ${L.goal(ludusCtx()).toUpperCase()}`, W / 2, H - 52);
+    ctx.restore();
   }
 
   // The gold ring behind the popup. Drawn on the frozen frame, so it breathes on
   // the wall clock rather than on a game clock that has stopped.
   function drawTutFocus() {
     if (!tutHolding()) return;
-    const f = tut.card.focus && tut.card.focus();
+    const f = tut.card.focus && tut.card.focus(ludusCtx());
     if (!f) return;
     const p = 0.5 + 0.5 * Math.sin(performance.now() / 380);
     ctx.save();
@@ -2378,9 +2552,12 @@
 
   // Leaving the school, by any of the three doors: finishing it, skipping it, or
   // walking out to the menu. All of them count as having been taught.
+  // Leaving the sand, however it went. It does NOT mark the school taught: that
+  // is what passing the fourth lesson does, and nothing else — walking out of
+  // Part I halfway through is not an education. The one exception is the skip
+  // button, which is a man saying he does not need teaching, and says so below.
   function endTutorial() {
     if (!tut) return;
-    markTutorialDone();
     tut = null;
     tutShownAgain = null;
     tutEl.classList.add("hidden");
@@ -2390,8 +2567,13 @@
     renderTutorialRow();              // the door stops calling itself the start
   }
 
+  // "Skip the Ludus" means the whole school, not the lesson you happen to be
+  // standing in — otherwise skipping Part I drops you back onto a locked Part
+  // II with no way past it, and the button becomes a trap instead of a door.
+  // Every lesson is written off as passed and the building opens.
   function skipTutorial() {
     if (!tut) return;
+    LUDUS.forEach((L) => passLudusPart(L.n));
     endTutorial();
     toMenu();
   }
@@ -2409,20 +2591,47 @@
   // a Battle is: synthesise a one-stage campaign and hand it to the engine. The
   // difference is what happens afterwards — see resolveLadder().
   let activeLadderFoe = null;
+  let ladderUp = 0;         // how many rungs above you the man on the card is
   let ladderFriendly = false;    // a prolusio: fought properly, settles nothing
+  // Reaching higher does not add a bout — it re-points the one the card already
+  // dealt. A day sells one rung and only one; which man is standing on it is
+  // your business, and the card follows you rather than the other way round.
+  // Everything downstream (planSettle, the purse, the loss tally) keys off this
+  // single entry, so re-pointing it is the whole of what has to happen.
+  function reachHigher(f) {
+    const p = plan();
+    if (!p) return false;
+    const b = p.bouts.find((x) => x.kind === "ladder" && x.state === "pending");
+    if (!b) return false;
+    const st = loadLadder();
+    const rank = st.board[f.id];
+    if (rank == null) return false;
+    b.ref = f.id;
+    b.name = f.name;
+    b.rating = ladderRating(rank);
+    b.losses = 0;             // a different man is a different tally
+    planSave();
+    activePlanBout = b;
+    return true;
+  }
+
   function fightLadder(f, friendly) {
-    // Shut to everything but the sanctioned bout. Nothing should be able to
-    // reach this under another contract, but the board is a career's whole
-    // standing and the guard is one line — see ladderOpen.
-    if (!ladderOpen()) return;
     offPlan = false;                // the board is only ever reachable via the card
     const st = loadLadder();
-    const foe = challengeable(st);
-    // Upward, only the man directly above you. Downward, anybody — but only ever
-    // as a friendly, or the board could be climbed by beating people you have
-    // already beaten.
+    // Upward, anybody inside the reach the contracts allow — the man directly
+    // above under either of them, and up to LADDER_REACH under Sine Missione.
+    // Which of those you are actually allowed to take is settled at the terms
+    // screen, because the contract is chosen there and the reach is the
+    // contract's. Downward, anybody — but only ever as a friendly, or the board
+    // could be climbed by beating people you have already beaten.
+    const reachable = challengeableList(st, LADDER_REACH);
+    const up = reachable.findIndex((x) => x.id === f.id);
     if (friendly) { if (!friendlyable(st, f) && (!st.invite || st.invite !== f.id)) return; }
-    else if (!foe || foe.id !== f.id) return;
+    else if (up < 0) return;
+    // How far above you he is standing, so the terms screen knows whether the
+    // sanctioned bout can be booked for him at all. Zero for a friendly, which
+    // settles nothing and is not a reach.
+    ladderUp = friendly ? 0 : up + 1;
     const rank = st.board[f.id];
     ladderFriendly = !!friendly;
     // An invitation is spent by being taken up, win or lose.
@@ -2724,7 +2933,7 @@
     const friendly = ladderFriendly;
     activeLadderFoe = null;
     ladderFriendly = false;
-    if (!f || practice) return null;
+    if (!f) return null;
     // Whatever it settles, he was on the sand this afternoon, and the desk will
     // know about it: a man you have just put down is quoted as a man who has
     // just been put down. Logged before the day turns, so it counts as today's.
@@ -2859,6 +3068,7 @@
       },
       bullets: [], nets: [], pending: [], minions: [], minionTimer: 2.0,
       phase2: false,
+      sined: false,       // whether Sine Missione has already changed him
       spd: (def.spd || 1) * ((a && a.spd) || 1) * crowdLegs(total),
       rate: (def.rate || 1) * ((a && a.rate) || 1) * crowdHands(total),
       speaker: null,      // filled below, once the body exists
@@ -3025,14 +3235,30 @@
     // is the building itself.
     if (mode === "tutorial") {
       tutLost = false;
-      planSettle(true);          // day one of a career is the school
+      const L = LUDUS_BY_N[tut ? tut.part : LUDUS.length] || LUDUS[LUDUS.length - 1];
+      const last = L.n >= LUDUS.length;
+      // The lesson is written down before the school lets out, because
+      // endTutorial is what clears `tut` and the part number lives on it.
+      passLudusPart(L.n);
+      if (last) planSettle(true);   // day one of a career is the school
       endTutorial();
-      endTitle.textContent = "Ludus Cleared";
+      endTitle.textContent = last ? "Ludus Cleared" : `Ludus ${L.roman} · Passed`;
       endTitle.style.color = COLORS.safe;
-      endStat.textContent = `Venator is down in ${totalTime.toFixed(1)}s.`;
-      endBest.textContent = "Nothing was recorded and nothing was paid — that is what the training school is. Everything from here is fought for real.";
-      againBtn.textContent = "Enter the Colosseum";
-      endHint.textContent = "Space to enter the Colosseum";
+      endStat.textContent = last
+        ? `Venator is down in ${totalTime.toFixed(1)}s.`
+        : `${L.name} — passed in ${totalTime.toFixed(1)}s.`;
+      endBest.textContent = L.close;
+      // Something left to be taught means the button offers it. Nothing left
+      // means the building the school was preparing you for.
+      const next = ludusNext();
+      if (last || !next) {
+        againBtn.textContent = "Enter the Colosseum";
+        endHint.textContent = "Space to enter the Colosseum";
+      } else {
+        const N = LUDUS_BY_N[next];
+        againBtn.textContent = `Ludus ${N.roman} · ${N.name}`;
+        endHint.textContent = `Space to start Ludus ${N.roman}`;
+      }
       return;
     }
 
@@ -3050,7 +3276,7 @@
     // then keeps paying you like anybody else.
     const mult = PAY_MULT[difficulty] != null ? PAY_MULT[difficulty] : 1;
     const peril = perilPay(activePeril);
-    const dry = !mult || practice || offPlan || !onCard;
+    const dry = !mult || offPlan || !onCard;
     const base = dry ? 0 : Math.max(1, Math.round(Math.max(1, activeRating | 0) * mult * peril));
 
     // Marks the surgeon gave you that nothing ever took off you again. Each is
@@ -3084,9 +3310,7 @@
     if (mode === "ladder") {
       const moved = resolveLadder(true);
       endStat.textContent = `${activeCamp.name} is down in ${totalTime.toFixed(1)}s.${purse}`;
-      endBest.textContent = practice
-        ? "Fought in the Ludus — the board is unchanged."
-        : moved || "";
+      endBest.textContent = moved || "";
       // One ladder bout a day, and this was one. The man above you now is
       // tomorrow's business, not a button on this screen — chaining challenges
       // off the end of a win was a second ladder fight the day never posted.
@@ -3112,8 +3336,7 @@
       if (activeLevel.id.startsWith("battle:")) markFormId(activeLevel.id);
       const res = recordTime(activeLevel.id, totalTime);
       endStat.textContent = `Cleared in ${totalTime.toFixed(1)}s.${purse}`;
-      if (practice) endBest.textContent = "Practice run — not recorded.";
-      else if (res && res.best) {
+      if (res && res.best) {
         endBest.textContent = res.prev == null
           ? `First clear: ${totalTime.toFixed(1)}s`
           : `New best! ${totalTime.toFixed(1)}s (was ${res.prev.toFixed(1)}s)`;
@@ -3160,15 +3383,17 @@
     // being taught the arrow keys twice is not a lesson.
     if (mode === "tutorial") {
       tutLost = true;
+      const L = LUDUS_BY_N[tut ? tut.part : 1] || LUDUS[0];
+      tutLostPart = L.n;          // which lesson to put him back on
       activePlanBout = null;      // the school stays on day one until it is beaten
       const seen = tut ? tut.shown : null;
       endTutorial();
       tutShownAgain = seen;     // set after, because leaving the school clears it
       endTitle.textContent = "Put Down In The Ludus";
-      endStat.textContent = `Venator had you after ${totalTime.toFixed(1)}s.`;
-      endBest.textContent = "Nothing is recorded and nothing is owed — it is the training school. Take him again.";
-      againBtn.textContent = "Back to the Ludus";
-      endHint.textContent = "Space to take the sand again";
+      endStat.textContent = `Venator beat you after ${totalTime.toFixed(1)}s — Ludus ${L.roman}, ${L.name.toLowerCase()}.`;
+      endBest.textContent = "Nothing lost — this is training, so nothing is recorded and nothing is owed. But you still have to pass the lesson, so it starts again.";
+      againBtn.textContent = `Ludus ${L.roman} Again`;
+      endHint.textContent = "Space to retry this lesson";
       return;
     }
 
@@ -3178,9 +3403,7 @@
       const moved = resolveLadder(false);
       endTitle.textContent = "Stans Missus";
       endStat.textContent = `${stageName} put you down after ${totalTime.toFixed(1)}s. The crowd let you walk off.`;
-      endBest.textContent = practice
-        ? "Fought in the Ludus — the board is unchanged."
-        : moved || "";
+      endBest.textContent = moved || "";
       // Beaten by him, he is still standing above you and still on the card —
       // so the button says so. Struck off after the third, and there is nothing
       // left up there today.
@@ -3237,6 +3460,21 @@
       e.preventDefault();
       if (e.key === "Escape") { skipTutorial(); return; }
       if (e.code === "Space" || e.key === " " || e.key === "Enter") tutDismiss();
+      return;
+    }
+    // The terms take every key. Space signs the contract the building expects —
+    // the sanctioned one where it is on offer, and the only one on the table
+    // where it is not — 1 and 2 pick either by hand, and Escape walks out of
+    // the booking without a bout having started.
+    if (termsHolding()) {
+      e.preventDefault();
+      if (e.key === "Escape") { termsCancel(); return; }
+      if (e.key === "1" || e.key === "2") {
+        const d = DIFFS[e.key === "1" ? 0 : 1];
+        if (d) signTerms(d[0]);
+        return;
+      }
+      if (e.code === "Space" || e.key === " " || e.key === "Enter") signTerms(termsDefault);
       return;
     }
     // A crown at the gate takes every key, and gives back only the two that
@@ -3497,7 +3735,11 @@
     // for — put down at the gate to the sand, which is where the real fights
     // are sold.
     if (mode === "tutorial") {
-      if (tutLost) return startTutorial();
+      // Beaten, it means that same lesson again. Passed, it means the next one
+      // the school has for you — and when it has none left, the building.
+      if (tutLost) return startTutorial(tutLostPart || 1);
+      const next = ludusNext();
+      if (next) return startTutorial(next);
       return enterHub("munera");
     }
     if (mode === "ladder") {
@@ -3532,16 +3774,66 @@
   // and this is a door on it like any other. What changes is how loudly it is
   // marked: until it has been been walked through once it is the lit button on
   // the tab, and afterwards it is just a place you can go back to.
-  const tutorialBtn = document.getElementById("tutorialBtn");
+  const ludusList = document.getElementById("ludusList");
   const tutorialHint = document.getElementById("tutorialHint");
-  tutorialBtn.addEventListener("click", () => startTutorial());
+  // The four lessons, in the order they are walked. A lesson opens when the one
+  // below it has been passed — the school has a syllabus, and a man who has not
+  // been told what the eye is has no business being asked to hold one.
   function renderTutorialRow() {
-    const done = tutorialDone();
-    tutorialBtn.classList.toggle("primary", !done);
-    tutorialBtn.textContent = done ? "The Ludus · Training" : "Start Here · The Ludus";
-    tutorialHint.textContent = done
-      ? "One slow man and the arena stopping to explain itself. Nothing recorded, nothing paid."
-      : "You have not been through the school. One slow man, three lives, and the arena stopping to explain itself as it goes.";
+    const passed = ludusPassed();
+    const next = ludusNext();
+    ludusList.innerHTML = "";
+    LUDUS.forEach((L) => {
+      const open = ludusOpen(L.n);
+      const done = passed.includes(L.n);
+      const row = document.createElement("div");
+      row.className = open ? "libitem" : "libitem locked";
+
+      const dot = document.createElement("span");
+      dot.className = "dot";
+      dot.style.background = done ? COLORS.safe : open ? "#d9a441" : "#3a2c1a";
+      row.appendChild(dot);
+
+      const meta = document.createElement("div");
+      meta.className = "meta";
+      const nm = document.createElement("div");
+      nm.className = "nm";
+      nm.textContent = `${open ? "" : "🔒 "}Ludus ${L.roman} · ${L.name}`;
+      if (done) {
+        const tick = document.createElement("span");
+        tick.className = "tick";
+        tick.textContent = "✓ passed";
+        nm.appendChild(tick);
+      }
+      meta.appendChild(nm);
+
+      const bl = document.createElement("div");
+      bl.className = "blurb";
+      bl.textContent = open
+        ? L.sub
+        : `Locked until you pass Ludus ${LUDUS_BY_N[L.n - 1].roman}.`;
+      meta.appendChild(bl);
+      row.appendChild(meta);
+
+      const play = document.createElement("button");
+      if (open) {
+        // The one he is on is the lit button; the ones behind him are doors he
+        // may go back through, which is not the same invitation.
+        play.className = L.n === next ? "primary" : "";
+        play.textContent = done ? "Again" : L.n === next ? "Take it" : "Enter";
+        play.addEventListener("click", () => startTutorial(L.n));
+      } else {
+        play.className = "lockbtn";
+        play.textContent = "Locked";
+        play.disabled = true;
+      }
+      row.appendChild(play);
+      ludusList.appendChild(row);
+    });
+
+    tutorialHint.textContent = next
+      ? `${passed.length} of ${LUDUS.length} passed. The lessons are taken in order — next up is ${LUDUS_BY_N[next].name.toLowerCase()}.`
+      : "All four passed. There is nothing left to teach you — everything else in the building is open, and all of it counts.";
   }
 
   // The only button on an open stall: back out into the passage.
@@ -4350,53 +4642,22 @@
   document.getElementById("saveLevelBtn").addEventListener("click", () => { commitEditor(); openLibrary(); });
   document.getElementById("testLevelBtn").addEventListener("click", () => playLevel(commitEditor()));
   document.getElementById("cancelLevelBtn").addEventListener("click", openLibrary);
-  // The contract you fight under. The Ludus is what used to be Practice and Easy
-  // both — there's no reason to have a mode that barely hurts you AND a mode that
-  // can't, so the school absorbed them: no wounds, no records, no pay.
-  const diffRow = document.getElementById("diffRow");
-  const diffHint = document.getElementById("diffHint");
+  // The contract now in force. Written down so the terms screen can open on
+  // whatever you signed last time — a man who fights without reprieve tends to
+  // go on doing it, and making him re-pick from scratch every bout is friction
+  // rather than a decision.
   function setDifficulty(key) {
-    const d = DIFF_BY_KEY[key] || DIFFS[1];
+    const d = DIFF_BY_KEY[key] || DIFFS[0];
     difficulty = d[0];
-    practice = d[2] === 0;         // the Ludus is the only bout you cannot lose
-    maxHits = practice ? 3 : d[2];  // a nominal count so the pip row still builds
+    maxHits = d[2];
     localStorage.setItem(DIFF_KEY, difficulty);
     // The save layer keeps its own copy: which board a result is written to, and
     // whether it is written down at all, are both decided by the contract.
     PROGRESS.setContract(difficulty);
-    diffRow.querySelectorAll("button").forEach((b) => {
-      const d = DIFF_BY_KEY[b.dataset.diff] || DIFFS[1];
-      const on = b.dataset.diff === difficulty;
-      b.classList.toggle("on", on);
-      // The name keeps its colour whether it is chosen or not — the colour is
-      // what the contract IS, not a way of showing which one is ticked. The
-      // border does that.
-      const nm = b.querySelector(".cname");
-      if (nm) nm.style.color = d[5];
-      b.style.borderColor = on ? d[5] : "";
-      b.style.boxShadow = on ? `inset 0 1px 0 rgba(255,255,255,0.10), 0 0 14px ${d[5]}33` : "";
-    });
-    diffHint.textContent = d[4];
-    diffHint.style.color = d[5];
   }
-  // Latin name for the contract, plain English for what it actually costs you.
-  DIFFS.forEach(([key, label, hits, gloss, note]) => {
-    const b = document.createElement("button");
-    b.dataset.diff = key;
-    b.innerHTML = `<span class="cname">${label}</span><span class="csub">${gloss}</span>`;
-    b.title = note;
-    b.addEventListener("click", () => {
-      setDifficulty(key);
-      // The board is open to one contract, so changing contract opens or shuts
-      // it — and a card holding a bout the board can no longer sell has to give
-      // it back. Only on click: at boot the tab isn't built yet and there is no
-      // card in memory to tidy.
-      dropShutLadderBouts();
-      renderLadder(tab === "ladder");
-      renderPlan();
-    });
-    diffRow.appendChild(b);
-  });
+  // Whatever was signed last, so the terms screen opens on it. A save written
+  // when the school and the old easy/normal/hard were contracts lands on the
+  // sanctioned bout — see DIFF_LEGACY.
   (() => {
     const saved = localStorage.getItem(DIFF_KEY) || "normal";
     setDifficulty(DIFF_BY_KEY[saved] ? saved : (DIFF_LEGACY[saved] || "normal"));
@@ -4492,7 +4753,6 @@
         const p = plan();
         const left = p ? p.bouts.filter((b) => b.state === "pending").length : 0;
         const climb = hasRudis() ? "rudiarius"
-          : !ladderOpen() ? "the climb waits"
           : (() => { const st = loadLadder();
                      return st.rank >= UNRANKED ? "unranked — the climb starts here"
                                                 : `rank ${roman(st.rank)} of ${roman(LADDER.length)}`; })();
@@ -5188,9 +5448,6 @@
     if (hasRudis()) {
       return "Rudiarius — the climb is finished and the rudis is yours. Every fight from here is because you want it.";
     }
-    if (!ladderOpen()) {
-      return "The board is shut to this contract — the climb waits for Munus Legitimum. See Settings.";
-    }
     const st = loadLadder();
     if (st.rank >= UNRANKED) {
       return `Unranked — ${roman(LADDER.length)} men between you and the rudis. The climb starts at the bottom rung.`;
@@ -5836,7 +6093,6 @@
   // fourth refusal costs four separate afternoons, which is the point of it.
   function checkExitusOffer() {
     if (isSealed()) return;
-    if (!ladderOpen()) return;
     const st = loadLadder();
     if (st.rank !== 1) return;
     const p = plan();
@@ -5882,29 +6138,21 @@
   // is the contract, set in Settings. You may look at any of them.
   let ladderView = null;
   // ---- Who the board is open to ----
-  // One contract, and only one. A ladder is a record of who has beaten whom,
-  // and it only means anything if every bout on it was fought under the same
-  // terms: wooden swords settle nothing, and a contract where one loss ends the
-  // climb is not a climb, it is a coin. So the board belongs to the sanctioned
-  // bout, and under the other two it is shut — nothing on the card, nothing to
-  // challenge, and the list is there to be read rather than fought.
-  function ladderOpen() { return difficulty === "normal"; }
-
-  // Taking another contract mid-day strikes any rung bout off today's card.
-  // Leaving it there would be a bout nobody could fight and a card that could
-  // never be finished — and a day that cannot finish is a day that cannot roll.
-  // Pending ones only: a bout already fought is a fact, and stays on the card
-  // as the fact it is.
-  function dropShutLadderBouts() {
-    if (ladderOpen()) return;
-    const p = plan();
-    if (!p) return;
-    const keep = p.bouts.filter(
-      (b) => !((b.kind === "ladder" || b.kind === "invite") && b.state === "pending"));
-    if (keep.length === p.bouts.length) return;
-    p.bouts = keep;
-    planSave();
-  }
+  // Both of them. There is one board and every sanctioned contract climbs it —
+  // it was shut to Sine Missione while Sine meant a single life, because a climb
+  // that ends on one touch is a coin toss and not a career. Now that both
+  // contracts hand you three lives and the difference is the man across the
+  // sand, a rung won without reprieve is a rung won, and the board says so.
+  //
+  // What the contract changes is your REACH. See challengeable: under the
+  // sanctioned bout you may call out the man directly above you and nobody
+  // else; under Sine Missione you may call out anyone within LADDER_REACH
+  // rungs, and beating him puts you on his rung. The climb is as big as your
+  // nerve, which is the honest way to price a contract that is harder to win.
+  function ladderOpen() { return true; }
+  // How far above yourself Sine Missione lets you reach.
+  const LADDER_REACH = 3;
+  function ladderReach() { return difficulty === "sine" ? LADDER_REACH : 1; }
   const ladderTabsEl = document.getElementById("ladderTabs");
   const ladderBoardPane = document.getElementById("ladderBoardPane");
   const ladderNotePane = document.getElementById("ladderNotePane");
@@ -5943,7 +6191,7 @@
         : `rank ${roman(st.rank)} of ${roman(LADDER.length)} · ${tier.note}`;
 
     // What the board is, and whether it is open to you this morning.
-    const c = DIFF_BY_KEY.normal || DIFFS[1];
+    const c = DIFF_BY_KEY.normal || DIFFS[0];
     ladderBoard.textContent = live
       ? `${c[1]} board — the one ladder in the building, and every rung on it was won under these terms.`
       : `${c[1]} only. The board is shut to the contract you are fighting under: wooden swords settle no rung, and a bout with no reprieve in it settles nothing you could climb from. Read it here, then take the sanctioned bout in Settings if you want a rung off it.`;
@@ -6052,7 +6300,7 @@
   function renderInviteCard(st) {
     ladderInvite.innerHTML = "";
     const f = st.invite && LADDER_BY_ID[st.invite];
-    if (!f || practice) return;
+    if (!f) return;
     const a = armOf(f.arm);
     const card = document.createElement("div");
     card.className = "callcard invite";
@@ -6220,8 +6468,31 @@
       tag.style.color = COLORS.warn;
       tag.textContent = "on today's card";
       row.appendChild(tag);
+    } else if (st && reachableUp(st).some((x) => x.id === f.id) && !hasRudis()) {
+      // The one thing on the board that IS a button. A man further up will not
+      // take a sanctioned bout with somebody who has not reached him yet, so
+      // this is the offer he will take: no reprieve, and if you win you are
+      // standing where he was. Reaching does not add a bout to the day — it
+      // re-points the rung the card already sold. See reachHigher.
+      const b = document.createElement("button");
+      b.className = "reachbtn";
+      b.innerHTML = `<span>reach</span><span class="rsub">sine missione</span>`;
+      b.style.borderColor = diffColor("sine") + "66";
+      b.title = `${f.name} stands ${rank < st.rank ? st.rank - rank : 0} rungs above you. `
+              + `He will only come down for a bout with no reprieve on it — win and you take his rung.`;
+      b.addEventListener("click", () => {
+        if (!reachHigher(f)) return;
+        fightLadder(f);
+      });
+      row.appendChild(b);
     }
     return row;
+  }
+
+  // The men above you that a contract could reach, minus the one already on the
+  // card — that one is the ordinary challenge and has its own place to be taken.
+  function reachableUp(st) {
+    return challengeableList(st, LADDER_REACH).slice(1);
   }
 
   function openLibrary() {
@@ -7086,6 +7357,10 @@
 
   // ---- Powerup drops ----
   function spawnPowerup() {
+    // The first lesson is one thing only: the man, and staying away from him.
+    // A gift on the floor is a second thing to want, and a new man who has been
+    // told nothing about them will walk into a shot going to fetch one.
+    if (tutPart() === 1) return;
     let x, y;
     for (let tries = 0; tries < 15; tries++) {
       x = 60 + Math.random() * (W - 120);
@@ -7095,12 +7370,21 @@
           Math.hypot(x - player.x, y - player.y) > 110 &&
           Math.hypot(x - zone.x, y - zone.y) > zone.r + 40) break;
     }
-    const type = PU_KEYS[Math.floor(Math.random() * PU_KEYS.length)];
+    // Ordinarily the sand throws whatever it feels like. In the lesson that is
+    // about the gifts, it throws what he has not had yet — a man cannot be asked
+    // to collect one of each and then left waiting on a coin toss for the third.
+    let pool = PU_KEYS;
+    if (tutPart() === 2) {
+      const need = PU_KEYS.filter((k) => !tut.got[k]);
+      if (need.length) pool = need;
+    }
+    const type = pool[Math.floor(Math.random() * pool.length)];
     powerups.push({ x, y, r: 28, type, t: 0, life: PU_LIFE });
   }
 
   function collectPowerup(pu) {
     const def = POWERUPS[pu.type];
+    if (tut) tut.got[pu.type] = 1;
     // The label has to say which of the two things the surgeon just did.
     const over = pu.type === "medicus" && player.hits >= maxHits;
     switch (pu.type) {
@@ -7108,14 +7392,14 @@
         // A mark back, or a mark you had no right to. Over the cap it is the
         // same pip in green: it is spent the moment anything touches you, and
         // it never becomes part of what the contract owes you.
-        if (!practice && player.hits < maxHits + BONUS_HITS) player.hits++;
+        if (player.hits < maxHits + BONUS_HITS) player.hits++;
         break;
       case "slow":   fx.slow = def.dur; break;
       case "swift":  fx.swift = def.dur; break;
     }
     pickupFlash = {
       label: pu.type === "medicus"
-        ? (practice ? "NOTHING TO MEND" : over ? "A MARK YOU DID NOT HAVE" : "A MARK BACK")
+        ? (over ? "A MARK YOU DID NOT HAVE" : "A MARK BACK")
         : def.label,
       color: def.color, t: 0,
     };
@@ -7154,7 +7438,6 @@
   // Something red touched you. Returns true only if that killed you.
   function playerHit() {
     if (fx.invuln > 0) return false;
-    if (practice) { fx.invuln = 0.5; hurtFlash = 0.2; return false; }
     player.hits--;
     fx.invuln = MERCY;
     hurtFlash = 0.5;
@@ -7952,7 +8235,7 @@
     zone.moveT -= dt;
     if (zone.moveT <= 0) {
       // It relocates so you keep moving — and if you didn't move, it charges you.
-      if (!zone.touched) zoneIgnored();
+      if (!zone.touched && tutEyeLive()) zoneIgnored();
       placeZone();
     }
     // The hot zone rides a slow orbit around the boss, clamped into the arena.
@@ -7978,8 +8261,15 @@
       }
     }
 
-    const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
-    const inHot = hotZone.on && Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
+    // A circle that is not on the sand is not underfoot either. Cut it off at
+    // the hit test rather than at the drain: the eye has a squat clock, an
+    // entry bonus and two announcements hanging off standing in it, and a man
+    // in the first lesson who happens to walk across where it would have been
+    // should not be told THE EYE HAS SEEN ENOUGH about a thing he has never
+    // seen. One line here, and none of it can fire.
+    const eye = tutEyeLive();
+    const inZone = eye && Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
+    const inHot = eye && hotZone.on && Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
     // Turning up counts, even if a shield stopped you scoring — otherwise a
     // Murmillo would heal for holding his guard, which punishes the wrong thing.
     if (inZone || inHot) zone.touched = true;
@@ -8052,10 +8342,29 @@
     if (stageTime < 3) want *= 0.35 + (stageTime / 3) * 0.65;   // the hush before it starts
     if (inHot) want += 0.22;                                     // you went under the shield
     if (arm && arm.blind) want += 0.18;
-    if (player.hits === 1 && !practice) want += 0.15;            // one touch from done
+    if (player.hits === 1) want += 0.15;                         // one touch from done
     setCrowd(want);
     // The band leans in as the kill approaches, which also brings in the cymbals.
     if (!phase2) setMusicIntensity(1 + (1 - hpFrac) * 0.28);
+
+    // No reprieve, and at half his life he stops holding back. Checked before
+    // the crowns below, because a crowned man fought under Sine should change
+    // once and get the mythic line for it rather than changing twice.
+    if (difficulty === "sine" && !marked.sined && boss.hp <= boss.maxhp * SINE_PHASE) {
+      marked.sined = true;
+      marked.arm = sinePhaseArm(marked.arm);
+      marked.spd *= SINE_PHASE_SPD;
+      marked.rate *= SINE_PHASE_RATE;
+      // Rebind, or the globals the pattern code is using go on pointing at the
+      // man he was a moment ago and none of it takes effect until the next foe.
+      bindFoe(marked);
+      shockwaves.push({ x: boss.x, y: boss.y, t: 0, dur: 0.6 });
+      shake = 12;
+      freeze = 0.14;
+      sfx("death");
+      pickupFlash = { label: "NO REPRIEVE — HE CHANGES HIS GUARD", color: diffColor("sine"), t: 0 };
+      if (bossSpeaker) say(bossSpeaker, "sine", true);
+    }
 
     // Hades and the Void change gear at half health.
     const key = marked.key;
@@ -9979,21 +10288,11 @@
     const y = H - 32;
     const x0 = W / 2 - ((Math.max(maxHits, player.hits) - 1) * gap) / 2;
     ctx.save();
-    if (practice) {
-      // The Ludus: wooden swords. There are no markers to lose.
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = diffColor("ludus");
-      ctx.font = `700 15px ${FONT}`;
-      ctx.fillText("∞  LUDUS — wooden swords", W / 2, y);
-      ctx.restore();
-      return;
-    }
     const last = player.hits === 1;
     const pulse = 0.5 + 0.5 * Math.sin(totalTime * 7);
-    // The row is the contract, said in colour: three in the emperor's blue under
-    // a sanctioned bout, one in blood under Sine Missione. Nothing else on the
-    // screen has to carry that, because this is the thing it is about.
+    // The row is the contract, said in colour: the emperor's blue under a
+    // sanctioned bout, blood under Sine Missione. Both rows are three long now,
+    // so the colour is the whole of the difference and has to carry it alone.
     const pipCol = diffColor();
     const pipRim = difficulty === "sine" ? "#ffd9d3" : "#eafcff";
     // A spare mark off the surgeon sits on the end of the row in his green, and
@@ -10114,7 +10413,12 @@
       ctx.fillRect(0, 0, W, H);
     }
 
-    if (shown === GS.PLAYING || shown === GS.OVER) {
+    // Both circles stay off the sand until Part III names them. They did nothing
+    // in the first two lessons anyway — an inert blue ring and a dial reading
+    // COLD are furniture a new man tries to make sense of instead of watching
+    // the man throwing at him, and Part III's card lands better on empty sand
+    // than on a circle he has already decided is scenery.
+    if ((shown === GS.PLAYING || shown === GS.OVER) && tutEyeLive()) {
       // Blue damage zone — stand inside to hurt the boss.
       const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
       const p = 0.5 + 0.5 * Math.sin(zone.pulse * 5);
@@ -10360,6 +10664,7 @@
       // Over the fight, under the HUD: what the card that stopped the frame is
       // actually pointing at.
       drawTutFocus();
+      drawTutGoal();
 
       if (state !== GS.TRANSITION) drawBossHpBar();
       drawHits();
@@ -10449,9 +10754,11 @@
     pips.forEach((p, i) => {
       p.className = i < here ? "done" : (i === here ? "active" : "");
     });
-    hudTimerLabel.textContent = "Eye";
+    // No eye to report on before the lesson that hands him one.
+    hudTimerLabel.textContent = tutEyeLive() ? "Eye" : "";
   }
   function updateHud() {
+    if (!tutEyeLive()) { hudTimer.textContent = ""; return; }
     const inZone = Math.hypot(player.x - zone.x, player.y - zone.y) <= zone.r;
     const onHot = Math.hypot(player.x - hotZone.x, player.y - hotZone.y) <= hotZone.r;
     const inHot = hotZone.on && onHot;
@@ -10803,7 +11110,9 @@
     }
     set("libraryFoldSub", `${LEVELS.filter((l) => done.includes(l.id)).length} / ${LEVELS.length} cleared`);
     set("muneraFoldSub", `${MUNERA.filter((m) => done.includes(m.id)).length} / ${MUNERA.length} survived`);
-    set("ludusFoldSub", tutorialDone() ? "been through it" : "not yet");
+    set("ludusFoldSub", tutorialDone()
+      ? "been through it"
+      : `${ludusPassed().length} of ${LUDUS.length}`);
   }
 
   // The trainer's four lessons, one at a time.
